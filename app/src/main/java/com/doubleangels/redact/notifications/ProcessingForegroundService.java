@@ -15,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.VideoMedia3Converter;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 /**
@@ -42,12 +43,14 @@ public class ProcessingForegroundService extends Service {
         intent.putExtra(EXTRA_TITLE, title != null ? title : app.getString(R.string.status_processing));
         try {
             app.startForegroundService(intent);
-        } catch (SecurityException ignored) {
+        } catch (SecurityException e) {
             // POST_NOTIFICATIONS denied on API 33+.
+            AppMetrics.foregroundServiceFailure("no_notification_permission", e);
         } catch (IllegalStateException e) {
             // ForegroundServiceStartNotAllowedException: the app went to the background before
             // the job began. The job runs without the service, as updateProgress and stop allow.
-            SentryManager.log("The processing service could not start from the background.");
+            SentryManager.logEvent("notification", "The processing service could not start from the background.");
+            AppMetrics.foregroundServiceFailure("start_service", e);
         }
     }
 
@@ -181,12 +184,14 @@ public class ProcessingForegroundService extends Service {
         } catch (SecurityException e) {
             // POST_NOTIFICATIONS denied; we still satisfied the startForeground
             // contract via the try, so just stop cleanly.
+            AppMetrics.foregroundServiceFailure("no_notification_permission", e);
             stopSelf();
             return START_NOT_STICKY;
         } catch (RuntimeException e) {
             // InvalidForegroundServiceTypeException and similar FGS failures on newer Android. Record it:
             // swallowing it silently is how the API 34 failure went unnoticed.
             SentryManager.recordException(e);
+            AppMetrics.foregroundServiceFailure("start_foreground", e);
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -207,7 +212,7 @@ public class ProcessingForegroundService extends Service {
      */
     @Override
     public void onTimeout(int startId, int fgsType) {
-        SentryManager.log(
+        SentryManager.logEvent("notification", 
                 "The ProcessingForegroundService hit the Android background execution time limit.");
         AppProcessingScope scope =
                 AppProcessingScope.get(getApplicationContext());

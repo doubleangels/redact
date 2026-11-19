@@ -7,10 +7,10 @@ runs:
     - name: Validate Gradle wrapper
       uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
-    - name: Set up JDK 25
-      uses: actions/setup-java@v6.3.0
+    - name: Set up JDK 27
+      uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
       with:
-        java-version: "25"
+        java-version: "27"
         distribution: temurin
         cache: gradle
 

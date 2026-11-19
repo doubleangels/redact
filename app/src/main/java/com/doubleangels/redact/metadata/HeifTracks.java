@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ import java.util.Set;
  * a clean.
  *
  * <p>Like the rest of {@link HeifContainerMetadata}, this works from an allowlist. Only picture
- * tracks ({@code pict}, {@code vide} and their auxiliary alpha or depth tracks) in HEVC or AV1 are
+ * tracks ({@code pict}, {@code vide} and their auxiliary alpha tracks) in HEVC or AV1 are
  * kept, with the boxes that time and decode them. User data and metadata boxes, where
  * location and dates go, are left out at every level. The creation and modification times are
  * zeroed, the handler name is emptied, and the sample entry's compressor name is blanked. Every
@@ -38,12 +39,25 @@ import java.util.Set;
 final class HeifTracks {
 
     private static final Set<String> PICTURE_HANDLERS = Set.of("pict", "vide", "auxv");
+    /**
+     * The auxiliary track kinds kept: transparency, which the picture needs. Depth, disparity, a
+     * matte outlining a person and any kind not known here are left out, as for a still image:
+     * they map the scene in 3D or show the shape of the people in it.
+     */
+    private static final Set<String> KEPT_AUX_TYPES = Set.of(
+            "urn:mpeg:hevc:2015:auxid:1", "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha");
     private static final Set<String> SAMPLE_ENTRY_CHILDREN = Set.of(
             "hvcC", "av1C", "colr", "pasp", "clap", "btrt", "ccst", "clli", "mdcv", "cclv", "amve", "auxi");
     /** Sample table boxes copied as they are; the sizes, chunks and offsets are written anew. */
     private static final Set<String> STBL_COPY = Set.of(
             "stsd", "stts", "ctts", "cslg", "stss", "sdtp", "sgpd", "sbgp");
     private static final int MAX_FRAME_BYTES = 256 * 1024 * 1024;
+    /**
+     * More frames than any burst or animated image has. A table that declares more is refused
+     * before anything is allocated for it: a fixed-size table is bounded only by this, and its
+     * size and offset arrays would otherwise take many times the file's own size.
+     */
+    private static final int MAX_SAMPLES = 1_000_000;
 
     private static final class Track {
         long id;
@@ -57,6 +71,8 @@ final class HeifTracks {
         final List<byte[]> stblCopies = new ArrayList<>();
         String codec;
         int nalLengthSize = 4;
+        /** An auxiliary track's kind, from its auxi box: alpha, depth, a matte...; null when none. */
+        @Nullable String auxType;
         long[] sampleOffsets;
         int[] sampleSizes;
         long[] newOffsets;
@@ -176,6 +192,9 @@ final class HeifTracks {
             throw new IOException("Damaged media information");
         }
         parseSampleTable(track, stbl);
+        if ("auxv".equals(track.handler) && (track.auxType == null || !KEPT_AUX_TYPES.contains(track.auxType))) {
+            return null; // depth, a matte or an unknown kind: left out, as for a still image
+        }
         return track;
     }
 
@@ -191,14 +210,22 @@ final class HeifTracks {
                     track.stblCopies.add(sampleDescriptions(track, Arrays.copyOfRange(stbl, child[0], child[1])));
                     break;
                 case "stsz": {
-                    int fixed = (int) u32(stbl, p + 4);
+                    long fixed = u32(stbl, p + 4);
                     int count = entryCount(u32(stbl, p + 8), fixed != 0 ? 0 : 4, p + 12, child[1]);
-                    if (fixed != 0 && (long) count * (fixed & 0xFFFFFFFFL) > in.length()) {
+                    if (count > MAX_SAMPLES) {
+                        throw new IOException("Too many samples");
+                    }
+                    if (fixed > MAX_FRAME_BYTES || (fixed != 0 && count * fixed > in.length())) {
                         throw new IOException("Samples larger than the file");
                     }
                     sizes = new int[count];
                     for (int i = 0; i < count; i++) {
-                        sizes[i] = fixed != 0 ? fixed : (int) u32(stbl, p + 12 + i * 4);
+                        // Checked as read: cast first, a size from 2^31 up turned negative.
+                        long size = fixed != 0 ? fixed : u32(stbl, p + 12 + i * 4);
+                        if (size > MAX_FRAME_BYTES) {
+                            throw new IOException("Frame too large");
+                        }
+                        sizes[i] = (int) size;
                     }
                     break;
                 }
@@ -330,6 +357,13 @@ final class HeifTracks {
                 bytes = HeifContainerMetadata.filterHvcC(bytes);
             } else if ("av1C".equals(type)) {
                 bytes = HeifContainerMetadata.filterAv1C(bytes);
+            } else if ("auxi".equals(type)) {
+                int q = headerSize(bytes, 0) + 4; // after version and flags
+                int end = q;
+                while (end < bytes.length && bytes[end] != 0) {
+                    end++;
+                }
+                track.auxType = new String(bytes, q, end - q, StandardCharsets.ISO_8859_1);
             } else if ("colr".equals(type)) {
                 int q = headerSize(bytes, 0);
                 String colourType = fourCc(bytes, q);

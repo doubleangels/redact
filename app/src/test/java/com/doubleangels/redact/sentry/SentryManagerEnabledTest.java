@@ -31,6 +31,12 @@ import io.sentry.protocol.SentryId;
  * With crash reporting enabled but the Sentry SDK not initialised (as in unit tests, where the
  * facade is a no-op), every reporting helper still runs its full validation and scrubbing logic.
  */
+/*
+ * The tests named ..._doesNotThrow run every helper with good and bad input to show it copes;
+ * what reaches Sentry is asserted elsewhere: the tag gate and breadcrumb scrubbing in
+ * SentryInitializerTest (against a started SDK), metric attributes in SentryManagerTest, and the
+ * scrubber itself in SentryPrivacyScrubberTest.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class SentryManagerEnabledTest {
 
@@ -68,40 +74,37 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
-    public void logEvent_handlesNullsAndScrubsTheMessage() {
+    public void logEvent_withNullsOrUserText_doesNotThrow() {
         SentryManager.logEvent("scan", "opened content://media/external/images/media/1");
         SentryManager.logEvent(null, null);
-        SentryManager.log("deprecated entry point");
     }
 
     @Test
-    public void counters_acceptAllowedDimensionsOnly() {
-        SentryManager.count("video.downscaled", 1);
+    public void counters_withAnyDimensions_doNotThrow() {
+        SentryManager.count("video.downscale", 1);
         SentryManager.count("", 1);
         SentryManager.count(null, 1);
-        SentryManager.count("video.downscaled", 1, "is_video", "true");
-        SentryManager.count("video.downscaled", 1, "file_name", "secret.jpg");
-        SentryManager.count("processing.clean.failure", 1, "is_video", null);
-        SentryManager.count("processing.clean.failure", 1, "is_video", "false", "error_type", "IOException");
-        SentryManager.count("processing.clean.failure", 1, "is_video", "false", "uri", "content://x");
-        SentryManager.count("processing.clean.failure", 1, "uri", "x", "is_video", "false");
-        SentryManager.count("processing.clean.failure", 1, "is_video", null, "error_type", null);
+        SentryManager.count("video.downscale", 1, "file.media_type", "true");
+        SentryManager.count("video.downscale", 1, "file_name", "secret.jpg");
+        SentryManager.count("job.item", 1, "file.media_type", null);
+        SentryManager.count("job.item", 1, "file.media_type", "false", "error_type", "IOException");
+        SentryManager.count("job.item", 1, "file.media_type", "false", "uri", "content://x");
+        SentryManager.count("job.item", 1, "uri", "x", "file.media_type", "false");
+        SentryManager.count("job.item", 1, "file.media_type", null, "error_type", null);
     }
 
     @Test
-    public void distributionsAndGauges_validateTheirInputs() {
-        SentryManager.distribution("video.retry_smaller", 3);
+    public void distributionsAndGauges_withAnyInput_doNotThrow() {
+        SentryManager.distribution("video.retry", 3);
         SentryManager.distribution("", 3);
-        SentryManager.distribution("video.retry_smaller", 3, "operation_type", "clean");
-        SentryManager.distribution("video.retry_smaller", 3, "path", "/storage/x");
-        SentryManager.distributionDurationMs("processing.duration_ms", 1234, "operation_type", "convert");
-        SentryManager.distributionDurationMs("processing.duration_ms", 1234, "location", "x");
-        SentryManager.gauge("queue.depth", 2);
-        SentryManager.gauge(null, 2);
+        SentryManager.distribution("video.retry", 3, "job.type", "clean");
+        SentryManager.distribution("video.retry", 3, "path", "/storage/x");
+        SentryManager.distributionDurationMs("job.batch.duration", 1234, "job.type", "convert");
+        SentryManager.distributionDurationMs("job.batch.duration", 1234, "location", "x");
     }
 
     @Test
-    public void recordException_scrubsOrSkipsDependingOnTheError() {
+    public void recordException_ofAnyError_doesNotThrow() {
         SentryManager.recordException(new IllegalStateException("failed on content://media/external/images/media/9"));
         SentryManager.recordException(new IllegalStateException("plain message"));
         SentryManager.recordException(new IllegalStateException());
@@ -141,19 +144,19 @@ public class SentryManagerEnabledTest {
     @Test
     public void operationData_isSplitIntoTagsAndContext() {
         SentryManager.beginOperation("image_to_mediastore");
-        SentryManager.setCustomKey("success", false);
-        SentryManager.setCustomKey("bitmap_sample_size", 4);
-        SentryManager.setCustomKey("image_resolution_class", SentryManager.resolutionClass(4032, 3024));
+        SentryManager.setCustomKey("outcome", "failed");
+        SentryManager.setCustomKey("image.sample_size", 4);
+        SentryManager.setCustomKey("image.resolution_class", SentryManager.resolutionClass(4032, 3024));
 
         SentryEvent event = new SentryEvent();
         SentryManager.applyOperationData(event);
 
-        assertEquals("image_to_mediastore", event.getTag("operation_type"));
-        assertEquals("false", event.getTag("success"));
-        assertEquals("4k", event.getTag("image_resolution_class"));
-        assertNull("measurements are not tags", event.getTag("bitmap_sample_size"));
+        assertEquals("image_to_mediastore", event.getTag("job.type"));
+        assertEquals("failed", event.getTag("outcome"));
+        assertEquals("4k", event.getTag("image.resolution_class"));
+        assertNull("measurements are not tags", event.getTag("image.sample_size"));
         Map<?, ?> context = (Map<?, ?>) event.getContexts().get(SentryManager.OPERATION_CONTEXT);
-        assertEquals("4", context.get("bitmap_sample_size"));
+        assertEquals("4", context.get("image.sample_size"));
     }
 
     @Test
@@ -194,24 +197,37 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
+    public void beginOperation_tagsTheThermalAndBatterySaverState() {
+        SentryManager.beginOperation("image_to_mediastore");
+
+        SentryEvent event = new SentryEvent();
+        SentryManager.applyOperationData(event);
+
+        assertEquals("none", event.getTag("device.thermal_status"));
+        assertEquals("false", event.getTag("device.power_save"));
+        assertEquals("none", SentryManager.thermalStatus());
+        assertFalse(SentryManager.isPowerSaveMode());
+    }
+
+    @Test
     public void beginOperation_dropsThePreviousJobsData() {
         SentryManager.beginOperation("image_to_mediastore");
-        SentryManager.setCustomKey("success", false);
+        SentryManager.setCustomKey("outcome", "failed");
         SentryManager.setCustomKey("error_type", "java.io.IOException");
         SentryManager.beginOperation("video_to_mediastore");
 
         SentryEvent event = new SentryEvent();
         SentryManager.applyOperationData(event);
 
-        assertEquals("video_to_mediastore", event.getTag("operation_type"));
-        assertNull(event.getTag("success"));
+        assertEquals("video_to_mediastore", event.getTag("job.type"));
+        assertNull(event.getTag("outcome"));
         assertNull(event.getTag("error_type"));
     }
 
     @Test
     public void operationData_staysOnTheThreadThatSetIt() throws Exception {
         SentryManager.beginOperation("image_to_mediastore");
-        SentryManager.setCustomKey("success", true);
+        SentryManager.setCustomKey("outcome", "success");
 
         SentryEvent[] other = new SentryEvent[1];
         Thread scan = new Thread(() -> {
@@ -222,31 +238,31 @@ public class SentryManagerEnabledTest {
         scan.start();
         scan.join();
 
-        assertEquals("extract_metadata", other[0].getTag("operation_type"));
-        assertNull("another job's tags don't leak in", other[0].getTag("success"));
+        assertEquals("extract_metadata", other[0].getTag("job.type"));
+        assertNull("another job's tags don't leak in", other[0].getTag("outcome"));
         SentryEvent mine = new SentryEvent();
         SentryManager.applyOperationData(mine);
-        assertEquals("image_to_mediastore", mine.getTag("operation_type"));
-        assertEquals("true", mine.getTag("success"));
+        assertEquals("image_to_mediastore", mine.getTag("job.type"));
+        assertEquals("success", mine.getTag("outcome"));
     }
 
     @Test
-    public void customKeys_areFilteredAndTruncated() {
-        SentryManager.setCustomKey("operation_type", "clean");
-        SentryManager.setCustomKey("operation_type", (String) null);
-        SentryManager.setCustomKey("mime_type", "x".repeat(400));
+    public void customKeys_ofAnyKeyOrValue_doNotThrow() {
+        SentryManager.setCustomKey("job.type", "clean");
+        SentryManager.setCustomKey("job.type", (String) null);
+        SentryManager.setCustomKey("file.mime_type", "x".repeat(400));
         SentryManager.setCustomKey("unknown_key", "ignored");
         SentryManager.setCustomKey(null, "ignored");
         SentryManager.setCustomKey("permission_android_permission_X", "true");
         SentryManager.setCustomKey("video_verify_failed_key", "LOCATION");
         SentryManager.setCustomKey("can_ask_images_again", "false");
-        SentryManager.setCustomKey("success", true);
+        SentryManager.setCustomKey("outcome", "success");
         SentryManager.setCustomKey("batch_size", 3);
         SentryManager.setCustomKey("file_size_mb", 4L);
         SentryManager.setCustomKey("image_width", 4.5f);
         SentryManager.setCustomKey("image_height", 6.5d);
         AppPreferences.setCrashReportingEnabled(app, false);
-        SentryManager.setCustomKey("operation_type", "ignored while disabled");
+        SentryManager.setCustomKey("job.type", "ignored while disabled");
     }
 
     @Test

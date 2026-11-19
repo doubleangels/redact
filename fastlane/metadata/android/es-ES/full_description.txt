@@ -36,7 +36,7 @@ O compártelo con Escanear con Redact para revisarlo primero.
 
 <b>Privado desde el diseño</b>
 • Todo funciona en tu móvil, sin necesidad de internet
-• Sin anuncios, sin analíticas, sin rastreo y sin cuenta
+• Sin anuncios, sin rastreo y sin cuenta
 • Tus fotos, vídeos y datos personales nunca se recopilan ni se comparten
 • Código abierto bajo GPL-3.0: cualquiera puede leerlo en GitHub
 • Funciona con el selector de archivos del sistema, así que el acceso a toda tu galería es opcional

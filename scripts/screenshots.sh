@@ -493,7 +493,6 @@ fresh_app() {
     <boolean name="initial_permissions_prompted" value="true" />
     <boolean name="onboarding_seen" value="true" />
     <int name="review_state" value="2" />
-    <boolean name="crash_reporting_prompted" value="true" />
 </map>
 XML
   adb push "$(winpath "$prefs")" /data/local/tmp/redact_prefs.xml >/dev/null

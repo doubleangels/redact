@@ -1,11 +1,13 @@
 package com.doubleangels.redact;
 
-import com.doubleangels.redact.sentry.SentryManager;
+import com.doubleangels.redact.sentry.AppMetrics;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.InboundSnapshots;
 import com.doubleangels.redact.media.SecureDelete;
 
 import java.io.File;
@@ -42,7 +44,7 @@ public final class CacheCleanup {
     /** Glide's default disk cache folder (InternalCacheDiskCacheFactory). */
     private static final String GLIDE_DISK_CACHE_DIR = "image_manager_disk_cache";
     private static final String[] TEMP_PREFIXES = {
-            "temp_", "verify_", "vid_transform_", "vid_transmux_", "inbound_", "censored_",
+            "temp_", "verify_", "vid_transform_", "vid_transmux_", InboundSnapshots.PREFIX, "censored_",
             // Copies of a picture, video or its tags made on the way to a clean file.
             "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_",
             "xmp_"
@@ -157,7 +159,7 @@ public final class CacheCleanup {
         File thumbnailCache = cacheDir != null ? new File(cacheDir, GLIDE_DISK_CACHE_DIR) : null;
         if (!orphans.isEmpty()) {
             // Working files from a clean that never finished: the process died partway.
-            SentryManager.count("cache.orphans_found", orphans.size());
+            AppMetrics.orphansFound(orphans.size());
         }
         if (thumbnailCache != null && thumbnailCache.isDirectory()) {
             collectFilesOlderThan(thumbnailCache, Long.MAX_VALUE, orphans);
@@ -231,7 +233,7 @@ public final class CacheCleanup {
 
     /** Waits for a sweep started by {@link #scheduleOrphanedWorkFileSweep} (tests only). */
     @VisibleForTesting
-    public static void awaitOrphanSweepForTests() {
+    static void awaitOrphanSweepForTests() {
         Thread thread = orphanSweepThread;
         if (thread != null) {
             try {
@@ -245,7 +247,7 @@ public final class CacheCleanup {
     @VisibleForTesting
     static boolean shouldRunAutoCleanup(@NonNull Context context) {
         if (!AppPreferences.isAutoClearTempFiles(context)
-                || ShareHandlerActivity.isShareProcessingActive()) {
+                || AppProcessingScope.get(context).isShareRunning()) {
             return false;
         }
         return autoCleanupScheduledThisProcess.compareAndSet(false, true);
@@ -257,7 +259,7 @@ public final class CacheCleanup {
     }
 
     @VisibleForTesting
-    public static void resetAutoCleanupStateForTests() {
+    static void resetAutoCleanupStateForTests() {
         // Let any sweep started by Application.onCreate finish so it can't race the test's files.
         Thread thread = autoCleanupThread;
         if (thread != null) {

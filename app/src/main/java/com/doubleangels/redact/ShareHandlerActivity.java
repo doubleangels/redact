@@ -1,5 +1,10 @@
 package com.doubleangels.redact;
 
+import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.BatchRun;
+import com.doubleangels.redact.media.InboundSnapshots;
+import java.util.HashMap;
+import java.util.Map;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
@@ -31,13 +36,11 @@ import com.doubleangels.redact.media.SecureDelete;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.MetadataStripper;
 import com.doubleangels.redact.notifications.LocalNotifications;
-import com.doubleangels.redact.media.MediaSizeLimits;
-import com.doubleangels.redact.media.MediaUriResolver;
-import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.ProcessingResourceWarnings;
 import com.doubleangels.redact.metadata.CleanResult;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.ReviewPrompt;
@@ -45,16 +48,8 @@ import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.ShareResults;
 import com.google.android.material.color.DynamicColors;
 
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -77,10 +72,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
     private static final String KEY_SHARING_INITIATED = "sharing_initiated";
     private static final String KEY_PROCESSING_ACTIVE = "processing_active";
 
-    /** Tracks in-flight share processing so MainActivity does not delete temp files mid-share. */
-    private static final AtomicInteger activeShareSessions =
-            new AtomicInteger(0);
-
     /**
      * Runs secure-delete cleanup off the calling thread. Overwriting a large video file with
      * random data multiple times plus fsync (see {@link SecureDelete}) can take long enough to
@@ -88,7 +79,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * cancel/finish/onDestroy call into cleanup.
      */
     private static final ExecutorService cleanupExecutor =
-            Executors.newSingleThreadExecutor();
+            Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-share-cleanup"));
 
     /**
      * Marks a share Redact's own Clean tab started with {@link #shareWithoutSaving}, which skips
@@ -138,10 +129,6 @@ public class ShareHandlerActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean isShareProcessingActive() {
-        return activeShareSessions.get() > 0;
-    }
-
     private final ActivityResultLauncher<Intent> shareResultLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -182,7 +169,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final int id;
         final MetadataStripper stripper;
         final AtomicBoolean ended = new AtomicBoolean(false);
-        /** Whether {@link #activeShareSessions} counts this session; touched on the main thread only. */
+        /** Whether {@link AppProcessingScope} counts this session as running; touched on the main thread only. */
         boolean counted;
         private final List<File> snapshots = new ArrayList<>();
         private boolean snapshotsClosed;
@@ -232,7 +219,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             mediaSelector = new MediaSelector(this);
             shareSession = newShareSession();
 
-            SentryManager.log("The ShareHandlerActivity was created.");
+            SentryManager.logEvent("share", "The ShareHandlerActivity was created.");
 
             if (savedInstanceState != null) {
                 sharingInitiated = savedInstanceState.getBoolean(KEY_SHARING_INITIATED, false);
@@ -345,30 +332,30 @@ public class ShareHandlerActivity extends AppCompatActivity {
             String action = intent.getAction();
             String type = intent.getType();
 
-            SentryManager.setCustomKey("intent_action", action != null ? action : "null");
+            SentryManager.setCustomKey("intent.action", action != null ? action : "null");
             // The sender writes the type, so only a plain MIME type is sent, never its own text.
-            SentryManager.setCustomKey("intent_type", mimeTypeTag(type));
+            SentryManager.setCustomKey("intent.type", mimeTypeTag(type));
 
             if (Intent.ACTION_SEND.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
-                    SentryManager.log("The app is handling a single media item.");
+                    SentryManager.logEvent("share", "The app is handling a single media item.");
                     handleSentMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
                         || "*/*".equals(type)) {
-                    SentryManager.log("The app is handling multiple media items.");
+                    SentryManager.logEvent("share", "The app is handling multiple media items.");
                     handleMultipleMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
-                SentryManager.setCustomKey("unsupported_action", action != null ? action : "null");
+                SentryManager.setCustomKey("intent.unsupported_action", action != null ? action : "null");
                 finishWithError(getString(R.string.share_error_unsupported_action));
             }
         } catch (Exception e) {
@@ -381,7 +368,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         try {
             List<Uri> uris = extractUrisFromIntent(intent);
             if (uris.isEmpty()) {
-                SentryManager.logEvent("Share", "The app received no media URI.");
+                SentryManager.logEvent("share", "The app received no media URI.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
                 return;
             }
@@ -406,7 +393,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 }
                 prepareAndProcess(uris);
             } else {
-                SentryManager.logEvent("Share", "The app received an empty media list.");
+                SentryManager.logEvent("share", "The app received an empty media list.");
                 finishWithError(getString(R.string.share_error_failed_receive_media));
             }
         } catch (Exception e) {
@@ -452,7 +439,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     finishWithError(getString(R.string.share_error_failed_receive_media));
                     return;
                 }
-                SentryManager.setCustomKey("media_count", snapshotted.size());
+                SentryManager.setCustomKey("share.media_count", snapshotted.size());
                 maybeConfirmAndProcess(snapshotted, session);
             });
         });
@@ -504,162 +491,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
     /** Copies each item to cache, on a background thread; stops early when the share ends. */
     @NonNull
     private List<Uri> snapshotInboundUris(@NonNull List<Uri> uris, @NonNull ShareSession session) {
-        List<Uri> stable = new ArrayList<>();
-        session.snapshotFailCount.set(0);
-        for (Uri uri : uris) {
-            if (!isCurrentSession(session)) {
-                break;
-            }
-            // Intake lets through only another app's content:// (isSupportedInboundUri), so each
-            // item is copied from its provider.
-            try {
-                File snapshot = copyInboundUriToCache(uri, session);
-                if (!isCurrentSession(session) || !session.addSnapshot(snapshot)) {
-                    // The share was cancelled during the copy and its cleanup has already
-                    // run, so nothing else would delete this one.
-                    SecureDelete.secureDelete(snapshot);
-                    break;
-                }
-                stable.add(Uri.fromFile(snapshot));
-            } catch (IOException e) {
-                if (!isCurrentSession(session)) {
-                    break;
-                }
-                // The source is already unreadable here, so forwarding the original URI
-                // would only fail identically at every later processing stage (extractor,
-                // transcoder, verifier), each logging its own duplicate exception for what
-                // is really a single failure. Drop this item instead, but count it so the
-                // user still sees the partial-success message.
-                session.snapshotFailCount.incrementAndGet();
-                SentryManager.count("share.snapshot.failure", 1, "error_type",
-                        e instanceof FileNotFoundException ? "not_found" : e.getClass().getSimpleName());
-                if (e instanceof FileNotFoundException) {
-                    // The sharing app handed us a URI whose item no longer exists (deleted,
-                    // or a stale cloud/gallery entry). Nothing on our side to fix.
-                    SentryManager.logEvent("Share", "An inbound item no longer exists and was skipped.");
-                } else {
-                    SentryManager.recordException(e);
-                }
-            }
-        }
-        return stable;
-    }
-
-    @NonNull
-    private File copyInboundUriToCache(@NonNull Uri uri, @NonNull ShareSession session) throws IOException {
-        String type;
-        try {
-            type = getContentResolver().getType(uri);
-        } catch (RuntimeException e) {
-            type = null;
-        }
-        // The suffix is all the clean has to go on later (the copy has no type), and it
-        // picks the output's format: naming every image .jpg turned PNGs, WebPs and HEICs into
-        // JPEGs, and a PNG's transparency into black.
-        String suffix = suffixFor(type, MediaUriResolver.readDisplayName(this, uri));
-        File dest = new File(getCacheDir(), "inbound_" + System.nanoTime() + suffix);
-        try (InputStream in = getContentResolver().openInputStream(uri);
-                FileOutputStream out = new FileOutputStream(dest)) {
-            if (in == null) {
-                throw new IOException("Cannot open inbound stream");
-            }
-            copyForSession(in, out, session);
-        } catch (IOException e) {
-            // A partial copy still holds part of the original.
-            SecureDelete.secureDelete(dest);
-            throw e;
-        }
-        return dest;
-    }
-
-    /** Copies a whole stream, giving up as soon as the share it belongs to is cancelled. */
-    private void copyForSession(@NonNull InputStream in, @NonNull OutputStream out, @NonNull ShareSession session)
-            throws IOException {
-        try {
-            MediaSizeLimits.copyStream(in, out, () -> {
-                if (!isCurrentSession(session)) {
-                    throw new UncheckedIOException(
-                            new ProcessingCancelledException("Share cancelled"));
-                }
-            });
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
-
-    /**
-     * The suffix for a snapshot of a shared item: the one its type names, else the extension of its
-     * name when that is a media extension Redact recognizes, else {@code .bin}.
-     */
-    @VisibleForTesting
-    @NonNull
-    static String suffixFor(@Nullable String mimeType, @Nullable String name) {
-        if (mimeType != null) {
-            switch (mimeType.toLowerCase(Locale.US)) {
-                case "image/jpeg":
-                case "image/jpg":
-                    return ".jpg";
-                case "image/png":
-                    return ".png";
-                case "image/webp":
-                    return ".webp";
-                case "image/heic":
-                    return ".heic";
-                case "image/heif":
-                    return ".heif";
-                case "image/avif":
-                    return ".avif";
-                case "image/gif":
-                    return ".gif";
-                case "image/bmp":
-                    return ".bmp";
-                case "video/mp4":
-                    return ".mp4";
-                case "video/quicktime":
-                    return ".mov";
-                case "video/webm":
-                    return ".webm";
-                case "video/x-matroska":
-                    return ".mkv";
-                case "video/3gpp":
-                    return ".3gp";
-                default:
-                    break;
-            }
-        }
-        String lower = name != null ? name.toLowerCase(Locale.US) : "";
-        int dot = lower.lastIndexOf('.');
-        String extension = dot >= 0 ? lower.substring(dot) : "";
-        switch (extension) {
-            case ".jpeg":
-                return ".jpg";
-            case ".jpg":
-            case ".png":
-            case ".webp":
-            case ".heic":
-            case ".heif":
-            case ".avif":
-            case ".gif":
-            case ".bmp":
-            case ".mp4":
-            case ".m4v":
-            case ".mov":
-            case ".webm":
-            case ".mkv":
-            case ".3gp":
-            case ".avi":
-                return extension;
-            default:
-                break;
-        }
-        // A type with no known extension still says which decoder the item needs.
-        if (mimeType != null && mimeType.startsWith("video/")) {
-            return ".mp4";
-        }
-        if (mimeType != null && mimeType.startsWith("image/")) {
-            return ".jpg";
-        }
-        return ".bin";
+        // Intake lets through only another app's content:// (isSupportedInboundUri), so each item
+        // is copied from its provider.
+        return InboundSnapshots.copyAll(getApplicationContext(), uris, () -> isCurrentSession(session),
+                session::addSnapshot, session.snapshotFailCount);
     }
 
     /** Starts cleaning the snapshots, after asking first when Settings says to. */
@@ -700,94 +535,59 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final MetadataStripper stripper = session.stripper;
         processingActive = true;
         session.counted = true;
-        activeShareSessions.incrementAndGet();
+        AppProcessingScope.get(this).shareStarted();
         LocalNotifications.startProcessingForeground(
                 this, LocalNotifications.ForegroundJob.SHARE, getString(R.string.share_processing_title));
         Thread worker = new Thread(() -> {
-            ITransaction transaction = SentryManager.startTransaction("share_cleanup", "task");
-            long batchStartMs = System.currentTimeMillis();
             ArrayList<Uri> processedUris = new ArrayList<>();
-            int failCount = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
-            int unsupportedFailCount = session.unsupportedRejectCount.get();
-            boolean hasVideo = false;
-            boolean hasImage = false;
-
+            // Files that could not even be copied in count as given and failed.
+            int alreadyFailed = session.snapshotFailCount.get() + session.unsupportedRejectCount.get();
+            int[] unsupportedFailCount = {session.unsupportedRejectCount.get()};
+            boolean[] hasVideo = {false};
+            boolean[] hasImage = {false};
+            Map<Uri, SharedItem> described = new HashMap<>();
             try {
-                for (int i = 0; i < uris.size(); i++) {
-                    if (!isCurrentSession(session)) {
-                        break;
-                    }
-                    Uri uri = uris.get(i);
-                    final int currentIndex = i + 1;
-                    final int total = uris.size();
-
-                    runOnUiThreadForSession(session, () -> updateProgressMessage(
-                            getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
-
-                    String mimeType = getContentResolver().getType(uri);
-                    String fileName = mediaSelector.getFileName(uri);
-                    boolean isVideo = MediaSelector.isVideoFromMimeAndName(mimeType, fileName);
-                    if (isVideo) hasVideo = true;
-                    else hasImage = true;
-
-                    CleanResult result = stripper.cleanForSharing(uri, fileName, isVideo);
-                    if (result.succeeded()) {
-                        processedUris.add(result.uri());
-                        CleanStats stats = result.stats();
-                        StatsStore.recordClean(this,
-                                stats != null ? stats : new CleanStats(0, false),
-                                isVideo, true);
-                        try {
-                            File outputFile = result.file();
-                            if (outputFile != null && outputFile.exists() && outputFile.isFile()) {
-                                boolean replaced;
-                                synchronized (fileListLock) {
-                                    replaced = session != shareSession;
-                                    if (!replaced) {
-                                        processedFiles.add(outputFile);
-                                        processedDisplayNames.add(outputFile.getName());
-                                    }
-                                }
-                                if (replaced) {
-                                    // A newer share took over and already emptied the list.
-                                    List<File> stale = new ArrayList<>();
-                                    stale.add(outputFile);
-                                    Context appContext = getApplicationContext();
-                                    cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
+                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, "share_cleanup", uris, alreadyFailed,
+                        uri -> describe(described, uri).video,
+                        () -> !isCurrentSession(session) || Thread.currentThread().isInterrupted(),
+                        (uri, i) -> {
+                            int currentIndex = i + 1;
+                            int total = uris.size();
+                            runOnUiThreadForSession(session, () -> updateProgressMessage(
+                                    getString(R.string.status_processing) + " (" + currentIndex + "/" + total + ")"));
+                            SharedItem item = describe(described, uri);
+                            if (item.video) {
+                                hasVideo[0] = true;
+                            } else {
+                                hasImage[0] = true;
+                            }
+                            CleanResult cleaned = stripper.cleanForSharing(uri, item.fileName, item.video);
+                            if (!cleaned.succeeded()) {
+                                return cleaned.unsupported() ? BatchRun.Outcome.UNSUPPORTED : BatchRun.Outcome.NOT_CLEANED;
+                            }
+                            processedUris.add(cleaned.uri());
+                            CleanStats stats = cleaned.stats();
+                            StatsStore.recordClean(this, stats != null ? stats : new CleanStats(0, false), item.video, true);
+                            keepForCleanup(session, cleaned);
+                            return BatchRun.Outcome.SUCCEEDED;
+                        },
+                        new BatchRun.Hooks<>() {
+                            @Override
+                            public void onFailed(@NonNull Uri uri, int index, @Nullable Throwable error,
+                                                 @NonNull String outcome) {
+                                if (AppMetrics.UNSUPPORTED.equals(outcome)) {
+                                    unsupportedFailCount[0]++;
+                                    countUnsupported(describe(described, uri).mimeType);
                                 }
                             }
-                        } catch (Exception e) {
-                            SentryManager.log("The processed file could not be resolved for cleanup: " + e.getClass().getSimpleName() + ".");
-                        }
-                    } else {
-                        failCount++;
-                        if (result.unsupported()) {
-                            unsupportedFailCount++;
-                            countUnsupported(mimeType);
-                        }
-                        // A file stopped by a cancel comes back failed too; only real failures count.
-                        if (isCurrentSession(session)) {
-                            SentryManager.count("processing.share.failure", 1,
-                                    "is_video", String.valueOf(isVideo),
-                                    "error_type", result.unsupported() ? "unsupported" : "clean_failed");
-                        }
-                    }
-                }
+                        });
 
-                if (!processedUris.isEmpty()) {
-                    transaction.setStatus(SpanStatus.OK);
-                } else {
-                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
-                }
-                transaction.finish();
-
-                final boolean finalHasVideo = hasVideo;
-                final boolean finalHasImage = hasImage;
-                final int finalFailCount = failCount;
+                final boolean finalHasVideo = hasVideo[0];
+                final boolean finalHasImage = hasImage[0];
+                final int finalFailCount = result.failed() + alreadyFailed;
                 final boolean allFailuresUnsupported =
-                        failCount > 0 && unsupportedFailCount == failCount;
-                final boolean cancelled = session.ended.get()
-                        || Thread.currentThread().isInterrupted();
+                        finalFailCount > 0 && unsupportedFailCount[0] == finalFailCount;
+                final boolean cancelled = result.cancelled() || session.ended.get();
 
                 runOnUiThreadIfNotReplaced(session, () -> {
                     try {
@@ -815,7 +615,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                                 Toast.LENGTH_LONG)
                                         .show();
                             }
-                            SentryManager.log("Media processing completed successfully.");
+                            SentryManager.logEvent("share", "Media processing completed successfully.");
                             if (finalFailCount == 0) {
                                 // Counted only: the share sheet is about to open, so this is no
                                 // time to ask for a rating.
@@ -828,7 +628,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                                 shareCleanFiles(finalHasVideo, finalHasImage, processedUris);
                             }
                         } else {
-                            SentryManager.log("Media processing failed.");
+                            SentryManager.logEvent("share", "Media processing failed.");
                             finishWithError(getString(allFailuresUnsupported
                                     ? R.string.share_error_unsupported_media
                                     : R.string.share_error_processing_failed));
@@ -839,11 +639,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     }
                 });
             } catch (Exception | OutOfMemoryError e) {
-                // A crafted shared file must end in an error message, never a crash.
-                if (!transaction.isFinished()) {
-                    transaction.setStatus(SpanStatus.INTERNAL_ERROR);
-                    transaction.finish();
-                }
+                // A crafted shared file must end in an error message, never a crash. BatchRun has
+                // already counted the batch.
                 SentryManager.recordException(e);
                 runOnUiThreadIfNotReplaced(session, () -> finishWithError(getString(R.string.share_error_generic)));
             } finally {
@@ -853,12 +650,63 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // this session's: a share that replaced it keeps its own.
                 deleteSnapshots(session.closeSnapshots());
                 endShareSession(session);
-                SentryManager.distributionDurationMs("processing.duration_ms",
-                        System.currentTimeMillis() - batchStartMs, "operation_type", "share");
             }
-        });
+        }, "redact-share-worker");
         processingThread = worker;
         worker.start();
+    }
+
+    /** What a shared item is, read once from its provider and reused for the clean and the metrics. */
+    private static final class SharedItem {
+        @Nullable final String mimeType;
+        @Nullable final String fileName;
+        final boolean video;
+
+        SharedItem(@Nullable String mimeType, @Nullable String fileName, boolean video) {
+            this.mimeType = mimeType;
+            this.fileName = fileName;
+            this.video = video;
+        }
+    }
+
+    @NonNull
+    private SharedItem describe(@NonNull Map<Uri, SharedItem> described, @NonNull Uri uri) {
+        SharedItem item = described.get(uri);
+        if (item == null) {
+            String mimeType = getContentResolver().getType(uri);
+            String fileName = mediaSelector.getFileName(uri);
+            item = new SharedItem(mimeType, fileName, MediaSelector.isVideoFromMimeAndName(mimeType, fileName));
+            described.put(uri, item);
+        }
+        return item;
+    }
+
+    /** Lists a cleaned file for deletion when the share ends, or deletes it now if a newer share took over. */
+    private void keepForCleanup(@NonNull ShareSession session, @NonNull CleanResult cleaned) {
+        try {
+            File outputFile = cleaned.file();
+            if (outputFile == null || !outputFile.exists() || !outputFile.isFile()) {
+                return;
+            }
+            boolean replaced;
+            synchronized (fileListLock) {
+                replaced = session != shareSession;
+                if (!replaced) {
+                    processedFiles.add(outputFile);
+                    processedDisplayNames.add(outputFile.getName());
+                }
+            }
+            if (replaced) {
+                // A newer share took over and already emptied the list.
+                List<File> stale = new ArrayList<>();
+                stale.add(outputFile);
+                Context appContext = getApplicationContext();
+                cleanupExecutor.execute(() -> deleteProcessedFileList(appContext, stale));
+            }
+        } catch (Exception e) {
+            SentryManager.logEvent("share", "The processed file could not be resolved for cleanup: "
+                    + e.getClass().getSimpleName() + ".");
+        }
     }
 
     private void endShareSession(@NonNull ShareSession session) {
@@ -866,7 +714,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             return;
         }
         if (session.counted) {
-            activeShareSessions.updateAndGet(count -> Math.max(0, count - 1));
+            AppProcessingScope.get(this).shareEnded();
         }
         if (session == shareSession) {
             processingActive = false;
@@ -938,7 +786,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
-                SentryManager.log("The app is launching a single-item share intent.");
+                SentryManager.logEvent("share", "The app is launching a single-item share intent.");
                 launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_file));
@@ -977,7 +825,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 sharingInitiated = true;
-                SentryManager.log("The app is launching a multiple-item share intent.");
+                SentryManager.logEvent("share", "The app is launching a multiple-item share intent.");
                 launchShareChooser(chooser);
             } else {
                 finishWithError(getString(R.string.share_error_failed_get_cleaned_files));
@@ -997,16 +845,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
     /** Securely deletes inbound snapshots off the main thread; they hold the original media. */
     private static void deleteSnapshots(@NonNull List<File> filesToDelete) {
-        if (filesToDelete.isEmpty()) {
-            return;
-        }
-        cleanupExecutor.execute(() -> {
-            for (File file : filesToDelete) {
-                if (file != null && file.exists() && !SecureDelete.secureDelete(file)) {
-                    file.deleteOnExit();
-                }
-            }
-        });
+        InboundSnapshots.deleteAll(filesToDelete, cleanupExecutor);
     }
 
     private void cleanupProcessedFiles() {
@@ -1056,13 +895,13 @@ public class ShareHandlerActivity extends AppCompatActivity {
             if (processedFile != null && processedFile.exists()) {
                 try {
                     if (processedFile.delete()) {
-                        SentryManager.log("The temporary processed file was deleted after sharing.");
+                        SentryManager.logEvent("share", "The temporary processed file was deleted after sharing.");
                     } else {
-                        SentryManager.log("The temporary processed file failed to delete.");
+                        SentryManager.logEvent("share", "The temporary processed file failed to delete.");
                         processedFile.deleteOnExit();
                     }
                 } catch (Exception e) {
-                    SentryManager.log("An error occurred while deleting the temporary file: " + e.getClass().getSimpleName() + ".");
+                    SentryManager.logEvent("share", "An error occurred while deleting the temporary file: " + e.getClass().getSimpleName() + ".");
                 }
             }
         }
@@ -1128,7 +967,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         for (Uri uri : uris) {
             if (uri == null || !isSupportedInboundUri(uri)) {
                 if (uri != null) {
-                    SentryManager.logEvent("Share",
+                    SentryManager.logEvent("share",
                             "An inbound item with an unsupported scheme or a private location was skipped.");
                 }
                 continue;
@@ -1137,6 +976,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
             try {
                 type = getContentResolver().getType(uri);
             } catch (RuntimeException e) {
+                // The sender's provider failed to answer; the item is still tried, and the copy
+                // and clean decide what it is.
+                SentryManager.logEvent("share", "An inbound item's type could not be read: "
+                        + e.getClass().getSimpleName() + ".");
                 type = null;
             }
             if (isUnsupportedMediaType(type)) {
@@ -1144,7 +987,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 // are PDFs, text or SVGs. Skip them up front instead of copying and failing later.
                 session.unsupportedRejectCount.incrementAndGet();
                 countUnsupported(type);
-                SentryManager.logEvent("Share", "An inbound item of a non-media type was skipped.");
+                SentryManager.logEvent("share", "An inbound item of a non-media type was skipped.");
                 continue;
             }
             accepted.add(uri);
@@ -1184,7 +1027,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
      * application/pdf), to show which formats people bring that the device cannot decode.
      */
     private static void countUnsupported(@Nullable String mimeType) {
-        SentryManager.count("media.unsupported", 1, "mime_type", mimeTypeTag(mimeType));
+        AppMetrics.unsupportedMedia(mimeTypeTag(mimeType));
     }
 
     /**
@@ -1202,7 +1045,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
     }
 
     private void finishWithError(String message) {
-        SentryManager.logEvent("Share", "The share flow finished with an error.");
+        SentryManager.logEvent("share", "The share flow finished with an error.");
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         dismissProgressDialog();
         cleanupProcessedFiles();

@@ -39,6 +39,7 @@ import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.permission.PermissionStatusHelper.Status;
 import com.doubleangels.redact.sentry.SentryInitializer;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.google.android.material.button.MaterialButton;
@@ -94,7 +95,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<String[]> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                    result -> onPermissionResult());
+                    result -> {
+                        AppMetrics.permissionResults(result);
+                        onPermissionResult();
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +152,7 @@ public class OnboardingActivity extends AppCompatActivity {
         updateControls();
         applyInsets();
         if (savedInstanceState == null) {
-            SentryManager.logEvent("Lifecycle", "The introduction was shown.");
+            SentryManager.logEvent("app.lifecycle", "The introduction was shown.");
         }
     }
 
@@ -194,8 +198,9 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     private void finishIntroduction(int resultCode) {
+        AppMetrics.onboardingFinished(resultCode == RESULT_OK);
         if (resultCode == RESULT_OK) {
-            SentryManager.logEvent("Lifecycle", "The introduction finished.");
+            SentryManager.logEvent("app.lifecycle", "The introduction finished.");
         }
         setResult(resultCode);
         finish();
@@ -267,7 +272,6 @@ public class OnboardingActivity extends AppCompatActivity {
         } else if (step == Step.CRASH_REPORTS) {
             AppPreferences.setCrashReportingEnabled(this, true);
             SentryInitializer.initializeIfNeeded(this);
-            SentryManager.setCustomKey("crash_reporting_enabled", true);
         }
         refresh();
         if (isAllowed(status(step))) {

@@ -135,7 +135,7 @@
         <string name="settings_sentry_consent_allow">啟用</string>
     <string name="settings_sentry_consent_cancel">暫不</string>
     <string name="settings_sentry_consent_title">啟用當機報告</string>
-    <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊。此外，大約每 4 次工作階段中有 1 次還會傳送效能資料，例如畫面開啟所需的時間。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
+    <string name="settings_sentry_consent_message">傳送當機報告會透過網際網路向 Sentry 上傳匿名診斷資訊，包括效能資料（例如畫面開啟所需的時間），以及發生錯誤前使用過的畫面和按鈕。報告不含任何安裝 ID，因此無法與您的手機連結。\n\n不會上傳照片、影片、檔名或 GPS 座標。</string>
     <string name="settings_strict_clean">嚴格清理</string>
     <string name="settings_strict_clean_subtitle">移除所有中繼資料，只保留說明如何顯示圖片的標籤，例如方向和色彩空間。關閉下方的保留選項，並一律完整重新編碼影片，達到最徹底的清理。</string>
     
@@ -211,7 +211,7 @@
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>
     <string name="settings_crash_reporting_learn_more">會分享哪些內容？</string>
     <string name="settings_crash_reporting_detail_title">當機報告詳情</string>
-    <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：\n\n• 裝置型號和 Android 版本\n• 應用程式版本\n• 堆疊追蹤和錯誤類型\n• 已清理的診斷標籤\n• 大約每 4 次工作階段中 1 次的效能資料（畫面開啟所需時間、緩慢影格）\n\n您的照片和影片絕不會上傳。URI、檔名和 GPS 座標會在上傳前移除。</string>
+    <string name="settings_crash_reporting_detail_message">開啟「傳送當機報告」後，可能透過 Sentry 傳送匿名診斷：\n\n• 裝置型號和 Android 版本\n• 應用程式版本\n• 堆疊追蹤和錯誤類型\n• 已清理的診斷標籤\n• 效能資料（畫面開啟所需時間、緩慢影格）\n• 發生錯誤前開啟的畫面和點按的按鈕\n• 工作階段計數，用於衡量應用程式當機的頻率\n\n報告不含任何安裝 ID，因此無法與您的手機連結。您的照片和影片絕不會上傳。URI、檔名和 GPS 座標會在上傳前移除。</string>
     <string name="settings_crash_reporting_privacy_policy">隱私權政策</string>
     <string name="settings_crash_reporting_dismiss">關閉</string>
     <string name="url_github">https://github.com/doubleangels/redact</string>
@@ -565,7 +565,7 @@
     <string name="onboarding_crash_title">幫助改善 Redact。</string>
     <string name="onboarding_crash_body">如果 Redact 發生當機，它可以傳送一份匿名報告，以便找出並修正問題。Redact 只會為您開啟的當機回報，以及您在設定中親自發起的更新檢查而連上網路。</string>
     <string name="onboarding_crash_point_private">報告絕不會包含你的相片、影片、檔名或位置。</string>
-    <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。大約每 4 次工作階段中有 1 次還會包含效能資料。</string>
+    <string name="onboarding_crash_point_sentry">報告會傳送到 Sentry，這是一項協助開發者找出並修正當機的服務。報告還包含效能資料，但不含任何安裝 ID，因此無法與您的手機連結。</string>
     <string name="onboarding_crash_allow">傳送當機報告</string>
     <string name="onboarding_status_crash_on">當機報告已開啟。</string>
     <string name="onboarding_choices_crash">最後是當機報告，這樣問題可以更快被找出並修正。</string>

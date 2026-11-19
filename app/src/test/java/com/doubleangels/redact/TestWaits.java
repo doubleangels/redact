@@ -33,6 +33,22 @@ public final class TestWaits {
     }
 
     /**
+     * Runs the main looper until {@code value} returns something, and returns it; fails after 20
+     * seconds. For waits on something background work produces, such as an activity it starts.
+     */
+    public static <T> T awaitMainValue(java.util.function.Supplier<T> value) throws InterruptedException {
+        java.util.concurrent.atomic.AtomicReference<T> found = new java.util.concurrent.atomic.AtomicReference<>();
+        awaitMain(() -> {
+            T v = value.get();
+            if (v != null) {
+                found.set(v);
+            }
+            return found.get() != null;
+        });
+        return found.get();
+    }
+
+    /**
      * Runs work on a background thread, as the app does, while the main looper keeps running. Work
      * that posts to the main thread and then waits for it would otherwise block forever when called
      * from the test thread, which is the main thread.

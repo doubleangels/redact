@@ -1,5 +1,8 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
+import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.InboundSnapshots;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -44,7 +47,6 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ShareHandlerActivityTest {
 
-    private static final long PROCESSING_TIMEOUT_MS = 20_000L;
 
     private Application app;
     private ActivityController<ShareHandlerActivity> controller;
@@ -167,19 +169,16 @@ public class ShareHandlerActivityTest {
         assertTrue(activity.isFinishing());
     }
 
+    /** The share sheet the activity opened, or null when it finished without opening one. */
     private Intent awaitStartedActivity(ShareHandlerActivity activity) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + PROCESSING_TIMEOUT_MS;
-        while (System.currentTimeMillis() < deadline) {
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
-            Intent started = Shadows.shadowOf(activity).peekNextStartedActivityForResult() != null
-                    ? Shadows.shadowOf(activity).getNextStartedActivityForResult().intent
-                    : null;
-            if (started != null || activity.isFinishing()) {
-                return started;
+        Intent[] started = {null};
+        awaitMain(() -> {
+            if (started[0] == null && Shadows.shadowOf(activity).peekNextStartedActivityForResult() != null) {
+                started[0] = Shadows.shadowOf(activity).getNextStartedActivityForResult().intent;
             }
-            Thread.sleep(25);
-        }
-        return null;
+            return started[0] != null || activity.isFinishing();
+        });
+        return started[0];
     }
 
     @Test
@@ -252,7 +251,7 @@ public class ShareHandlerActivityTest {
 
         assertNull(awaitStartedActivity(activity));
         assertFinishedWithError(activity, R.string.share_error_unsupported_media);
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -293,7 +292,7 @@ public class ShareHandlerActivityTest {
         AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
         assertTrue(dialog.isShowing());
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -336,11 +335,7 @@ public class ShareHandlerActivityTest {
         controller.pause().stop().destroy();
         controller = null;
         // Snapshot deletion runs on ShareHandlerActivity's background cleanup executor.
-        long deadline = System.currentTimeMillis() + 5000;
-        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
-            Thread.sleep(25);
-        }
-        assertEquals(0, inboundSnapshots().length);
+        awaitMain(() -> inboundSnapshots().length == 0);
     }
 
     @Test
@@ -362,7 +357,7 @@ public class ShareHandlerActivityTest {
         Uri cleaned = share.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
         assertNotNull(cleaned);
         assertEquals("content", cleaned.getScheme());
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -373,11 +368,7 @@ public class ShareHandlerActivityTest {
         assertNotNull(awaitStartedActivity(activity));
 
         // Only the cleaned file is shared; the snapshot still holds the original's metadata.
-        long deadline = System.currentTimeMillis() + 5000;
-        while (inboundSnapshots().length > 0 && System.currentTimeMillis() < deadline) {
-            Thread.sleep(25);
-        }
-        assertEquals(0, inboundSnapshots().length);
+        awaitMain(() -> inboundSnapshots().length == 0);
         assertFalse(activity.isFinishing());
     }
 
@@ -417,7 +408,7 @@ public class ShareHandlerActivityTest {
 
         assertNull("Unexpected share chooser" + loggedErrors(), started);
         assertFinishedWithError(activity, R.string.share_error_unsupported_media);
-        assertFalse(ShareHandlerActivity.isShareProcessingActive());
+        assertFalse(AppProcessingScope.get(RuntimeEnvironment.getApplication()).isShareRunning());
     }
 
     @Test
@@ -446,22 +437,22 @@ public class ShareHandlerActivityTest {
 
     @Test
     public void snapshotSuffix_keepsTheSharedItemsOwnFormat() {
-        assertEquals(".png", ShareHandlerActivity.suffixFor("image/png", "shot.png"));
-        assertEquals(".webp", ShareHandlerActivity.suffixFor("image/webp", null));
-        assertEquals(".heic", ShareHandlerActivity.suffixFor("image/heic", "IMG_1.HEIC"));
-        assertEquals(".avif", ShareHandlerActivity.suffixFor("image/avif", null));
-        assertEquals(".avif", ShareHandlerActivity.suffixFor(null, "photo.AVIF"));
-        assertEquals(".gif", ShareHandlerActivity.suffixFor("image/gif", null));
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/jpeg", "a.png"));
-        assertEquals(".mov", ShareHandlerActivity.suffixFor("video/quicktime", null));
-        assertEquals(".webm", ShareHandlerActivity.suffixFor("video/webm", null));
+        assertEquals(".png", InboundSnapshots.suffixFor("image/png", "shot.png"));
+        assertEquals(".webp", InboundSnapshots.suffixFor("image/webp", null));
+        assertEquals(".heic", InboundSnapshots.suffixFor("image/heic", "IMG_1.HEIC"));
+        assertEquals(".avif", InboundSnapshots.suffixFor("image/avif", null));
+        assertEquals(".avif", InboundSnapshots.suffixFor(null, "photo.AVIF"));
+        assertEquals(".gif", InboundSnapshots.suffixFor("image/gif", null));
+        assertEquals(".jpg", InboundSnapshots.suffixFor("image/jpeg", "a.png"));
+        assertEquals(".mov", InboundSnapshots.suffixFor("video/quicktime", null));
+        assertEquals(".webm", InboundSnapshots.suffixFor("video/webm", null));
         // No type: the name decides, so an untyped video is not handed to the image decoder.
-        assertEquals(".png", ShareHandlerActivity.suffixFor(null, "Screenshot.PNG"));
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor(null, "photo.jpeg"));
-        assertEquals(".mkv", ShareHandlerActivity.suffixFor("application/octet-stream", "clip.mkv"));
+        assertEquals(".png", InboundSnapshots.suffixFor(null, "Screenshot.PNG"));
+        assertEquals(".jpg", InboundSnapshots.suffixFor(null, "photo.jpeg"));
+        assertEquals(".mkv", InboundSnapshots.suffixFor("application/octet-stream", "clip.mkv"));
         // An unfamiliar type keeps to its kind; nothing usable at all is left to the decoders.
-        assertEquals(".jpg", ShareHandlerActivity.suffixFor("image/x-unknown", "picture"));
-        assertEquals(".mp4", ShareHandlerActivity.suffixFor("video/x-unknown", null));
-        assertEquals(".bin", ShareHandlerActivity.suffixFor(null, null));
+        assertEquals(".jpg", InboundSnapshots.suffixFor("image/x-unknown", "picture"));
+        assertEquals(".mp4", InboundSnapshots.suffixFor("video/x-unknown", null));
+        assertEquals(".bin", InboundSnapshots.suffixFor(null, null));
     }
 }

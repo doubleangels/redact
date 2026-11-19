@@ -1,7 +1,6 @@
 package com.doubleangels.redact;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,6 +34,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.ui.FoldPosture;
 import com.doubleangels.redact.ui.FoldTracker;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.MainViewModel;
@@ -144,9 +144,8 @@ public class MainActivity extends AppCompatActivity {
         setupEdgeToEdgeInsets();
         getLifecycle().addObserver(new FoldTracker(this, this::onFoldPostureChanged));
         setupStatusBarColors();
-        setupVersionNumber();
 
-        SentryManager.logEvent("Lifecycle", "The MainActivity was created.");
+        SentryManager.logEvent("app.lifecycle", "The MainActivity was created.");
 
         // Tells Play vitals / Macrobenchmark when the first screen is usable.
         getWindow().getDecorView().post(this::reportFullyDrawn);
@@ -219,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         animateTabSwitches = true;
-        SentryManager.setCustomKey("app_started", true);
 
         PermissionManager.addInitialFlowCompletedCallback(permissionFlowCompleted);
         if (savedInstanceState == null && shouldShowOnboarding()) {
@@ -323,20 +321,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isImage(@NonNull Uri uri, @Nullable String intentType) {
-        String type;
-        try {
-            type = getContentResolver().getType(uri);
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-            type = null;
-        }
-        if (type == null) {
-            type = intentType;
-        }
+        String type = typeOf(uri, intentType);
         return type != null && type.startsWith("image/");
     }
 
     private boolean isImageOrVideo(@NonNull Uri uri, @Nullable String intentType) {
+        String type = typeOf(uri, intentType);
+        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
+    }
+
+    /** The provider's type for {@code uri}, or the sender's {@code intentType} when it has none. */
+    @Nullable
+    private String typeOf(@NonNull Uri uri, @Nullable String intentType) {
         String type;
         try {
             type = getContentResolver().getType(uri);
@@ -344,10 +340,7 @@ public class MainActivity extends AppCompatActivity {
             SentryManager.recordException(e);
             type = null;
         }
-        if (type == null) {
-            type = intentType;
-        }
-        return type != null && (type.startsWith("image/") || type.startsWith("video/"));
+        return type != null ? type : intentType;
     }
 
     /**
@@ -632,28 +625,17 @@ public class MainActivity extends AppCompatActivity {
                             0,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-                    SentryManager.setCustomKey("theme_mode", "dark");
+                    SentryManager.setCustomKey("ui.theme", "dark");
                 } else {
                     insetsController.setSystemBarsAppearance(
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
                             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                                     | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-                    SentryManager.setCustomKey("theme_mode", "light");
+                    SentryManager.setCustomKey("ui.theme", "light");
                 }
             } else {
-                SentryManager.logEvent("UI", "The insets controller is null.");
-            }
-        } catch (Exception e) {
-            SentryManager.recordException(e);
-        }
-    }
-
-    private void setupVersionNumber() {
-        try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            if (packageInfo.versionName != null) {
-                SentryManager.setCustomKey("app_version", packageInfo.versionName);
+                SentryManager.logEvent("ui", "The insets controller is null.");
             }
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -742,8 +724,9 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         try {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            SentryManager.logEvent("Permission", "The app received a permission result.");
-            SentryManager.setCustomKey("permission_request_code", requestCode);
+            SentryManager.logEvent("permission", "The app received a permission result.");
+            SentryManager.setCustomKey("permission.request_code", requestCode);
+            AppMetrics.permissionResults(permissions, grantResults);
 
             PermissionManager.storeActivityPermissionResult(
                     requestCode, permissions, grantResults);

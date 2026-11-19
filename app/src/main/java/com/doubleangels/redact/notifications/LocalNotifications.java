@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.MainActivity;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.ArrayList;
@@ -140,6 +141,7 @@ public final class LocalNotifications {
                     app, clampPercent(percent), title, null);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
+            AppMetrics.notificationFailure(e);
         }
     }
 
@@ -166,6 +168,7 @@ public final class LocalNotifications {
                     app, clampPercent(percent), title, null);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
+            AppMetrics.notificationFailure(e);
         }
     }
 
@@ -206,6 +209,7 @@ public final class LocalNotifications {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
         } catch (SecurityException e) {
             SentryManager.recordException(e);
+            AppMetrics.notificationFailure(e);
         }
     }
 
@@ -313,6 +317,7 @@ public final class LocalNotifications {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());
         } catch (SecurityException e) {
             SentryManager.recordException(e);
+            AppMetrics.notificationFailure(e);
         }
     }
 

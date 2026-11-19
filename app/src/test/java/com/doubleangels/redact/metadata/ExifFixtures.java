@@ -54,4 +54,61 @@ final class ExifFixtures {
         out.write(jpeg, 2, jpeg.length - 2);
         return out.toByteArray();
     }
+
+    /**
+     * {@code png} with an eXIf chunk holding {@code tiff} right after IHDR, with a correct CRC.
+     * Some writers put "Exif\0\0" in front of the TIFF data; {@code withHeader} adds it.
+     */
+    static byte[] pngWithExif(byte[] png, byte[] tiff, boolean withHeader) {
+        int afterIhdr = 8 + 4 + 4 + 13 + 4;
+        byte[] body = withHeader ? concat(new byte[] {'E', 'x', 'i', 'f', 0, 0}, tiff) : tiff;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(png, 0, afterIhdr);
+        writePngChunk(out, "eXIf", body);
+        out.write(png, afterIhdr, png.length - afterIhdr);
+        return out.toByteArray();
+    }
+
+    /** A PNG chunk: big-endian length, type, data and the CRC over type and data. */
+    static void writePngChunk(ByteArrayOutputStream out, String type, byte[] data) {
+        byte[] typeBytes = type.getBytes(StandardCharsets.US_ASCII);
+        out.write(ByteBuffer.allocate(4).putInt(data.length).array(), 0, 4);
+        out.write(typeBytes, 0, 4);
+        out.write(data, 0, data.length);
+        java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(typeBytes);
+        crc.update(data);
+        out.write(ByteBuffer.allocate(4).putInt((int) crc.getValue()).array(), 0, 4);
+    }
+
+    /**
+     * A RIFF/WEBP file made of {@code chunks}, each a four-letter type and its data, padded to an
+     * even size as the format requires, with the RIFF size filled in.
+     */
+    static byte[] webp(Object... typeAndData) {
+        ByteArrayOutputStream chunks = new ByteArrayOutputStream();
+        for (int i = 0; i < typeAndData.length; i += 2) {
+            byte[] data = (byte[]) typeAndData[i + 1];
+            chunks.write(((String) typeAndData[i]).getBytes(StandardCharsets.US_ASCII), 0, 4);
+            chunks.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(data.length).array(), 0, 4);
+            chunks.write(data, 0, data.length);
+            if ((data.length & 1) == 1) {
+                chunks.write(0);
+            }
+        }
+        byte[] body = chunks.toByteArray();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(new byte[] {'R', 'I', 'F', 'F'}, 0, 4);
+        out.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(4 + body.length).array(), 0, 4);
+        out.write(new byte[] {'W', 'E', 'B', 'P'}, 0, 4);
+        out.write(body, 0, body.length);
+        return out.toByteArray();
+    }
+
+    static byte[] concat(byte[] a, byte[] b) {
+        byte[] out = new byte[a.length + b.length];
+        System.arraycopy(a, 0, out, 0, a.length);
+        System.arraycopy(b, 0, out, a.length, b.length);
+        return out;
+    }
 }

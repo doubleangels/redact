@@ -79,7 +79,7 @@ Make sure this release has its own version, so CI's `check-version` job and `/re
 
 ## 2f. Release build
 
-Run `./gradlew :app:bundleRelease -q` once, if any of steps 1 to 2e changed code, resources, Gradle files or dependencies. R8 can fail, or strip something reached by reflection, in a way the debug unit tests never see. If it fails, find the step that broke it from that step's commit (each step committed its own changes, so build the commits in between as needed), then fix or revert just that change and build again.
+Run `./gradlew :app:bundleRelease exportReleaseManifest -q` once, if any of steps 1 to 2e changed code, resources, Gradle files or dependencies, then `python3 .github/scripts/check_release_manifest.py`. Note the size of `base/dex/*.dex`, `base/lib/<abi>/*` and `base/resources.pb` from `unzip -l app/build/outputs/bundle/release/app-release.aab`, and of the same files in the last release's bundle if one is at hand, for the summary; check with `grep io.sentry.android.replay app/build/outputs/mapping/release/mapping.txt` that the replay module is still left out (no match). R8 can fail, or strip something reached by reflection, in a way the debug unit tests never see. If it fails, find the step that broke it from that step's commit (each step committed its own changes, so build the commits in between as needed), then fix or revert just that change and build again.
 
 ## 3. Release notes, preview only
 
@@ -116,7 +116,8 @@ Finish with one report:
 9. **Version:** the old and new `versionName`/`versionCode` and the bump level with its reason, or that it was already bumped.
 10. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
 11. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
-12. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
-13. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
+12. **Size:** the dex, native library (arm64) and resources sizes from step 2f, and what changed since the last release when known.
+13. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
+14. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
 
 Offer to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.

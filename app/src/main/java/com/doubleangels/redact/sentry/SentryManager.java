@@ -2,13 +2,17 @@ package com.doubleangels.redact.sentry;
 
 import android.content.Context;
 import android.os.OperationCanceledException;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.BuildConfig;
+import com.doubleangels.redact.media.CleanFailedException;
+import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
@@ -60,100 +64,111 @@ public final class SentryManager {
             SSLException.class,
             SSLHandshakeException.class);
 
-    /** Tags that may be set without user-identifying values. */
-    private static final Set<String> ALLOWED_TAG_KEYS = new HashSet<>(Arrays.asList(
-            "operation_type",
-            "outcome",
-            "is_video",
-            "mime_type",
-            "media_type",
-            "extraction_failed",
-            "error_type",
-            "sections_count",
-            "has_location_permission",
-            "has_location_data",
-            "has_image_permission",
-            "has_video_permission",
-            "has_user_selected_permission",
-            "needs_permissions",
-            "device_sdk",
-            "app_package",
-            "app_started",
-            "theme_mode",
-            "app_version",
-            "permission_request_code",
-            "notifications_enabled",
-            "clean_notifications_enabled",
-            "convert_notifications_enabled",
-            "crash_reporting_enabled",
-            "intent_action",
-            "intent_type",
-            "unsupported_type",
-            "unsupported_action",
-            "media_count",
-            "image_resolution_class",
-            "video_resolution_class",
-            "video_duration_class",
-            "video_rotation",
-            "image_orientation",
-            "processing_failed",
-            "processing_success",
-            "batch_size",
-            "items_processed",
-            "items_failed",
-            "success",
-            "metadata_verification_passed",
-            "preserved_exif_count",
-            "exif_tags_removed",
-            "bitmap_sample_size",
-            "video_metadata_verification_passed",
-            "video_verify_failed_key",
-            "permissions_granted",
-            "selected_media_count",
-            "selected_items_count",
-            "persistable_uri_permission",
-            "processing_state",
-            "processed_items",
-            "processing_items_count",
-            "has_shown_rationale",
-            "all_permissions_granted",
-            "has_storage_permission"));
+    /*
+     * Naming, which SentryNamingTest enforces for tags, metric attributes, metric names and
+     * breadcrumb categories alike:
+     *
+     *   - A key that describes state is "<group>.<field>": job.type, file.mime_type,
+     *     video.codec, permission.images, setting.strict_clean, device.low_ram. The group is one
+     *     of SentryNamingTest.GROUPS; the field is lower snake_case. A boolean field is named for
+     *     what is true (images, has_audio, needed, rationale_shown); a banded value ends in
+     *     _class, a count in _count. At most 32 characters, Sentry's limit for a tag key.
+     *   - A key that describes what happened is one of three bare words, the same in every tag
+     *     and metric: outcome (success, failed, ...), reason (why, in a fixed word) and error_type
+     *     (an exception's simple class name).
+     *   - No key mentions a path, URI, file name or location: the scrubber blanks such keys, so
+     *     GPS is "gps".
+     *   - A metric is "<area>.<event>" when it counts and "<area>.<event>.<measure>" when it is a
+     *     distribution (job.item, job.item.duration). The event is a singular noun; what came of
+     *     it goes in outcome, never in the name; a unit goes in the metric's unit, never in the
+     *     name.
+     *   - A breadcrumb category is a lower-case area, optionally ".<sub>" (clean, app.lifecycle),
+     *     like the SDK's own (ui.click, navigation).
+     */
 
     /**
      * Low-cardinality keys that describe one scan, clean or convert. They are kept per thread, not
      * on the shared scope, so a Scan running during a Clean can't tag the other job's events, and
-     * a later unrelated event doesn't carry a finished job's {@code success} or {@code error_type}.
+     * a later unrelated event doesn't carry a finished job's outcome or error_type.
      */
     private static final Set<String> OPERATION_TAG_KEYS = new HashSet<>(Arrays.asList(
-            "operation_type",
-            "is_video",
-            "mime_type",
-            "media_type",
-            "extraction_failed",
+            "job.type",
+            "outcome",
             "error_type",
-            "has_location_data",
-            "image_resolution_class",
-            "video_resolution_class",
-            "video_duration_class",
-            "video_rotation",
-            "image_orientation",
-            "processing_failed",
-            "processing_success",
-            "success",
-            "metadata_verification_passed",
-            "video_metadata_verification_passed",
-            "video_verify_failed_key"));
+            "file.media_type",
+            "file.mime_type",
+            "file.output_mime_type",
+            "file.has_gps",
+            "scan.extraction_failed",
+            "image.resolution_class",
+            "video.resolution_class",
+            "video.duration_class",
+            "video.frame_rate_class",
+            "video.rotation",
+            "video.codec",
+            "video.output_codec",
+            "video.has_audio",
+            "verify.image_passed",
+            "verify.video_passed",
+            "verify.failed_check",
+            "device.thermal_status",
+            "device.power_save"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
      * they go into the event's {@value #OPERATION_CONTEXT} context instead.
      */
     private static final Set<String> OPERATION_CONTEXT_KEYS = new HashSet<>(Arrays.asList(
-            "sections_count",
-            "preserved_exif_count",
-            "exif_tags_removed",
-            "bitmap_sample_size",
-            "original_height"));
+            "scan.section_count",
+            "clean.kept_exif_count",
+            "clean.removed_exif_count",
+            "image.sample_size"));
+
+    /** Keys that describe the app as a whole, set on the shared scope, and metric-only keys. */
+    private static final Set<String> SCOPE_TAG_KEYS = new HashSet<>(Arrays.asList(
+            "permission.type",
+            "permission.request_code",
+            "permission.needed",
+            "permission.all_granted",
+            "permission.images",
+            "permission.videos",
+            "permission.selected_media",
+            "permission.storage",
+            "permission.media_gps",
+            "permission.partial_access",
+            "permission.persisted_grant",
+            "permission.rationale_shown",
+            "permission.gps_rationale_shown",
+            "permission.settings_needed",
+            "permission.gps_settings_needed",
+            "permission.images_can_ask",
+            "permission.videos_can_ask",
+            "permission.storage_can_ask",
+            "permission.gps_can_ask",
+            "notification.enabled",
+            "notification.clean_enabled",
+            "notification.convert_enabled",
+            "intent.action",
+            "intent.type",
+            "intent.unsupported_type",
+            "intent.unsupported_action",
+            "ui.theme",
+            "clean.selected_count",
+            "clean.processing_count",
+            "clean.processed_count",
+            "clean.state",
+            "share.media_count",
+            "app.process_state",
+            "reason"));
+
+    /** Every key a tag or metric attribute may use; any other is dropped. */
+    private static final Set<String> ALLOWED_TAG_KEYS = new HashSet<>();
+
+    static {
+        ALLOWED_TAG_KEYS.addAll(OPERATION_TAG_KEYS);
+        ALLOWED_TAG_KEYS.addAll(OPERATION_CONTEXT_KEYS);
+        ALLOWED_TAG_KEYS.addAll(SCOPE_TAG_KEYS);
+    }
 
     static final String OPERATION_CONTEXT = "operation";
 
@@ -162,7 +177,8 @@ public final class SentryManager {
             "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/avif",
             "image/gif", "image/bmp", "image/x-ms-bmp", "image/x-adobe-dng",
             "video/mp4", "video/quicktime", "video/webm", "video/x-matroska", "video/3gpp",
-            "video/3gpp2", "video/avc", "video/hevc", "video/mpeg"));
+            "video/3gpp2", "video/avc", "video/hevc", "video/mpeg", "video/av01",
+            "video/x-vnd.on2.vp8", "video/x-vnd.on2.vp9", "video/dolby-vision", "video/mp4v-es"));
 
     /** A file's MIME type for a report: a known one as it is, else "image/other", "video/other" or "other". */
     @NonNull
@@ -197,6 +213,18 @@ public final class SentryManager {
             return "4k";
         }
         return side <= 8192 ? "8k" : "larger";
+    }
+
+    /** A video's frame rate for a report, as a band rather than the exact rate. */
+    @NonNull
+    public static String frameRateClass(int framesPerSecond) {
+        if (framesPerSecond <= 0) {
+            return "unknown";
+        }
+        if (framesPerSecond <= 30) {
+            return "up_to_30";
+        }
+        return framesPerSecond <= 60 ? "up_to_60" : "above_60";
     }
 
     /** A video's length for a report, as a band rather than the exact duration. */
@@ -241,6 +269,29 @@ public final class SentryManager {
         return AppPreferences.isCrashReportingEnabled(appContext);
     }
 
+    /**
+     * An exception's kind for the {@code error_type} tag and metric attributes: its simple class
+     * name, the same on every event and metric. The app's own exceptions get their source names,
+     * since a release build renames their classes and Sentry deobfuscates stack frames, not tag
+     * values.
+     */
+    @NonNull
+    public static String errorType(@NonNull Throwable e) {
+        if (e instanceof CleanFailedException) {
+            return "CleanFailedException";
+        }
+        if (e instanceof UnsupportedMediaException) {
+            return "UnsupportedMediaException";
+        }
+        if (e instanceof ProcessingCancelledException) {
+            return "ProcessingCancelledException";
+        }
+        if (e instanceof MediaSizeLimits.TooLargeException) {
+            return "TooLargeException";
+        }
+        return e.getClass().getSimpleName();
+    }
+
     public static boolean isIgnored(Throwable e) {
         for (Class<? extends Throwable> ignored : IGNORED_ERRORS) {
             if (ignored.isInstance(e)) {
@@ -272,14 +323,18 @@ public final class SentryManager {
         return false;
     }
 
-    /** Fixed-category breadcrumb; message must not contain user data. */
+    /**
+     * Records a fixed-category message as a breadcrumb, which travels with the next error, and as a
+     * structured log, which is sent on its own so slow or odd runs can be followed without a
+     * crash. The message must not contain user data, and is scrubbed anyway.
+     */
     public static void logEvent(String category, String message) {
         // Nothing would be sent, and release builds strip Log.i: scrubbing would be wasted work,
         // on every log line, for the users who left crash reports off (the default).
         if (!isEnabled() && !BuildConfig.DEBUG) {
             return;
         }
-        String safeCategory = category != null ? category : "App";
+        String safeCategory = category != null ? category : "app";
         String safeMessage = SentryPrivacyScrubber.scrub(message != null ? message : "");
         Log.i(TAG, safeCategory + ": " + safeMessage);
         if (!isEnabled()) {
@@ -289,8 +344,10 @@ public final class SentryManager {
         b.setMessage(safeMessage);
         b.setCategory(safeCategory);
         b.setLevel(SentryLevel.INFO);
-        // Breadcrumb only: it travels with an error event, never on its own.
         Sentry.addBreadcrumb(b);
+        // A template, so a '%' in the message is never read as a format specifier. The SDK sends
+        // the parameters as attributes too, which scrubLog scrubs like the body.
+        Sentry.logger().info("%s: %s", safeCategory, safeMessage);
     }
 
     /** Counter metric with no attributes. */
@@ -301,19 +358,12 @@ public final class SentryManager {
         Sentry.metrics().count(name, value);
     }
 
-    /** Counter metric with one allowed attribute dimension. */
-    public static void count(String name, double value, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
-        if (!isEnabled() || params == null) {
-            return;
-        }
-        Sentry.metrics().count(name, value, null, params);
-    }
-
-    /** Counter metric with two allowed attribute dimensions. */
-    public static void count(
-            String name, double value, String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
-        SentryMetricsParameters params = metricsParams(attrKey1, attrValue1, attrKey2, attrValue2);
+    /**
+     * Counter metric with allowed attribute dimensions, given as key, value pairs. Nothing is
+     * sent when a key is not allowed or a value is missing its key.
+     */
+    public static void count(String name, double value, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
@@ -328,36 +378,31 @@ public final class SentryManager {
         Sentry.metrics().distribution(name, value);
     }
 
-    /** Distribution metric with one allowed attribute dimension. */
-    public static void distribution(String name, double value, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+    /** Distribution metric with allowed attribute dimensions, as key, value pairs. */
+    public static void distribution(String name, double value, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
         Sentry.metrics().distribution(name, value, null, params);
     }
 
-    /** Duration distribution in milliseconds with one allowed attribute dimension. */
-    public static void distributionDurationMs(String name, double millis, String attrKey, String attrValue) {
-        SentryMetricsParameters params = metricsParams(attrKey, attrValue);
+    /** Duration distribution in milliseconds with allowed attribute dimensions, as key, value pairs. */
+    public static void distributionDurationMs(String name, double millis, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
         if (!isEnabled() || params == null) {
             return;
         }
         Sentry.metrics().distribution(name, millis, MetricsUnit.Duration.MILLISECOND, params);
     }
 
-    /** Point-in-time gauge (dimensionless). */
-    public static void gauge(String name, double value) {
-        if (!isEnabled() || name == null || name.isEmpty()) {
+    /** Size distribution in megabytes with allowed attribute dimensions, as key, value pairs. */
+    public static void distributionMegabytes(String name, double megabytes, String... keysAndValues) {
+        SentryMetricsParameters params = metricsParams(keysAndValues);
+        if (!isEnabled() || params == null) {
             return;
         }
-        Sentry.metrics().gauge(name, value);
-    }
-
-    /** @deprecated Use {@link #logEvent(String, String)} with non-identifying messages. */
-    @Deprecated
-    public static void log(String message) {
-        logEvent("Custom", message);
+        Sentry.metrics().distribution(name, megabytes, MetricsUnit.Information.MEGABYTE, params);
     }
 
     /**
@@ -368,7 +413,7 @@ public final class SentryManager {
     public static SentryId recordException(Throwable e) {
         if (UnsupportedMediaException.isCauseOf(e)) {
             Log.i(TAG, "Unsupported media, not sending:", e);
-            logEvent("Media", "An item in an unsupported format was skipped.");
+            logEvent("media", "An item in an unsupported format was skipped.");
             return null;
         }
         if (isIgnored(e)) {
@@ -438,7 +483,54 @@ public final class SentryManager {
      */
     public static void beginOperation(String operationType) {
         OPERATION_DATA.get().clear();
-        setCustomKey("operation_type", operationType);
+        setCustomKey("job.type", operationType);
+        // A hot or battery-saving phone throttles the CPU and codecs: it explains slow or failed
+        // video work without saying anything about the person.
+        setCustomKey("device.thermal_status", thermalStatus());
+        setCustomKey("device.power_save", isPowerSaveMode());
+    }
+
+    /**
+     * How hot the phone is (none, light, moderate, severe, critical, emergency or shutdown), or
+     * unknown.
+     */
+    @NonNull
+    public static String thermalStatus() {
+        PowerManager pm = appContext != null ? appContext.getSystemService(PowerManager.class) : null;
+        if (pm == null) {
+            return "unknown";
+        }
+        return switch (pm.getCurrentThermalStatus()) {
+            case PowerManager.THERMAL_STATUS_NONE -> "none";
+            case PowerManager.THERMAL_STATUS_LIGHT -> "light";
+            case PowerManager.THERMAL_STATUS_MODERATE -> "moderate";
+            case PowerManager.THERMAL_STATUS_SEVERE -> "severe";
+            case PowerManager.THERMAL_STATUS_CRITICAL -> "critical";
+            case PowerManager.THERMAL_STATUS_EMERGENCY -> "emergency";
+            case PowerManager.THERMAL_STATUS_SHUTDOWN -> "shutdown";
+            default -> "unknown";
+        };
+    }
+
+    /** Whether Battery Saver is on. */
+    public static boolean isPowerSaveMode() {
+        PowerManager pm = appContext != null ? appContext.getSystemService(PowerManager.class) : null;
+        return pm != null && pm.isPowerSaveMode();
+    }
+
+    /**
+     * Adds the settings in effect and the phone's media capabilities ({@link AppStateTags}) to
+     * {@code event}, without replacing a tag the event already has.
+     */
+    static void applyAppState(@Nullable SentryEvent event) {
+        if (event == null) {
+            return;
+        }
+        for (Map.Entry<String, String> tag : AppStateTags.collect(appContext).entrySet()) {
+            if (event.getTag(tag.getKey()) == null) {
+                event.setTag(tag.getKey(), tag.getValue());
+            }
+        }
     }
 
     /**
@@ -465,9 +557,7 @@ public final class SentryManager {
     }
 
     private static boolean isOperationKey(@NonNull String lowerKey) {
-        return OPERATION_TAG_KEYS.contains(lowerKey)
-                || OPERATION_CONTEXT_KEYS.contains(lowerKey)
-                || lowerKey.startsWith("video_verify_");
+        return OPERATION_TAG_KEYS.contains(lowerKey) || OPERATION_CONTEXT_KEYS.contains(lowerKey);
     }
 
     public static void setCustomKey(String key, String value) {
@@ -515,33 +605,48 @@ public final class SentryManager {
         if (ALLOWED_TAG_KEYS.contains(lower)) {
             return true;
         }
-        return lower.startsWith("permission_")
-                || lower.startsWith("video_verify_")
-                || lower.startsWith("can_ask_");
+        // permission.<type>, where the type comes from AppMetrics.permissionType.
+        return lower.matches("permission\\.[a-z_]{1,21}");
     }
 
+    /**
+     * The attributes for a metric, from key, value pairs: every key must be one the allow-list
+     * names, and every value is scrubbed. Null when any key is not allowed or a value is missing.
+     */
+    @VisibleForTesting
     @Nullable
-    private static SentryMetricsParameters metricsParams(String attrKey, String attrValue) {
-        if (!isAllowedTagKey(attrKey)) {
+    static SentryMetricsParameters metricsParams(String... keysAndValues) {
+        if (keysAndValues == null || keysAndValues.length == 0 || keysAndValues.length % 2 != 0) {
             return null;
         }
-        String safe = SentryPrivacyScrubber.scrub(attrValue != null ? attrValue : "");
-        return SentryMetricsParameters.create(
-                SentryAttributes.of(SentryAttribute.stringAttribute(attrKey, safe)));
+        SentryAttribute[] attributes = new SentryAttribute[keysAndValues.length / 2];
+        for (int i = 0; i < keysAndValues.length; i += 2) {
+            if (!isAllowedTagKey(keysAndValues[i])) {
+                return null;
+            }
+            attributes[i / 2] = SentryAttribute.stringAttribute(keysAndValues[i], scrubbedValue(keysAndValues[i + 1]));
+        }
+        return SentryMetricsParameters.create(SentryAttributes.of(attributes));
     }
 
-    @Nullable
-    private static SentryMetricsParameters metricsParams(
-            String attrKey1, String attrValue1, String attrKey2, String attrValue2) {
-        if (!isAllowedTagKey(attrKey1) || !isAllowedTagKey(attrKey2)) {
-            return null;
+    /**
+     * Metric attribute values the app writes as constants (job, media type and outcome names).
+     * They can't hold anything the scrubber would remove, so they skip its regex passes, which
+     * otherwise ran on every metric of every file.
+     */
+    private static final Set<String> FIXED_VALUES = new HashSet<>(Arrays.asList(
+            AppMetrics.CLEAN, AppMetrics.SHARE, AppMetrics.CONVERT, AppMetrics.SCAN, AppMetrics.CENSOR,
+            "image", "video", "true", "false",
+            AppMetrics.SUCCESS, AppMetrics.FAILED, AppMetrics.UNSUPPORTED, AppMetrics.OUT_OF_MEMORY,
+            AppMetrics.CANCELLED, "partial", "clean_failed"));
+
+    @NonNull
+    private static String scrubbedValue(@Nullable String value) {
+        if (value != null && FIXED_VALUES.contains(value)) {
+            return value;
         }
-        return SentryMetricsParameters.create(
-                SentryAttributes.of(
-                        SentryAttribute.stringAttribute(
-                                attrKey1, SentryPrivacyScrubber.scrub(attrValue1 != null ? attrValue1 : "")),
-                        SentryAttribute.stringAttribute(
-                                attrKey2, SentryPrivacyScrubber.scrub(attrValue2 != null ? attrValue2 : ""))));
+        String scrubbed = SentryPrivacyScrubber.scrub(value != null ? value : "");
+        return scrubbed != null ? scrubbed : "";
     }
 
     public static ITransaction startTransaction(String name, String operation) {

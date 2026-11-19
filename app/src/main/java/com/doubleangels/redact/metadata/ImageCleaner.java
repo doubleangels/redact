@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
@@ -20,6 +19,7 @@ import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import java.io.BufferedOutputStream;
 import java.util.Locale;
@@ -47,8 +47,6 @@ import java.util.Set;
  */
 final class ImageCleaner {
 
-    private static final String TAG = "MetadataStripper";
-
     private final MetadataStripper host;
     private final Context context;
     private final ContentResolver contentResolver;
@@ -75,10 +73,22 @@ final class ImageCleaner {
      * @return the saved image's URI (null when the clean failed) and what it removed
      * @throws IllegalArgumentException if sourceUri or originalFilename is null
      */
+    /** Tags the job with the source's format and the format it is written in, as known MIME types. */
+    private void tagFormats(@NonNull Uri sourceUri, @NonNull FormatConverter.ImageFormatSpec outputFormat) {
+        String sourceType = null;
+        try {
+            sourceType = context.getContentResolver().getType(sourceUri);
+        } catch (RuntimeException e) {
+            // Unknown is reported as such.
+        }
+        SentryManager.setCustomKey("file.mime_type", SentryManager.mimeTypeClass(sourceType));
+        SentryManager.setCustomKey("file.output_mime_type", SentryManager.mimeTypeClass(outputFormat.mimeType));
+    }
+
     @NonNull
     public CleanResult cleanImage(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting image EXIF stripping for MediaStore.");
+        SentryManager.logEvent("image", "The app is starting image EXIF stripping for MediaStore.");
         SentryManager.beginOperation("image_to_mediastore");
         Uri newUri = null;
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -94,6 +104,7 @@ final class ImageCleaner {
             host.copySourceToTempFile(sourceUri, tempFile);
             FormatConverter.ImageFormatSpec outputFormat =
                     resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            tagFormats(sourceUri, outputFormat);
             String extension = outputFormat.extension;
             String newFilename =
                     MediaFileNames.outputBaseName(context, originalFilename)
@@ -105,36 +116,11 @@ final class ImageCleaner {
 
             newUri = writeCleanImage(tempFile, sourceUri, newFilename, outputFormat, false, job);
 
-            SentryManager.log("The image was processed successfully.");
-            SentryManager.setCustomKey("success", true);
+            SentryManager.logEvent("image", "The image was processed successfully.");
+            SentryManager.setCustomKey("outcome", "success");
 
-        } catch (RuntimeException e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw e;
-            }
-            Log.e(TAG, "Error processing image", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
         } catch (Exception e) {
-            if (MetadataStripper.shouldPropagateCancellation(e)) {
-                throw MetadataStripper.asCancellationException(e);
-            }
-            // Log error and clean up any partial files
-            Log.e(TAG, "Error processing image", e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
-            SentryManager.recordException(e);
-
-            if (newUri != null) {
-                OutputDestination.discard(contentResolver, newUri);
-                newUri = null;
-            }
+            newUri = host.galleryCleanFailed(e, newUri, "image");
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 // Use secure deletion for temp files
@@ -162,7 +148,7 @@ final class ImageCleaner {
     public CleanResult saveCensored(@NonNull Uri original, @NonNull File censored,
                                     @NonNull String outputName,
                                     @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
-        SentryManager.log("The app is saving a censored image to MediaStore.");
+        SentryManager.logEvent("image", "The app is saving a censored image to MediaStore.");
         MetadataStripper.Job job = new MetadataStripper.Job();
         // A private copy of the uncensored original, deleted as soon as its tags are read.
         File originalCopy = File.createTempFile("temp_", outputFormat.extension, context.getCacheDir());
@@ -224,7 +210,10 @@ final class ImageCleaner {
             // cloud-backed one may upload it), so nothing unverified may reach the output.
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(cleanFile, false);
-            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            SentryManager.setCustomKey("verify.image_passed", metadataRemoved);
+            if (metadataRemoved) {
+                AppMetrics.verificationPassed(false);
+            }
             if (!metadataRemoved) {
                 throw new CleanFailedException("Metadata verification failed");
             }
@@ -315,9 +304,9 @@ final class ImageCleaner {
             }
             return new MotionPhoto.Clip(video, found.presentationTimestampUs);
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The Motion Photo's video could not be kept, so the photo becomes a still: "
+            SentryManager.logEvent("image", "The Motion Photo's video could not be kept, so the photo becomes a still: "
                     + e.getClass().getSimpleName() + ".");
-            SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "motion_video");
+            AppMetrics.partDropped(false, "motion_video");
             if (video != null && video.exists()) {
                 host.secureDeleteFile(video);
             }
@@ -342,7 +331,7 @@ final class ImageCleaner {
     @NonNull
     public CleanResult cleanImageForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting image EXIF stripping for sharing.");
+        SentryManager.logEvent("image", "The app is starting image EXIF stripping for sharing.");
 
         SentryManager.beginOperation("image_for_sharing");
         MetadataStripper.Job job = new MetadataStripper.Job();
@@ -358,6 +347,7 @@ final class ImageCleaner {
             host.copySourceToTempFile(sourceUri, tempFile);
             FormatConverter.ImageFormatSpec outputFormat =
                     resolveImageOutputFormat(sourceUri, originalFilename, tempFile);
+            tagFormats(sourceUri, outputFormat);
             String extension = outputFormat.extension;
 
             host.updateProgress(2, 4, context.getString(R.string.strip_progress_reading_essential_metadata));
@@ -393,9 +383,12 @@ final class ImageCleaner {
             // Verify metadata removal
             host.updateProgress(5, 5, context.getString(R.string.strip_progress_verifying));
             boolean metadataRemoved = host.verifier.verifyMetadataRemoval(outputFile, true);
-            SentryManager.setCustomKey("metadata_verification_passed", metadataRemoved);
+            SentryManager.setCustomKey("verify.image_passed", metadataRemoved);
+            if (metadataRemoved) {
+                AppMetrics.verificationPassed(false);
+            }
             if (!metadataRemoved) {
-                SentryManager.log("Metadata verification found remaining metadata.");
+                SentryManager.logEvent("image", "Metadata verification found remaining metadata.");
                 if (outputFile != null && outputFile.exists()) {
                     host.secureDeleteFile(outputFile);
                 }
@@ -407,21 +400,14 @@ final class ImageCleaner {
                     outputFile);
 
             job.file = outputFile;
-            SentryManager.log("The image was processed successfully for sharing.");
-            SentryManager.setCustomKey("success", true);
+            SentryManager.logEvent("image", "The image was processed successfully for sharing.");
+            SentryManager.setCustomKey("outcome", "success");
             return job.result(fileUri);
 
         } catch (Exception | OutOfMemoryError e) {
             // A crafted file can ask for more memory than there is; that is a failed file, and
             // the share worker goes on to the next one with nothing half-written left behind.
-            Log.e(TAG, "Error processing image for sharing", e);
-            job.unsupported = UnsupportedMediaException.isCauseOf(e);
-            SentryManager.setCustomKey("success", false);
-            SentryManager.setCustomKey("error_type", e.getClass().getName());
-            SentryManager.recordException(e);
-            if (outputFile != null && outputFile.exists()) {
-                host.secureDeleteFile(outputFile);
-            }
+            host.shareCleanFailed(e, outputFile, job, "image");
             return job.result(null);
         } finally {
             if (tempFile != null && tempFile.exists()) {
@@ -450,7 +436,7 @@ final class ImageCleaner {
                 rebuilt = true;
             }
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The converted image could not be rebuilt, so it is checked as it is: "
+            SentryManager.logEvent("image", "The converted image could not be rebuilt, so it is checked as it is: "
                     + e.getClass().getSimpleName() + ".");
         }
         if (!rebuilt) {
@@ -476,7 +462,7 @@ final class ImageCleaner {
         try {
             mimeType = contentResolver.getType(sourceUri);
         } catch (Exception e) {
-            SentryManager.logEvent("Metadata", "The MIME type for the source could not be read.");
+            SentryManager.logEvent("metadata", "The MIME type for the source could not be read.");
         }
         return FormatConverter.resolveCleanFormat(content, MetadataStripper.extensionFromFilename(originalFilename), mimeType);
     }
@@ -517,7 +503,6 @@ final class ImageCleaner {
             String value = exif.getAttribute(tag);
             if (value != null) {
                 kept.put(tag, value);
-                SentryManager.log("The app is preserving the EXIF tag: " + tag + ".");
             }
         }
         if (!kept.containsKey(ExifInterface.TAG_COLOR_SPACE)) {
@@ -526,7 +511,7 @@ final class ImageCleaner {
         // An approximate location and a date without its time are written back rounded.
         KeptPrecision.apply(context, kept, forSharing);
 
-        SentryManager.setCustomKey("preserved_exif_count", kept.size());
+        SentryManager.setCustomKey("clean.kept_exif_count", kept.size());
     }
 
     /**
@@ -550,7 +535,7 @@ final class ImageCleaner {
         }
         if (ImageContainerMetadata.sniff(imageFile) == ImageContainerMetadata.Format.OTHER) {
             // ExifInterface writes only JPEG, PNG and WebP. A GIF has nowhere for EXIF to go.
-            SentryManager.log("The kept EXIF tags could not be written to this format.");
+            SentryManager.logEvent("image", "The kept EXIF tags could not be written to this format.");
             return;
         }
 
@@ -564,7 +549,7 @@ final class ImageCleaner {
                 UltraHdr.fixPrimarySize(imageFile);
             }
         } catch (Exception e) {
-            SentryManager.log("The EXIF failed to restore: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("image", "The EXIF failed to restore: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
         }
     }
@@ -610,7 +595,7 @@ final class ImageCleaner {
             }
             HeifContainerMetadata.addExif(heif, tiff, context.getCacheDir());
         } catch (IOException | RuntimeException e) {
-            SentryManager.log("The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("image", "The kept EXIF tags could not be added to the HEIF: " + e.getClass().getSimpleName() + ".");
         } finally {
             if (carrier != null) {
                 host.secureDeleteFile(carrier);
@@ -691,11 +676,11 @@ final class ImageCleaner {
                 removedCount++;
             }
 
-            SentryManager.log("The app removed " + removedCount + " EXIF metadata tags.");
-            SentryManager.setCustomKey("exif_tags_removed", removedCount);
+            SentryManager.logEvent("image", "The app removed " + removedCount + " EXIF metadata tags.");
+            SentryManager.setCustomKey("clean.removed_exif_count", removedCount);
 
         } catch (Exception e) {
-            SentryManager.log("An error occurred while removing EXIF metadata: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("image", "An error occurred while removing EXIF metadata: " + e.getClass().getSimpleName() + ".");
             SentryManager.recordException(e);
             // Fallback to hardcoded list if reflection fails
             removeExifMetadataFallback(exif);
@@ -775,7 +760,7 @@ final class ImageCleaner {
                 removedCount++;
             }
         }
-        SentryManager.log("The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
+        SentryManager.logEvent("image", "The app removed " + removedCount + " EXIF metadata tags using the fallback method.");
     }
 
     /** Counts the identifying fields in an image before it is cleaned; unreadable EXIF counts as none. */
@@ -791,7 +776,7 @@ final class ImageCleaner {
                     && !preserved.contains(ExifInterface.TAG_XMP);
         } catch (Exception e) {
             // Only the count of removed fields is lost; the clean itself is checked elsewhere.
-            SentryManager.log("The app could not count the photo's EXIF fields: "
+            SentryManager.logEvent("image", "The app could not count the photo's EXIF fields: "
                     + e.getClass().getSimpleName() + ".");
             exif = new CleanStats(0, false);
         }
@@ -807,7 +792,7 @@ final class ImageCleaner {
      * a re-encoded JPEG, PNG or WebP is then rebuilt the same way, so whatever the encoder added
      * goes too. EXIF is gone either way; the caller puts back the tags the settings keep.
      *
-     * @param neutralIcc Strict Clean or a share: a JPEG's, PNG's or WebP's colour profile keeps
+     * @param neutralIcc Strict Clean or a share: the colour profile (of a JPEG, PNG, WebP, HEIC or AVIF) keeps
      *                   only its colour tags and a neutral name ({@link IccProfiles})
      */
     @NonNull
@@ -836,7 +821,7 @@ final class ImageCleaner {
             // Rebuilt around its coded pictures, which keeps the full resolution, 10-bit colour
             // and any HDR gain map that a decode and encode would lose.
             try {
-                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir());
+                HeifContainerMetadata.sanitize(source, target, motion, context.getCacheDir(), neutralIcc);
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
@@ -849,7 +834,7 @@ final class ImageCleaner {
                     }
                     return outputFormat;
                 }
-                SentryManager.log("The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("image", "The HEIC or AVIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }
@@ -861,7 +846,7 @@ final class ImageCleaner {
                 countPicturePath(fromPixels, "rebuilt");
                 return outputFormat;
             } catch (IOException | RuntimeException e) {
-                SentryManager.log("The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("image", "The GIF could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }
@@ -875,7 +860,7 @@ final class ImageCleaner {
             } catch (IOException | RuntimeException e) {
                 // A structure the walker could not follow, however it failed: the pixels are
                 // re-encoded instead, which carries no metadata either.
-                SentryManager.log("The image could not be rebuilt without its metadata, so the app is re-encoding it: "
+                SentryManager.logEvent("image", "The image could not be rebuilt without its metadata, so the app is re-encoding it: "
                         + e.getClass().getSimpleName() + ".");
                 rebuildFailed = true;
             }
@@ -910,7 +895,7 @@ final class ImageCleaner {
      */
     private static void countPicturePath(boolean fromPixels, @NonNull String path) {
         if (!fromPixels) {
-            SentryManager.count("clean.path", 1, "media_type", "image", "outcome", path);
+            AppMetrics.cleanPath(false, path);
         }
     }
 
@@ -954,7 +939,7 @@ final class ImageCleaner {
         optionsJustBounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(source.getAbsolutePath(), optionsJustBounds);
         int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
-        SentryManager.setCustomKey("bitmap_sample_size", sampleSize);
+        SentryManager.setCustomKey("image.sample_size", sampleSize);
 
         String path = source.getAbsolutePath();
         Bitmap bitmap = FormatConverter.decodeSampled(

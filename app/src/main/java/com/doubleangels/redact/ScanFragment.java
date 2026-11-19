@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import com.doubleangels.redact.ui.BatchScanSummary;
+import android.os.SystemClock;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -34,6 +35,7 @@ import com.doubleangels.redact.media.MediaPickerContracts;
 import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.metadata.MetadataDisplayer;
 import com.doubleangels.redact.permission.PermissionManager;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorViewModel;
 import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
@@ -156,7 +158,7 @@ public class ScanFragment extends TabFragment {
                     if (uris == null || uris.isEmpty()) {
                         return;
                     }
-                    SentryManager.log("Media was selected successfully in ScanFragment.");
+                    SentryManager.logEvent("scan", "Media was selected successfully in ScanFragment.");
                     onMediaReceived(uris);
                 });
     }
@@ -221,7 +223,7 @@ public class ScanFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.log("The ScanFragment view was created.");
+        SentryManager.logEvent("scan", "The ScanFragment view was created.");
 
         scanViewModel = new ViewModelProvider(requireActivity()).get(ScanViewModel.class);
 
@@ -444,7 +446,7 @@ public class ScanFragment extends TabFragment {
 
     private void openMediaPicker() {
         try {
-            SentryManager.log("The app is launching the media picker in ScanFragment.");
+            SentryManager.logEvent("scan", "The app is launching the media picker in ScanFragment.");
             mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
         } catch (Exception e) {
             SentryManager.recordException(e);
@@ -497,7 +499,7 @@ public class ScanFragment extends TabFragment {
                         if (generation != scanGeneration.get() || !isAdded()) {
                             return;
                         }
-                        SentryManager.logEvent("Scan", "The location metadata refresh failed.");
+                        SentryManager.logEvent("scan", "The location metadata refresh failed.");
                     }
                 });
     }
@@ -528,89 +530,84 @@ public class ScanFragment extends TabFragment {
 
             // The worker tags its own operation with the type and permission: these keys belong to
             // the thread that sets them, and set here they would only tag later main-thread events.
-            SentryManager.logEvent("Scan", "The app is starting metadata extraction.");
+            SentryManager.logEvent("scan", "The app is starting metadata extraction.");
 
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
             finishActiveScanTransaction(SpanStatus.CANCELLED);
             final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
             activeScanTransaction = transaction;
+            final long scanStartMs = SystemClock.elapsedRealtime();
+            final boolean scannedVideo = isVideo;
             MetadataDisplayer.extractSectionedMetadata(
                     requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
+                // Both callbacks arrive on the main thread (MetadataDisplayer delivers them there).
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
                     transaction.setStatus(SpanStatus.OK);
-                    transaction.finish();
-                    activeScanTransaction = null;
-                    Activity activity = getActivity();
-                    if (activity != null) {
-                        activity.runOnUiThread(() -> {
-                            if (!isAdded() || generation != scanGeneration.get()) return;
-                            try {
-                                lastMetadataSections = new HashMap<>(metadataSections);
-                                showProgress(false);
-                                showStatus(getString(R.string.status_extraction_complete));
+                    finishScanTransaction(transaction);
+                    if (!isAdded() || generation != scanGeneration.get()) {
+                        return; // a newer scan replaced this one: nobody sees this result
+                    }
+                    AppMetrics.item(AppMetrics.SCAN, isVideo, AppMetrics.SUCCESS,
+                            SystemClock.elapsedRealtime() - scanStartMs);
+                    try {
+                        lastMetadataSections = new HashMap<>(metadataSections);
+                        showProgress(false);
+                        showStatus(getString(R.string.status_extraction_complete));
 
-                                double[] coords = MetadataDisplayer.resolveMapCoordinates(metadataSections);
-                                if (coords != null
-                                        && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
-                                    lastMapLatitude = coords[0];
-                                    lastMapLongitude = coords[1];
-                                } else {
-                                    clearMapPreviewCoordinatesOnly();
-                                }
-                                displayCombinedMetadata(metadataSections);
-                                syncScanStateToViewModel();
-                                ReviewPrompt.onJobSucceeded(ScanFragment.this);
+                        double[] coords = MetadataDisplayer.resolveMapCoordinates(metadataSections);
+                        if (coords != null
+                                && MetadataDisplayer.isUsableMapCoordinate(coords[0], coords[1])) {
+                            lastMapLatitude = coords[0];
+                            lastMapLongitude = coords[1];
+                        } else {
+                            clearMapPreviewCoordinatesOnly();
+                        }
+                        displayCombinedMetadata(metadataSections);
+                        syncScanStateToViewModel();
+                        ReviewPrompt.onJobSucceeded(ScanFragment.this);
 
-                                String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
-                                boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
-                                if (permissionManager.needsLocationPermission() && !hasLocationRows) {
-                                    if (locationPermissionBanner != null) {
-                                        locationPermissionBanner.setVisibility(View.VISIBLE);
-                                    }
-                                } else if (permissionManager.needsLocationPermission()
-                                        && locationSection != null
-                                        && locationSection.contains(
-                                                getString(R.string.metadata_location_permission_needed))) {
-                                    permissionManager.requestLocationPermission();
-                                }
-                            } catch (Exception e) {
-                                SentryManager.recordException(e);
+                        String locationSection = metadataSections.get(MetadataDisplayer.SECTION_LOCATION);
+                        boolean hasLocationRows = locationSection != null && !locationSection.trim().isEmpty();
+                        if (permissionManager.needsLocationPermission() && !hasLocationRows) {
+                            if (locationPermissionBanner != null) {
+                                locationPermissionBanner.setVisibility(View.VISIBLE);
                             }
-                        });
+                        } else if (permissionManager.needsLocationPermission()
+                                && locationSection != null
+                                && locationSection.contains(
+                                        getString(R.string.metadata_location_permission_needed))) {
+                            permissionManager.requestLocationPermission();
+                        }
+                    } catch (Exception e) {
+                        SentryManager.recordException(e);
                     }
                 }
 
                 @Override
                 public void onExtractionFailed(String error) {
                     transaction.setStatus(SpanStatus.INTERNAL_ERROR);
-                    transaction.finish();
-                    activeScanTransaction = null;
-                    Activity activity = getActivity();
-                    if (activity == null) {
-                        return;
+                    finishScanTransaction(transaction);
+                    if (!isAdded() || generation != scanGeneration.get()) {
+                        return; // a newer scan replaced this one
                     }
-                    activity.runOnUiThread(() -> {
-                        if (!isAdded() || generation != scanGeneration.get()) {
-                            return;
-                        }
-                        lastMetadataSections = null;
-                        showProgress(false);
-                        showStatus(getString(R.string.status_extraction_fail));
-                        clearMetadataUi();
-                        List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
-                        errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
-                        scanMetadataAdapter.setEntries(errorRow);
-                        metadataSearchLayout.setVisibility(View.GONE);
-                        updateNoMatches();
-                        showEmptyState(false);
-                        metadataCard.setVisibility(View.VISIBLE);
-                        clearCoordinateState();
-                        SentryManager.logEvent("Scan", "Metadata extraction failed.");
-                        ErrorFeedbackPrompt.offer(
-                                getView(), SentryManager.reportedSince(reportedBefore));
-                    });
+                    AppMetrics.item(AppMetrics.SCAN, scannedVideo, AppMetrics.FAILED, -1);
+                    lastMetadataSections = null;
+                    showProgress(false);
+                    showStatus(getString(R.string.status_extraction_fail));
+                    clearMetadataUi();
+                    List<ScanMetadataAdapter.Entry> errorRow = new ArrayList<>();
+                    errorRow.add(ScanMetadataAdapter.Entry.row(null, getString(R.string.scan_extraction_fail)));
+                    scanMetadataAdapter.setEntries(errorRow);
+                    metadataSearchLayout.setVisibility(View.GONE);
+                    updateNoMatches();
+                    showEmptyState(false);
+                    metadataCard.setVisibility(View.VISIBLE);
+                    clearCoordinateState();
+                    SentryManager.logEvent("scan", "Metadata extraction failed.");
+                    ErrorFeedbackPrompt.offer(
+                            getView(), SentryManager.reportedSince(reportedBefore));
                 }
             });
         } catch (Exception e) {
@@ -1082,11 +1079,11 @@ public class ScanFragment extends TabFragment {
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.scan_share_report_subject))
                 .putExtra(Intent.EXTRA_TEXT, report);
-        SentryManager.log("A metadata report is being shared as text.");
+        SentryManager.logEvent("scan", "A metadata report is being shared as text.");
         try {
             startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
         } catch (ActivityNotFoundException e) {
-            SentryManager.log("No app can take a metadata report shared as text.");
+            SentryManager.logEvent("scan", "No app can take a metadata report shared as text.");
             Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
         }
     }
@@ -1226,6 +1223,19 @@ public class ScanFragment extends TabFragment {
     private void clearCoordinateState() {
         clearMapPreviewCoordinatesOnly();
         clearScanActionCards();
+    }
+
+    /**
+     * Finishes {@code transaction}, a scan's, and forgets it only if it is still the active one: a
+     * scan that was replaced must not drop the newer scan's, which would then never be finished.
+     */
+    private void finishScanTransaction(@NonNull ITransaction transaction) {
+        if (!transaction.isFinished()) {
+            transaction.finish();
+        }
+        if (activeScanTransaction == transaction) {
+            activeScanTransaction = null;
+        }
     }
 
     private void finishActiveScanTransaction(SpanStatus status) {

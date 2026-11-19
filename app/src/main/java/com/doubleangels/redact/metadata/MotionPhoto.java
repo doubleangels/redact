@@ -178,7 +178,7 @@ public final class MotionPhoto {
             } else if (size == 0) {
                 size = length - pos;
             }
-            if (size < header || pos + size > length || !type.matches("[a-z0-9 ]{4}")) {
+            if (size < header || size > length - pos || !type.matches("[a-z0-9 ]{4}")) {
                 break;
             }
             if ("mpvd".equals(type)) {
@@ -293,7 +293,7 @@ public final class MotionPhoto {
             } else if (size == 0) {
                 size = length - pos;
             }
-            if (size < 8 || pos + size > length) {
+            if (size < 8 || size > length - pos) {
                 break;
             }
             moov |= "moov".equals(type);

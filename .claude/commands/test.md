@@ -107,7 +107,7 @@ Record, per file, how many screenshots were read and every FAIL with the screens
 
 **Quick Settings tile.** Leave the app on another tab and go home. `adb shell cmd statusbar add-tile com.doubleangels.redact/.CleanTileService`, then `cmd statusbar click-tile com.doubleangels.redact/.CleanTileService`: Redact opens on the Clean tab. Collapse the shade with `cmd statusbar collapse`.
 
-**Cache cleanup.** Force-stop and relaunch the app; `cache/` holds no original or processed media older than the current session (Glide thumbnails are fine). Censor writes no working files at all: nothing in `cache/` or `files/` appears from it.
+**Cache cleanup.** Force-stop and relaunch the app; `cache/` holds no original media and no working file (a `temp_`, `verify_`, `vid_*`, snapshot or other temp-prefixed name). Cleaned copies in `cache/processed/` from a share are kept for an hour so the app they went to can read them (`CacheCleanup.SHARED_OUTPUT_MAX_AGE_MS`); one older than that, or any that fails `check_media.py`, is a FAIL. Censor writes no working files at all: nothing in `cache/` or `files/` appears from it.
 
 ## 4. Summary
 

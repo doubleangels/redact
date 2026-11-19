@@ -17,7 +17,6 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.viewmodel.CreationExtras;
 
-import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaProcessor;
@@ -109,10 +108,7 @@ public class MainViewModel extends AndroidViewModel {
         if (activity == null) {
             return false;
         }
-        if (ShareHandlerActivity.isShareProcessingActive()) {
-            return true;
-        }
-        return AppProcessingScope.get(activity.getApplication()).repository().isProcessingActive();
+        return AppProcessingScope.get(activity.getApplication()).isAnyJobRunning();
     }
 
     public boolean isProcessingActive() {

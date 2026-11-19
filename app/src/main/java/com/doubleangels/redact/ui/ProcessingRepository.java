@@ -15,8 +15,8 @@ import androidx.lifecycle.SavedStateHandle;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
+import com.doubleangels.redact.media.BatchRun;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaProcessor;
@@ -24,6 +24,7 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.ProgressUpdateThrottler;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.notifications.LocalNotifications;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.MainViewModel.ProcessingState;
@@ -35,9 +36,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.sentry.ISpan;
-import io.sentry.ITransaction;
-import io.sentry.SpanStatus;
 import io.sentry.protocol.SentryId;
 
 /**
@@ -453,7 +451,7 @@ public final class ProcessingRepository {
 
     void startCleaning(List<MediaItem> items) {
         if (items == null || items.isEmpty()) return;
-        if (ShareHandlerActivity.isShareProcessingActive()) {
+        if (scope.isShareRunning()) {
             cleanProgressMessage.postValue(app.getString(R.string.status_already_processing));
             return;
         }
@@ -560,7 +558,7 @@ public final class ProcessingRepository {
             int imageFormatIndex,
             Bitmap.CompressFormat imageFormat) {
         if (items == null || items.isEmpty()) return;
-        if (ShareHandlerActivity.isShareProcessingActive()) {
+        if (scope.isShareRunning()) {
             convertProgressMessage.postValue(app.getString(R.string.status_already_processing));
             return;
         }
@@ -599,106 +597,31 @@ public final class ProcessingRepository {
 
     private void runConversion(List<MediaItem> items, int total, int formatIndex, int imageFormatIndex,
                                int runGeneration, @Nullable SentryId reportedBefore) {
-        ITransaction transaction = SentryManager.startTransaction("convert_multiple", "task");
-        long batchStartMs = System.currentTimeMillis();
-        int ok = 0;
-        int fail = 0;
+        BatchRun.Result result = new BatchRun.Result(0, 0, true);
         try {
-            for (int i = 0; i < total; i++) {
-                if (convertStopped(runGeneration)) {
-                    break;
-                }
-                MediaItem mediaItem = items.get(i);
-                Uri uri = mediaItem.uri();
-                final int index = i + 1;
-                final String name = mediaItem.displayName(app);
-                // Empty, not the display label, so a nameless source still gets a random output name.
-                final String outputName = mediaItem.fileName() != null ? mediaItem.fileName() : "";
-                ISpan span = transaction.startChild("convert_item", "media_item");
-                int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
-                String itemLine = app.getString(R.string.convert_progress_item, index, total);
-                updateConvertProgressPercent(overallStart, itemLine);
-                LocalNotifications.updateConversionProgress(app, overallStart, itemLine);
-                try {
-                    if (mediaItem.isVideo()) {
-                        int[] actualFormatIndex = new int[1];
-                        actualFormatIndex[0] = formatIndex;
-                        Uri convertedVideo = FormatConverter.convertVideoToMovies(
-                                app,
-                                uri,
-                                outputName,
-                                formatIndex,
-                                p -> {
-                                    int overall = total > 0 ? ((index - 1) * 100 + p) / total : 0;
-                                    String detail = app.getString(
-                                            R.string.convert_progress_detail,
-                                            index,
-                                            total,
-                                            name,
-                                            app.getString(R.string.convert_transcoding_percent, p));
-                                    updateConvertProgressPercent(overall, detail);
-                                    LocalNotifications.updateConversionProgress(app, overall, detail);
-                                },
-                                actualFormatIndex,
-                                VideoMedia3Converter.convertOwner(runGeneration),
-                                () -> convertStopped(runGeneration));
-                        if (runGeneration == scope.convertGeneration().get()) {
-                            convertOutputs.add(convertedVideo);
+            result = BatchRun.run(AppMetrics.CONVERT, "convert_multiple", items, 0, MediaItem::isVideo,
+                    () -> convertStopped(runGeneration),
+                    (item, i) -> convertOne(item, i + 1, total, formatIndex, imageFormatIndex, runGeneration),
+                    new BatchRun.Hooks<>() {
+                        @Override
+                        public void onFailed(@NonNull MediaItem item, int i, @Nullable Throwable error,
+                                             @NonNull String outcome) {
+                            AppMetrics.convertFormat(targetMimeType(item, formatIndex, imageFormatIndex), outcome);
                         }
-                        if (actualFormatIndex[0] != formatIndex) {
-                            String requested = FormatConverter.videoFormatLabel(app, formatIndex);
-                            String used = FormatConverter.videoFormatLabel(app, actualFormatIndex[0]);
-                            convertProgressMessage.postValue(
-                                    app.getString(R.string.convert_codec_fallback, requested, used));
+
+                        @Override
+                        public void afterItem(@NonNull MediaItem item, int i) {
+                            int index = i + 1;
+                            int overallDone = total > 0 ? (index * 100) / total : 0;
+                            String doneLine = app.getString(R.string.convert_progress_item, index, total);
+                            updateConvertProgressPercent(overallDone, doneLine);
+                            LocalNotifications.updateConversionProgress(app, overallDone, doneLine);
                         }
-                    } else {
-                        int overallImage = total > 0 ? ((index - 1) * 100) / total : 0;
-                        String detail = app.getString(
-                                R.string.convert_progress_detail,
-                                index,
-                                total,
-                                name,
-                                app.getString(R.string.convert_encoding_image));
-                        updateConvertProgressPercent(overallImage, detail);
-                        LocalNotifications.updateConversionProgress(app, overallImage, detail);
-                        Uri convertedImage = FormatConverter.convertImageToPictures(
-                                app, uri, FormatConverter.formatAtIndex(imageFormatIndex), outputName);
-                        if (runGeneration == scope.convertGeneration().get()) {
-                            convertOutputs.add(convertedImage);
-                        }
-                    }
-                    ok++;
-                    StatsStore.recordConverted(app);
-                    span.setStatus(SpanStatus.OK);
-                } catch (Exception | OutOfMemoryError e) {
-                    // Out of memory fails this file, not the app: the next file may be smaller.
-                    boolean cancelled = convertStopped(runGeneration) || SentryManager.isUserCancellation(e);
-                    if (cancelled) {
-                        span.setStatus(SpanStatus.CANCELLED);
-                    } else {
-                        fail++;
-                        SentryManager.recordException(e);
-                        SentryManager.count(
-                                "processing.convert.failure",
-                                1,
-                                "is_video",
-                                String.valueOf(mediaItem.isVideo()),
-                                "error_type",
-                                e.getClass().getSimpleName());
-                        span.setStatus(SpanStatus.INTERNAL_ERROR);
-                    }
-                } finally {
-                    span.finish();
-                }
-                int overallDone = total > 0 ? (index * 100) / total : 0;
-                String doneLine = app.getString(R.string.convert_progress_item, index, total);
-                updateConvertProgressPercent(overallDone, doneLine);
-                LocalNotifications.updateConversionProgress(app, overallDone, doneLine);
-            }
+                    });
         } finally {
-            final int finalOk = ok;
-            final int finalFail = fail;
-            final boolean interrupted = convertStopped(runGeneration);
+            final int finalOk = result.succeeded();
+            final int finalFail = result.failed();
+            final boolean interrupted = result.cancelled() || convertStopped(runGeneration);
             // A cancelled run already cleared the flag, and a newer run may have set it since;
             // only the run that is still current may clear it.
             if (runGeneration == scope.convertGeneration().get()) {
@@ -733,13 +656,80 @@ public final class ProcessingRepository {
                     LocalNotifications.showConversionComplete(app, finalOk, finalFail);
                 }
             });
-            SentryManager.distributionDurationMs(
-                    "processing.duration_ms",
-                    System.currentTimeMillis() - batchStartMs,
-                    "operation_type",
-                    "convert");
-            transaction.finish();
         }
+    }
+
+    /** The format a file is converted to, as the convert.format metric names it. */
+    @NonNull
+    private static String targetMimeType(@NonNull MediaItem item, int formatIndex, int imageFormatIndex) {
+        return item.isVideo()
+                ? AppMetrics.videoFormatMimeType(AppPreferences.clampFormatIndex(formatIndex))
+                : AppMetrics.imageFormatMimeType(FormatConverter.formatAtIndex(imageFormatIndex).name());
+    }
+
+    /** Converts the {@code index}th of {@code total} files, reporting its progress. */
+    @NonNull
+    private BatchRun.Outcome convertOne(@NonNull MediaItem mediaItem, int index, int total, int formatIndex,
+                                        int imageFormatIndex, int runGeneration) throws Exception {
+        Uri uri = mediaItem.uri();
+        final String name = mediaItem.displayName(app);
+        // Empty, not the display label, so a nameless source still gets a random output name.
+        final String outputName = mediaItem.fileName() != null ? mediaItem.fileName() : "";
+        String targetMimeType = targetMimeType(mediaItem, formatIndex, imageFormatIndex);
+        int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
+        String itemLine = app.getString(R.string.convert_progress_item, index, total);
+        updateConvertProgressPercent(overallStart, itemLine);
+        LocalNotifications.updateConversionProgress(app, overallStart, itemLine);
+        if (mediaItem.isVideo()) {
+            FormatConverter.VideoConversion converted = FormatConverter.convertVideoToMovies(
+                    app,
+                    uri,
+                    outputName,
+                    formatIndex,
+                    p -> {
+                        int overall = total > 0 ? ((index - 1) * 100 + p) / total : 0;
+                        String detail = app.getString(
+                                R.string.convert_progress_detail,
+                                index,
+                                total,
+                                name,
+                                app.getString(R.string.convert_transcoding_percent, p));
+                        updateConvertProgressPercent(overall, detail);
+                        LocalNotifications.updateConversionProgress(app, overall, detail);
+                    },
+                    VideoMedia3Converter.convertOwner(runGeneration),
+                    () -> convertStopped(runGeneration));
+            if (runGeneration == scope.convertGeneration().get()) {
+                convertOutputs.add(converted.output());
+            }
+            int used = converted.usedFormatIndex();
+            if (used != formatIndex) {
+                targetMimeType = AppMetrics.videoFormatMimeType(used);
+                AppMetrics.codecFallback(used);
+                String requestedLabel = FormatConverter.videoFormatLabel(app, formatIndex);
+                String usedLabel = FormatConverter.videoFormatLabel(app, used);
+                convertProgressMessage.postValue(
+                        app.getString(R.string.convert_codec_fallback, requestedLabel, usedLabel));
+            }
+        } else {
+            int overallImage = total > 0 ? ((index - 1) * 100) / total : 0;
+            String detail = app.getString(
+                    R.string.convert_progress_detail,
+                    index,
+                    total,
+                    name,
+                    app.getString(R.string.convert_encoding_image));
+            updateConvertProgressPercent(overallImage, detail);
+            LocalNotifications.updateConversionProgress(app, overallImage, detail);
+            Uri convertedImage = FormatConverter.convertImageToPictures(
+                    app, uri, FormatConverter.formatAtIndex(imageFormatIndex), outputName);
+            if (runGeneration == scope.convertGeneration().get()) {
+                convertOutputs.add(convertedImage);
+            }
+        }
+        StatsStore.recordConverted(app);
+        AppMetrics.convertFormat(targetMimeType, AppMetrics.SUCCESS);
+        return BatchRun.Outcome.SUCCEEDED;
     }
 
     private String convertCompletionMessage(int okCount, int failCount) {

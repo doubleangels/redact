@@ -268,4 +268,26 @@ public class NewCleanAndScanFeaturesTest {
         toggles.sync();
         assertFalse(audio.isChecked());
     }
+
+    @Test
+    public void quickToggles_doNotWriteRestoredStateBackOverAReset() {
+        // Strict Clean off and Remove Audio on, then Reset All Settings, which recreates the
+        // activity: the new Clean tab's chips get the old view state restored after they synced.
+        View before = LayoutInflater.from(themed).inflate(R.layout.fragment_clean, null);
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setRemoveAudio(app, true);
+        new CleanQuickToggles(before);
+        android.util.SparseArray<android.os.Parcelable> saved = new android.util.SparseArray<>();
+        before.saveHierarchyState(saved);
+
+        AppPreferences.resetAll(app);
+        View after = LayoutInflater.from(themed).inflate(R.layout.fragment_clean, null);
+        new CleanQuickToggles(after);
+        after.restoreHierarchyState(saved);
+
+        assertTrue("the reset's Strict Clean stays on", AppPreferences.isStrictClean(app));
+        assertFalse(AppPreferences.isRemoveAudio(app));
+        assertTrue(((Chip) after.findViewById(R.id.chipStrictClean)).isChecked());
+        assertFalse(((Chip) after.findViewById(R.id.chipRemoveAudio)).isChecked());
+    }
 }

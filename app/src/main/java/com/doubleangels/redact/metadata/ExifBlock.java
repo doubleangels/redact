@@ -298,6 +298,16 @@ public final class ExifBlock {
      */
     @NonNull
     public static List<Entry> read(@NonNull byte[] tiff) throws IOException {
+        return walk(tiff, littleEndian(tiff), null).entries;
+    }
+
+    /** What {@link #walk} found: the entries, and whether anything was left unread. */
+    private static final class Walk {
+        final List<Entry> entries = new ArrayList<>();
+        boolean unfollowed;
+    }
+
+    private static boolean littleEndian(@NonNull byte[] tiff) throws IOException {
         if (tiff.length < 8) {
             throw new IOException("EXIF block too short");
         }
@@ -312,11 +322,154 @@ public final class ExifBlock {
         if (u16(tiff, 2, little) != 42) {
             throw new IOException("Not a TIFF header");
         }
-        List<Entry> entries = new ArrayList<>();
+        return little;
+    }
+
+    /** Bytes of a block no entry needs to account for: alignment padding and the like. */
+    private static final int UNREFERENCED_SLACK = 64;
+    private static final int TAG_SUB_IFDS = 0x014A;
+    private static final int TAG_THUMBNAIL_OFFSET = 0x0201;
+    private static final int TAG_THUMBNAIL_LENGTH = 0x0202;
+
+    /**
+     * Whether {@link #read} accounts for the whole block: no IFD chained after IFD1, no SubIFDs,
+     * no EXIF or GPS directory hung off IFD1, and no more than a little of the block left that no
+     * entry, value or thumbnail points to. The already-clean check calls a file clean only when
+     * this holds; anything else could hide data the walk never read, so the file is cleaned.
+     */
+    static boolean coversWholeBlock(@NonNull byte[] tiff) throws IOException {
+        boolean little = littleEndian(tiff);
+        List<long[]> ranges = new ArrayList<>();
+        ranges.add(new long[] {0, 8});
+        Walk walk = walk(tiff, little, ranges);
+        if (walk.unfollowed) {
+            return false;
+        }
+        long thumbnailAt = -1;
+        long thumbnailLength = -1;
+        for (Entry e : walk.entries) {
+            if (e.tag == TAG_SUB_IFDS || (e.ifd == IFD_1 && (e.tag == TAG_EXIF_IFD || e.tag == TAG_GPS_IFD))) {
+                return false;
+            }
+            if (e.ifd == IFD_1 && e.tag == TAG_THUMBNAIL_OFFSET && e.value.length >= 4) {
+                thumbnailAt = u32(e.value, 0, little);
+            } else if (e.ifd == IFD_1 && e.tag == TAG_THUMBNAIL_LENGTH && e.value.length >= 4) {
+                thumbnailLength = u32(e.value, 0, little);
+            }
+        }
+        if (thumbnailAt >= 0 && thumbnailLength > 0) {
+            ranges.add(new long[] {thumbnailAt, thumbnailAt + thumbnailLength});
+        }
+        // ExifInterface, writing kept tags back, leaves an unreferenced copy of IFD0 after the
+        // values. A gap that is exactly such a copy holds nothing the file doesn't already show,
+        // so it is accounted for; any other unreferenced data still leaves the block uncovered.
+        List<Entry> ifd0 = new ArrayList<>();
+        for (Entry e : walk.entries) {
+            if (e.ifd == IFD_0) {
+                ifd0.add(e);
+            }
+        }
+        for (int copies = 0; copies < MAX_IFD0_COPIES && uncovered(ranges, tiff.length) > UNREFERENCED_SLACK; copies++) {
+            long gap = firstGap(ranges, tiff.length);
+            if (gap < 0 || !acceptIfd0Copy(tiff, gap, little, ifd0, ranges)) {
+                break;
+            }
+        }
+        return uncovered(ranges, tiff.length) <= UNREFERENCED_SLACK;
+    }
+
+    /** How many unreferenced copies of IFD0 one block may hold. */
+    private static final int MAX_IFD0_COPIES = 2;
+
+    /** Bytes of the block no range in {@code ranges} covers. */
+    private static long uncovered(@NonNull List<long[]> ranges, long length) {
+        ranges.sort((x, y) -> Long.compare(x[0], y[0]));
+        long covered = 0;
+        long end = 0;
+        for (long[] r : ranges) {
+            long from = Math.max(r[0], end);
+            long to = Math.min(r[1], length);
+            if (to > from) {
+                covered += to - from;
+                end = to;
+            }
+        }
+        return length - covered;
+    }
+
+    /** Where the first byte no range covers is, past the header; -1 when every byte is covered. */
+    private static long firstGap(@NonNull List<long[]> ranges, long length) {
+        ranges.sort((x, y) -> Long.compare(x[0], y[0]));
+        long end = 0;
+        for (long[] r : ranges) {
+            if (r[0] > end) {
+                return end;
+            }
+            end = Math.max(end, r[1]);
+        }
+        return end < length ? end : -1;
+    }
+
+    /**
+     * Whether an IFD starting at {@code gap} (or a word-aligned byte or two after it) is a copy of
+     * IFD0: chained to nothing, pointing to no other directory or thumbnail, and every entry the
+     * same tag, type, count and value as one of IFD0's. If it is, its bytes join {@code ranges}.
+     */
+    private static boolean acceptIfd0Copy(@NonNull byte[] tiff, long gap, boolean little,
+                                          @NonNull List<Entry> ifd0, @NonNull List<long[]> ranges) {
+        for (long at = gap; at <= gap + 3 && at + 2 + 12 + 4 <= tiff.length; at++) {
+            List<Entry> copy = new ArrayList<>();
+            List<long[]> used = new ArrayList<>();
+            long next;
+            try {
+                next = ifd(tiff, at, IFD_0, little, copy, new HashSet<>(), used);
+            } catch (IOException e) {
+                continue;
+            }
+            if (next != 0 || copy.isEmpty()) {
+                continue;
+            }
+            boolean allCopied = true;
+            for (Entry e : copy) {
+                boolean pointer = e.tag == TAG_EXIF_IFD || e.tag == TAG_GPS_IFD
+                        || e.tag == TAG_INTEROPERABILITY_IFD || e.tag == TAG_SUB_IFDS
+                        || e.tag == TAG_THUMBNAIL_OFFSET || e.tag == TAG_THUMBNAIL_LENGTH;
+                // A value past MAX_VALUE is only partly read, so it could differ unseen.
+                if (pointer || e.size > MAX_VALUE || !sameAsOneOf(e, ifd0)) {
+                    allCopied = false;
+                    break;
+                }
+            }
+            if (allCopied) {
+                ranges.add(new long[] {gap, at}); // the alignment bytes before it
+                ranges.addAll(used);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean sameAsOneOf(@NonNull Entry e, @NonNull List<Entry> entries) {
+        for (Entry other : entries) {
+            if (other.tag == e.tag && other.type == e.type && other.count == e.count
+                    && other.size == e.size && Arrays.equals(other.value, e.value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Reads IFD0, IFD1 and their sub-IFDs, recording the byte ranges they use in {@code ranges}. */
+    @NonNull
+    private static Walk walk(@NonNull byte[] tiff, boolean little, @Nullable List<long[]> ranges)
+            throws IOException {
+        Walk walk = new Walk();
+        List<Entry> entries = walk.entries;
         Set<Long> visited = new HashSet<>();
-        long next = ifd(tiff, u32(tiff, 4, little), IFD_0, little, entries, visited);
+        long next = ifd(tiff, u32(tiff, 4, little), IFD_0, little, entries, visited, ranges);
         if (next != 0) {
-            ifd(tiff, next, IFD_1, little, entries, visited);
+            long afterIfd1 = ifd(tiff, next, IFD_1, little, entries, visited, ranges);
+            walk.unfollowed = afterIfd1 != 0;
         }
         // Sub-IFDs, found from the entries read so far (the list grows as they are read).
         for (int i = 0; i < entries.size(); i++) {
@@ -326,15 +479,15 @@ public final class ExifBlock {
                     : e.tag == TAG_INTEROPERABILITY_IFD && e.ifd == IFD_EXIF ? IFD_INTEROPERABILITY
                     : -1;
             if (target >= 0 && e.value.length >= 4) {
-                ifd(tiff, u32(e.value, 0, little), target, little, entries, visited);
+                ifd(tiff, u32(e.value, 0, little), target, little, entries, visited, ranges);
             }
         }
-        return entries;
+        return walk;
     }
 
     /** Reads one IFD's entries into {@code out}; returns the offset of the next IFD, 0 for none. */
     private static long ifd(byte[] tiff, long offset, int ifd, boolean little, List<Entry> out,
-                            Set<Long> visited) throws IOException {
+                            Set<Long> visited, @Nullable List<long[]> ranges) throws IOException {
         if (!visited.add(offset)) {
             throw new IOException("EXIF IFDs loop");
         }
@@ -344,6 +497,9 @@ public final class ExifBlock {
         int count = u16(tiff, (int) offset, little);
         if (count > MAX_ENTRIES || offset + 2 + 12L * count + 4 > tiff.length) {
             throw new IOException("EXIF IFD runs past the block");
+        }
+        if (ranges != null) {
+            ranges.add(new long[] {offset, offset + 2 + 12L * count + 4});
         }
         for (int i = 0; i < count; i++) {
             int at = (int) offset + 2 + 12 * i;
@@ -363,6 +519,9 @@ public final class ExifBlock {
                     throw new IOException("EXIF value outside the block");
                 }
                 value = Arrays.copyOfRange(tiff, (int) where, (int) (where + Math.min(size, MAX_VALUE)));
+                if (ranges != null) {
+                    ranges.add(new long[] {where, where + size});
+                }
             }
             out.add(new Entry(ifd, tag, type, values, size, value));
         }

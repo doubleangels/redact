@@ -1,5 +1,7 @@
 package com.doubleangels.redact;
 
+import static com.doubleangels.redact.TestWaits.awaitMainValue;
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -410,13 +412,8 @@ public class SettingsFragmentTest {
     @Test
     public void storageSize_isShownAfterResume() throws Exception {
         controller.pause().resume();
-        long end = System.currentTimeMillis() + 3000;
         TextView size = settings.findViewById(R.id.textStorageSize);
-        while (System.currentTimeMillis() < end && size.getText().length() == 0) {
-            idle();
-            Thread.sleep(25);
-        }
-        assertTrue(size.getText().length() > 0);
+        awaitMain(() -> size.getText().length() > 0);
     }
 
     // ---- permissions + about ------------------------------------------------------------------------
@@ -523,36 +520,17 @@ public class SettingsFragmentTest {
 
     /** Waits for an activity-for-result launched after background work, as the folder picker is. */
     private org.robolectric.shadows.ShadowActivity.IntentForResult awaitStartedForResult() throws Exception {
-        long end = System.currentTimeMillis() + 3000;
-        org.robolectric.shadows.ShadowActivity.IntentForResult launched = null;
-        while (launched == null && System.currentTimeMillis() < end) {
-            idle();
-            launched = shadowOf(activity).getNextStartedActivityForResult();
+        return awaitMainValue(() -> {
+            org.robolectric.shadows.ShadowActivity.IntentForResult launched =
+                    shadowOf(activity).getNextStartedActivityForResult();
             // Skip the initial runtime-permission request.
-            if (launched != null && !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(launched.intent.getAction())) {
-                launched = null;
-                continue;
-            }
-            if (launched == null) {
-                Thread.sleep(25);
-            }
-        }
-        assertNotNull(launched);
-        return launched;
+            return launched != null && Intent.ACTION_OPEN_DOCUMENT_TREE.equals(launched.intent.getAction())
+                    ? launched : null;
+        });
     }
 
     private Intent awaitStarted(String action) throws Exception {
-        Intent intent = null;
-        long end = System.currentTimeMillis() + 3000;
-        while (intent == null && System.currentTimeMillis() < end) {
-            idle();
-            intent = nextIntentWithAction(action);
-            if (intent == null) {
-                Thread.sleep(25);
-            }
-        }
-        assertNotNull(intent);
-        return intent;
+        return awaitMainValue(() -> nextIntentWithAction(action));
     }
 
     @Test
@@ -612,16 +590,7 @@ public class SettingsFragmentTest {
         settings.findViewById(R.id.buttonOpenOutputVideos).performClick();
 
         // The folder is worked out in the background, then opened on the main thread.
-        Intent intent = null;
-        long end = System.currentTimeMillis() + 3000;
-        while (intent == null && System.currentTimeMillis() < end) {
-            idle();
-            intent = nextIntentWithAction(Intent.ACTION_VIEW);
-            if (intent == null) {
-                Thread.sleep(25);
-            }
-        }
-        assertNotNull(intent);
+        Intent intent = awaitMainValue(() -> nextIntentWithAction(Intent.ACTION_VIEW));
         assertEquals(android.provider.DocumentsContract.Document.MIME_TYPE_DIR, intent.getType());
         assertEquals("primary:Movies/Redact",
                 android.provider.DocumentsContract.getDocumentId(intent.getData()));
@@ -630,7 +599,7 @@ public class SettingsFragmentTest {
     }
 
     @Test
-    public void outputFolders_showTheDefault_aChosenFolder_andAWarningOnceItIsGone() {
+    public void outputFolders_showTheDefault_aChosenFolder_andAWarningOnceItIsGone() throws Exception {
         TextView label = settings.findViewById(R.id.textOutputImages);
         TextView warning = settings.findViewById(R.id.textOutputImagesWarning);
         View reset = settings.findViewById(R.id.buttonResetOutputImages);
@@ -652,16 +621,7 @@ public class SettingsFragmentTest {
         FakeDocumentsProvider.fileFor("primary:Pictures/Private").delete();
         reshowSettings();
         // The folder is checked in the background; wait for the answer to reach the screen.
-        long end = System.currentTimeMillis() + 3000;
-        while (warning.getVisibility() != View.VISIBLE && System.currentTimeMillis() < end) {
-            idle();
-            try {
-                Thread.sleep(25);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
+        awaitMain(() -> warning.getVisibility() == View.VISIBLE);
         assertEquals("Pictures/Private", label.getText().toString());
         assertEquals(View.VISIBLE, warning.getVisibility());
         assertEquals(activity.getString(R.string.settings_output_unavailable, "Pictures/Redact"),

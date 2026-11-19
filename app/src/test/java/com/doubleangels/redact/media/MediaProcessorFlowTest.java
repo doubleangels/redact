@@ -102,12 +102,22 @@ public class MediaProcessorFlowTest {
         return new MediaItem(Uri.fromFile(new File("/nonexistent/" + name)), false, name);
     }
 
+    /** A worker that was shut down refuses a batch, and must not leave the processor busy. */
+    @Test
+    public void aBatchAfterShutdown_isRefused_withoutStayingBusy() throws Exception {
+        processor.shutdown();
+
+        org.junit.Assert.assertThrows(java.util.concurrent.RejectedExecutionException.class,
+                () -> processor.processMediaItems(Arrays.asList(jpeg("late.jpg")), -1L, new Recorder()));
+        assertFalse(processor.isBusy());
+    }
+
     @Test
     public void cleaningARealImage_reportsStartProgressAndSuccess() throws Exception {
         Recorder cb = new Recorder();
         MediaItem item = jpeg("holiday.jpg");
 
-        processor.processMediaItems(Arrays.asList(item), cb);
+        processor.processMediaItems(Arrays.asList(item), -1L, cb);
         assertTrue(processor.isBusy());
         awaitMain(() -> cb.events.contains("complete"));
 
@@ -125,7 +135,7 @@ public class MediaProcessorFlowTest {
     public void aFailingItemIsCountedButDoesNotStopTheBatch() throws Exception {
         Recorder cb = new Recorder();
 
-        processor.processMediaItems(Arrays.asList(missing("a.jpg"), jpeg("b.jpg"), missing("c.jpg")), cb);
+        processor.processMediaItems(Arrays.asList(missing("a.jpg"), jpeg("b.jpg"), missing("c.jpg")), -1L, cb);
         awaitMain(() -> cb.events.contains("complete"));
 
         assertEquals(1, cb.successCount);
@@ -136,9 +146,9 @@ public class MediaProcessorFlowTest {
     @Test
     public void emptyOrNullBatchesCompleteImmediately() throws Exception {
         Recorder empty = new Recorder();
-        processor.processMediaItems(new ArrayList<>(), empty);
+        processor.processMediaItems(new ArrayList<>(), -1L, empty);
         Recorder none = new Recorder();
-        processor.processMediaItems(null, none);
+        processor.processMediaItems(null, -1L, none);
 
         awaitMain(() -> empty.events.contains("complete") && none.events.contains("complete"));
 
@@ -156,11 +166,11 @@ public class MediaProcessorFlowTest {
             @Override
             public void onComplete(int successCount, int totalCount) {
                 super.onComplete(successCount, totalCount);
-                processor.processMediaItems(Arrays.asList(next), second);
+                processor.processMediaItems(Arrays.asList(next), -1L, second);
             }
         };
 
-        processor.processMediaItems(Arrays.asList(jpeg("first.jpg")), first);
+        processor.processMediaItems(Arrays.asList(jpeg("first.jpg")), -1L, first);
         awaitMain(() -> second.events.contains("complete") || second.events.contains("already"));
 
         assertFalse("refused as already processing: " + second.events, second.events.contains("already"));
@@ -174,7 +184,7 @@ public class MediaProcessorFlowTest {
         Recorder cb = new Recorder();
         MediaItem a = jpeg("a.jpg");
         MediaItem b = jpeg("b.jpg");
-        processor.processMediaItems(Arrays.asList(a, b), cb);
+        processor.processMediaItems(Arrays.asList(a, b), -1L, cb);
         awaitMain(() -> cb.events.contains("complete"));
 
         assertEquals(Arrays.asList(a.uri(), b.uri()), processor.takeSucceededSources());
@@ -188,8 +198,8 @@ public class MediaProcessorFlowTest {
         Recorder first = new Recorder();
         Recorder second = new Recorder();
 
-        processor.processMediaItems(Arrays.asList(jpeg("a.jpg"), jpeg("b.jpg")), first);
-        processor.processMediaItems(Arrays.asList(jpeg("c.jpg")), second);
+        processor.processMediaItems(Arrays.asList(jpeg("a.jpg"), jpeg("b.jpg")), -1L, first);
+        processor.processMediaItems(Arrays.asList(jpeg("c.jpg")), -1L, second);
         awaitMain(() -> second.events.contains("already") && first.events.contains("complete"));
 
         assertEquals(Arrays.asList("already"), second.events);
@@ -204,7 +214,7 @@ public class MediaProcessorFlowTest {
             items.add(jpeg("p" + i + ".jpg"));
         }
 
-        processor.processMediaItems(items, cb);
+        processor.processMediaItems(items, -1L, cb);
         processor.cancel();
         awaitMain(() -> cb.events.contains("cancelled") || cb.events.contains("complete"));
 
@@ -217,7 +227,7 @@ public class MediaProcessorFlowTest {
         AppPreferences.setKeepOriginalFileNames(app, true);
         Recorder cb = new Recorder();
         MediaItem item = jpeg("holiday.jpg");
-        processor.processMediaItems(Arrays.asList(item), cb);
+        processor.processMediaItems(Arrays.asList(item), -1L, cb);
         awaitMain(() -> cb.events.contains("complete"));
         awaitMain(() -> !processor.isBusy());
         // The original still held its name when the copy was saved, so the system added " (1)".
@@ -236,7 +246,7 @@ public class MediaProcessorFlowTest {
     public void anOriginalThatWasNotTrashed_leavesItsCopyAlone() throws Exception {
         AppPreferences.setKeepOriginalFileNames(app, true);
         Recorder cb = new Recorder();
-        processor.processMediaItems(Arrays.asList(jpeg("holiday.jpg")), cb);
+        processor.processMediaItems(Arrays.asList(jpeg("holiday.jpg")), -1L, cb);
         awaitMain(() -> cb.events.contains("complete"));
         awaitMain(() -> !processor.isBusy());
         Uri output = processor.getSucceededOutputs().get(0);
@@ -245,8 +255,8 @@ public class MediaProcessorFlowTest {
         app.getContentResolver().update(output, clash, null, null);
 
         processor.takeSucceededSources();
+        // An empty list returns before anything reaches the worker, so there is nothing to wait for.
         processor.restoreOriginalNames(new ArrayList<>());
-        Thread.sleep(200);
 
         assertEquals("holiday (1).jpg", FakeMediaStoreProvider.only().displayName());
     }

@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,9 +17,11 @@ import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.SecureDelete;
+import com.doubleangels.redact.media.UnsupportedMediaException;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.util.Locale;
@@ -67,6 +70,8 @@ import java.util.function.BooleanSupplier;
  * @see FileProvider
  */
 public class MetadataStripper {
+
+    private static final String TAG = "MetadataStripper";
 
     /**
      * Interface for reporting progress during media processing operations.
@@ -178,6 +183,42 @@ public class MetadataStripper {
         return cause != null && SentryManager.isUserCancellation(cause);
     }
 
+    /**
+     * A clean into the gallery that threw. A cancellation goes on up to the batch; anything else
+     * is logged, reported once, and the partial gallery entry discarded, so nothing half-written
+     * is left. Always returns null, the output the clean then has.
+     */
+    @Nullable
+    Uri galleryCleanFailed(@NonNull Exception e, @Nullable Uri partialOutput, @NonNull String kind) {
+        if (shouldPropagateCancellation(e)) {
+            throw asCancellationException(e);
+        }
+        Log.e(TAG, "Error processing " + kind, e);
+        SentryManager.setCustomKey("outcome", "failed");
+        SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
+        SentryManager.recordException(e);
+        if (partialOutput != null) {
+            OutputDestination.discard(contentResolver, partialOutput);
+        }
+        return null;
+    }
+
+    /**
+     * A clean for sharing that threw, or ran out of memory on a crafted file: that file fails,
+     * the share goes on to the next, and the partial output is securely deleted.
+     */
+    void shareCleanFailed(@NonNull Throwable e, @Nullable File partialOutput, @NonNull Job job,
+                          @NonNull String kind) {
+        Log.e(TAG, "Error processing " + kind + " for sharing", e);
+        job.unsupported = UnsupportedMediaException.isCauseOf(e);
+        SentryManager.setCustomKey("outcome", "failed");
+        SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
+        SentryManager.recordException(e);
+        if (partialOutput != null && partialOutput.exists()) {
+            secureDeleteFile(partialOutput);
+        }
+    }
+
     static RuntimeException asCancellationException(Throwable e) {
         if (e instanceof RuntimeException runtimeException) {
             return runtimeException;
@@ -212,7 +253,7 @@ public class MetadataStripper {
         this.verifier = new CleanVerifier(this);
         this.images = new ImageCleaner(this);
         this.videos = new VideoCleaner(this, transmuxer);
-        SentryManager.log("The MetadataStripper was initialized.");
+        SentryManager.logEvent("clean", "The MetadataStripper was initialized.");
     }
 
     /**
@@ -415,8 +456,8 @@ public class MetadataStripper {
     @NonNull
     public CleanResult cleanForSharing(@NonNull Uri sourceUri, @NonNull String originalFilename, boolean isVideo) {
         // Breadcrumb for a crash report.
-        SentryManager.log("The app is starting metadata stripping for sharing.");
-        SentryManager.setCustomKey("is_video", isVideo);
+        SentryManager.logEvent("clean", "The app is starting metadata stripping for sharing.");
+        SentryManager.setCustomKey("file.media_type", isVideo ? "video" : "image");
         return isVideo
                 ? cleanVideoForSharing(sourceUri, originalFilename)
                 : cleanImageForSharing(sourceUri, originalFilename);

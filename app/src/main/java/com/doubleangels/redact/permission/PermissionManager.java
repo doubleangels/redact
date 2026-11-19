@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.lang.ref.WeakReference;
@@ -50,7 +51,7 @@ public class PermissionManager {
     }
 
     private static volatile boolean initialPermissionFlowInProgress = false;
-    private static InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
+    private static volatile InitialFlowStep initialFlowStep = InitialFlowStep.DONE;
     /**
      * One per live MainActivity. Another app can open a second instance in its own task (VIEW and
      * SEND are exported), so each instance adds and removes its own instead of sharing one slot.
@@ -131,9 +132,6 @@ public class PermissionManager {
         this.activity = activity;
         this.callback = callback;
 
-        // Log device SDK version and package name for diagnostics
-        SentryManager.setCustomKey("device_sdk", Build.VERSION.SDK_INT);
-        SentryManager.setCustomKey("app_package", activity.getPackageName());
     }
 
     /**
@@ -149,16 +147,16 @@ public class PermissionManager {
         }
         try {
             List<String> missing = collectMissingRuntimePermissions(activity);
-            SentryManager.setCustomKey("needs_permissions", !missing.isEmpty());
+            SentryManager.setCustomKey("permission.needed", !missing.isEmpty());
 
             if (missing.isEmpty()) {
-                SentryManager.log("All permissions were already granted.");
+                SentryManager.logEvent("permission", "All permissions were already granted.");
                 notifyAllGranted();
             } else if (runtimePermissionRequestInFlight) {
-                SentryManager.log("A runtime permission request is already in flight.");
+                SentryManager.logEvent("permission", "A runtime permission request is already in flight.");
                 callback.onPermissionsRequestStarted();
             } else {
-                SentryManager.log("The permission request flow is starting.");
+                SentryManager.logEvent("permission", "The permission request flow is starting.");
                 callback.onPermissionsRequestStarted();
                 requestMissingRuntimePermissions(activity);
             }
@@ -197,9 +195,9 @@ public class PermissionManager {
                 boolean hasUserSelectedPermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == PackageManager.PERMISSION_GRANTED;
 
-                SentryManager.setCustomKey("has_image_permission", hasImagePermission);
-                SentryManager.setCustomKey("has_video_permission", hasVideoPermission);
-                SentryManager.setCustomKey("has_user_selected_permission", hasUserSelectedPermission);
+                SentryManager.setCustomKey("permission.images", hasImagePermission);
+                SentryManager.setCustomKey("permission.videos", hasVideoPermission);
+                SentryManager.setCustomKey("permission.selected_media", hasUserSelectedPermission);
 
                 // Either full (IMAGES+VIDEO) or partial (USER_SELECTED) grants are acceptable.
                 result = !(hasImagePermission && hasVideoPermission) && !hasUserSelectedPermission;
@@ -211,8 +209,8 @@ public class PermissionManager {
                 boolean hasVideoPermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
 
-                SentryManager.setCustomKey("has_image_permission", hasImagePermission);
-                SentryManager.setCustomKey("has_video_permission", hasVideoPermission);
+                SentryManager.setCustomKey("permission.images", hasImagePermission);
+                SentryManager.setCustomKey("permission.videos", hasVideoPermission);
 
                 result = !hasImagePermission || !hasVideoPermission;
             } else {
@@ -220,7 +218,7 @@ public class PermissionManager {
                 boolean hasStoragePermission = ContextCompat.checkSelfPermission(activity,
                         Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
 
-                SentryManager.setCustomKey("has_storage_permission", hasStoragePermission);
+                SentryManager.setCustomKey("permission.storage", hasStoragePermission);
                 result = !hasStoragePermission;
             }
             return result;
@@ -258,7 +256,7 @@ public class PermissionManager {
             boolean hasLocationPermission = ContextCompat.checkSelfPermission(activity,
                     Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-            SentryManager.setCustomKey("has_location_permission", hasLocationPermission);
+            SentryManager.setCustomKey("permission.media_gps", hasLocationPermission);
             return !hasLocationPermission;
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error checking location permission.", e));
@@ -275,8 +273,8 @@ public class PermissionManager {
     public void requestStoragePermission() {
         try {
             hasShownRationale = true;
-            SentryManager.setCustomKey("has_shown_rationale", true);
-            SentryManager.log("The app is requesting media and storage permissions.");
+            SentryManager.setCustomKey("permission.rationale_shown", true);
+            SentryManager.logEvent("permission", "The app is requesting media and storage permissions.");
             requestMissingRuntimePermissions(activity);
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error requesting permissions.", e));
@@ -296,13 +294,13 @@ public class PermissionManager {
             }
             if (!PermissionStatusHelper.hasMediaReadPrerequisiteForLocation(activity)) {
                 pendingLocationAfterMedia = true;
-                SentryManager.log("The app is requesting media access before the photo location permission.");
+                SentryManager.logEvent("permission", "The app is requesting media access before the photo location permission.");
                 requestMissingRuntimePermissions(activity);
                 return;
             }
             hasShownLocationRationale = true;
-            SentryManager.setCustomKey("has_shown_location_rationale", true);
-            SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
+            SentryManager.setCustomKey("permission.gps_rationale_shown", true);
+            SentryManager.logEvent("permission", "The app is requesting the ACCESS_MEDIA_LOCATION permission.");
             requestMediaLocationPermission();
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error requesting location permission.", e));
@@ -315,7 +313,7 @@ public class PermissionManager {
             return;
         }
         markRuntimePermissionRequestInFlight(activity);
-        SentryManager.log("The app is requesting the ACCESS_MEDIA_LOCATION permission.");
+        SentryManager.logEvent("permission", "The app is requesting the ACCESS_MEDIA_LOCATION permission.");
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
                 LOCATION_PERMISSION_REQUEST_CODE);
@@ -404,7 +402,7 @@ public class PermissionManager {
             String permission = permissions[i];
             boolean granted = (i < grantResults.length) &&
                     (grantResults[i] == PackageManager.PERMISSION_GRANTED);
-            SentryManager.setCustomKey("permission_" + permission.replace(".", "_"), granted);
+            SentryManager.setCustomKey("permission." + AppMetrics.permissionType(permission), granted);
         }
 
         // On Android 14+, READ_MEDIA_VISUAL_USER_SELECTED will be denied when the user
@@ -413,7 +411,7 @@ public class PermissionManager {
         // results is therefore unreliable; delegate to needsPermissions() which handles all
         // three cases correctly: full access, partial access, and denied.
         boolean stillNeedsPermissions = needsPermissions();
-        SentryManager.setCustomKey("all_permissions_granted", !stillNeedsPermissions);
+        SentryManager.setCustomKey("permission.all_granted", !stillNeedsPermissions);
 
         if (!stillNeedsPermissions) {
             callback.onPermissionsGranted();
@@ -467,7 +465,7 @@ public class PermissionManager {
 
             if (Manifest.permission.ACCESS_MEDIA_LOCATION.equals(permission)) {
                 locationPermissionGranted = granted;
-                SentryManager.setCustomKey("permission_ACCESS_MEDIA_LOCATION", granted);
+                SentryManager.setCustomKey("permission.media_gps", granted);
             }
         }
 
@@ -501,18 +499,18 @@ public class PermissionManager {
                         Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
                         == PackageManager.PERMISSION_GRANTED;
 
-                SentryManager.setCustomKey("can_ask_images_again", canAskImagesAgain);
-                SentryManager.setCustomKey("can_ask_video_again", canAskVideoAgain);
-                SentryManager.setCustomKey("has_partial_media_access", hasPartialAccess);
-                SentryManager.setCustomKey("should_show_settings",
+                SentryManager.setCustomKey("permission.images_can_ask", canAskImagesAgain);
+                SentryManager.setCustomKey("permission.videos_can_ask", canAskVideoAgain);
+                SentryManager.setCustomKey("permission.partial_access", hasPartialAccess);
+                SentryManager.setCustomKey("permission.settings_needed",
                         hasShownRationale && !hasPartialAccess
                                 && (!canAskImagesAgain || !canAskVideoAgain));
             } else {
                 boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                         activity, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-                SentryManager.setCustomKey("can_ask_storage_again", canAskAgain);
-                SentryManager.setCustomKey("should_show_settings", hasShownRationale && !canAskAgain);
+                SentryManager.setCustomKey("permission.storage_can_ask", canAskAgain);
+                SentryManager.setCustomKey("permission.settings_needed", hasShownRationale && !canAskAgain);
             }
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error handling permission denial.", e));
@@ -524,8 +522,8 @@ public class PermissionManager {
             boolean canAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(
                     activity, Manifest.permission.ACCESS_MEDIA_LOCATION);
 
-            SentryManager.setCustomKey("can_ask_location_again", canAskAgain);
-            SentryManager.setCustomKey("should_show_location_settings",
+            SentryManager.setCustomKey("permission.gps_can_ask", canAskAgain);
+            SentryManager.setCustomKey("permission.gps_settings_needed",
                     hasShownLocationRationale && !canAskAgain);
         } catch (Exception e) {
             SentryManager.recordException(new Exception("Error handling location permission denial.", e));
@@ -582,12 +580,12 @@ public class PermissionManager {
         }
 
         runtimePermissionRequestInFlight = false;
-        SentryManager.log("The initial permission flow step completed: " + initialFlowStep + ".");
+        SentryManager.logEvent("permission", "The initial permission flow step completed: " + initialFlowStep + ".");
         for (int i = 0; i < permissions.length; i++) {
             String permission = permissions[i];
             boolean granted = i < grantResults.length
                     && grantResults[i] == PackageManager.PERMISSION_GRANTED;
-            SentryManager.setCustomKey("permission_" + permission.replace(".", "_"), granted);
+            SentryManager.setCustomKey("permission." + AppMetrics.permissionType(permission), granted);
         }
 
         advanceInitialFlowStep();
@@ -618,7 +616,6 @@ public class PermissionManager {
             case LOCATION -> requestInitialLocationStep(activity);
             case NOTIFICATIONS -> requestInitialNotificationsStep(activity);
             case DONE -> finishInitialPermissionFlow(activity);
-            default -> finishInitialPermissionFlow(activity);
         }
     }
 
@@ -645,7 +642,7 @@ public class PermissionManager {
             return;
         }
         markRuntimePermissionRequestInFlight(activity);
-        SentryManager.log("The initial flow is requesting ACCESS_MEDIA_LOCATION.");
+        SentryManager.logEvent("permission", "The initial flow is requesting ACCESS_MEDIA_LOCATION.");
         ActivityCompat.requestPermissions(
                 activity,
                 new String[]{Manifest.permission.ACCESS_MEDIA_LOCATION},
@@ -664,7 +661,7 @@ public class PermissionManager {
             return;
         }
         markRuntimePermissionRequestInFlight(activity);
-        SentryManager.log("The initial flow is requesting POST_NOTIFICATIONS.");
+        SentryManager.logEvent("permission", "The initial flow is requesting POST_NOTIFICATIONS.");
         ActivityCompat.requestPermissions(
                 activity,
                 new String[]{Manifest.permission.POST_NOTIFICATIONS},
@@ -683,7 +680,7 @@ public class PermissionManager {
         initialPermissionFlowInProgress = false;
         initialFlowStep = InitialFlowStep.DONE;
         AppPreferences.setInitialPermissionsPromptCompleted(activity);
-        SentryManager.log("The initial permission flow completed.");
+        SentryManager.logEvent("permission", "The initial permission flow completed.");
         for (Runnable callback : initialFlowCompletedCallbacks) {
             activity.getWindow().getDecorView().post(callback);
         }
@@ -711,7 +708,7 @@ public class PermissionManager {
                 return;
             }
             markRuntimePermissionRequestInFlight(activity);
-            SentryManager.log("The app is requesting " + permissions.size() + " runtime permissions.");
+            SentryManager.logEvent("permission", "The app is requesting " + permissions.size() + " runtime permissions.");
             ActivityCompat.requestPermissions(
                     activity, permissions.toArray(new String[0]), STORAGE_PERMISSION_REQUEST_CODE);
         } catch (Exception e) {

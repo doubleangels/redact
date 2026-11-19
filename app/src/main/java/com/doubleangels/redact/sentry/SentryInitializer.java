@@ -8,6 +8,7 @@ import com.doubleangels.redact.BuildConfig;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 
@@ -21,20 +22,36 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryLogLevel;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.fragment.FragmentLifecycleIntegration;
+import io.sentry.hints.Backfillable;
+import io.sentry.util.HintUtils;
 
 /**
- * Initializes Sentry on a background thread with options aligned to production diagnostics:
- * release tracking, breadcrumbs, tracing, continuous UI profiling, structured logs, metrics, and ANR.
+ * Initializes Sentry on a background thread with every diagnostic the SDK offers that can't tie
+ * reports to one phone or carry anything about a file: release health, breadcrumbs, threads, view
+ * hierarchy, tracing, continuous UI profiling, structured logs, metrics, and ANR.
  */
 public final class SentryInitializer {
 
     private static final String TAG = "SentryInitializer";
 
-    /** Trace and profiling session sample rate in release (debug uses 100%). */
-    private static final double RELEASE_TELEMETRY_SAMPLE_RATE = 0.25;
+    /** Profiling session sample rate in release (debug uses 100%). */
+    private static final double RELEASE_PROFILE_SAMPLE_RATE = 0.25;
 
     @Nullable
+    @VisibleForTesting
     static String testDsnOverride;
+
+    /**
+     * The DSN reports go to. Tests point it elsewhere with {@link #testDsnOverride}, which only a
+     * debug build reads: in a release build the check is a constant false and R8 removes it, so
+     * nothing in a shipping app can send reports anywhere but the configured project.
+     */
+    private static String configuredDsn() {
+        if (BuildConfig.DEBUG && testDsnOverride != null) {
+            return testDsnOverride;
+        }
+        return BuildConfig.SENTRY_DSN;
+    }
 
     private static volatile boolean initialized;
     private static final Object INIT_LOCK = new Object();
@@ -53,7 +70,7 @@ public final class SentryInitializer {
 
     /** Whether a non-empty DSN is available for initialization. */
     public static boolean hasConfiguredDsn() {
-        String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
+        String dsn = configuredDsn();
         return dsn != null && !dsn.isEmpty();
     }
 
@@ -80,12 +97,14 @@ public final class SentryInitializer {
                 return;
             }
             initializing = true;
+            boolean kept = false;
             try {
-                if (runSentryInit(app)) {
-                    initialized = true;
-                }
+                kept = runSentryInitSafely(app) && keepIfStillWanted(app);
             } finally {
                 initializing = false;
+            }
+            if (kept) {
+                ProcessExits.report(app);
             }
         }
     }
@@ -98,24 +117,62 @@ public final class SentryInitializer {
             initializing = true;
         }
         new Thread(() -> {
+            boolean kept = false;
             try {
-                if (runSentryInit(context)) {
-                    synchronized (INIT_LOCK) {
-                        initialized = true;
-                    }
+                boolean started = runSentryInitSafely(context);
+                synchronized (INIT_LOCK) {
+                    kept = started && keepIfStillWanted(context);
                 }
             } finally {
                 synchronized (INIT_LOCK) {
                     initializing = false;
                 }
             }
-        }).start();
+            if (kept) {
+                ProcessExits.report(context);
+            }
+        }, "redact-sentry-init").start();
+    }
+
+    /**
+     * Called under {@link #INIT_LOCK} once the SDK has started. Crash reports can be turned off
+     * while it starts in the background, and {@link #shutdown} then finds nothing to close yet, so
+     * the decision is made here: the SDK stays only if reports are still on, and is closed
+     * otherwise. Sessions and profiles have no consent check of their own to stop them later.
+     */
+    @VisibleForTesting
+    static boolean keepIfStillWanted(Context context) {
+        if (AppPreferences.isCrashReportingEnabled(context)) {
+            initialized = true;
+            return true;
+        }
+        try {
+            Sentry.close();
+        } catch (RuntimeException ignored) {
+            // Best effort, as in shutdown.
+        }
+        initialized = false;
+        return false;
+    }
+
+    /**
+     * {@link #runSentryInit}, but a failure to start the SDK leaves the app running without
+     * crash reporting instead of ending it: nothing would be there yet to report the crash.
+     */
+    @VisibleForTesting
+    static boolean runSentryInitSafely(Context context) {
+        try {
+            return runSentryInit(context);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Sentry could not start; continuing without crash reporting", e);
+            return false;
+        }
     }
 
     private static boolean runSentryInit(Context context) {
         AtomicBoolean configured = new AtomicBoolean(false);
         SentryAndroid.init(context, options -> {
-            String dsn = testDsnOverride != null ? testDsnOverride : BuildConfig.SENTRY_DSN;
+            String dsn = configuredDsn();
             if (dsn == null || dsn.isEmpty()) {
                 Log.w(TAG, "Crash reporting is enabled but Sentry DSN is not configured");
                 return;
@@ -126,19 +183,48 @@ public final class SentryInitializer {
             options.setEnvironment(BuildConfig.DEBUG ? "development" : "production");
             options.addInAppInclude("com.doubleangels.redact");
 
-            // Thread stacks are scrubbed in beforeSend; omit by default to limit path leakage.
-            options.setAttachThreads(false);
+            // The rule for everything below: as much technical detail as the SDK offers, but nothing
+            // that ties reports to one phone or person, and nothing about a file (name, path,
+            // contents, metadata values).
 
-            // Privacy: do NOT attach screenshots or view hierarchy: they could capture user media.
+            // The SDK sets the distinct ID to its random per-install ID, and sends it as the
+            // session's "did" and as user.id on every log and metric. Without it, sessions,
+            // logs and metrics from one phone can't be linked. Events and transactions lose the
+            // same ID in SentryPrivacyScrubber.
+            options.setDistinctId(null);
+
+            // Every thread's stack with each event. Frames hold class and method names only, and
+            // beforeSend scrubs them like the crashing thread's.
+            options.setAttachThreads(true);
+
+            // Never screenshots or session replay: they would show the person's photos and file
+            // names. Replay is off unless a rate is set, and these lock it against SDK defaults.
             options.setAttachScreenshot(false);
-            options.setAttachViewHierarchy(false);
+            options.getSessionReplay().setSessionSampleRate(0.0);
+            options.getSessionReplay().setOnErrorSampleRate(0.0);
+            // The view hierarchy holds each view's class, resource ID, position, size, alpha and
+            // visibility, never its text or pixels, so it can't show a file name or a photo.
+            options.setAttachViewHierarchy(true);
             options.setSendDefaultPii(false); // Explicit lock against future SDK defaults.
-            // No release-health sessions: they would count how often the app is opened.
-            options.setEnableAutoSessionTracking(false);
+            // Release-health sessions give the crash-free rate. Without the distinct ID above they
+            // carry no install ID, so they are counted in total, never per phone.
+            options.setEnableAutoSessionTracking(true);
 
-            // Privacy: do NOT collect broad device context or send all auto breadcrumbs.
-            options.setCollectAdditionalContext(false);
-            options.enableAllAutoBreadcrumbs(false);
+            // Memory, storage, battery and connection state at the time of the report.
+            options.setCollectAdditionalContext(true);
+            // Screen changes, taps (by view resource ID), system events, network changes, low
+            // memory and orientation. beforeBreadcrumb scrubs every one.
+            options.enableAllAutoBreadcrumbs(true);
+            // Android killing the app for going over its memory limit (a large video job), as a
+            // fatal event from the system's exit history. Only the latest, and isFromBeforeOptIn
+            // drops one from before reporting was on. Native tombstones stay off: their memory
+            // maps can list the paths of files the app had open.
+            options.setMemoryLimiterEnabled(true);
+            options.setReportHistoricalMemoryLimiterExits(false);
+            // Intent extras of system broadcasts stay off: they are open-ended values.
+            options.setEnableSystemEventBreadcrumbsExtras(false);
+            // A transaction per tap, named by the view's resource ID.
+            options.setEnableUserInteractionTracing(true);
 
             // Keep ANR detection and frame tracking (crash diagnostics only, no PII).
             options.setAnrEnabled(true);
@@ -149,15 +235,18 @@ public final class SentryInitializer {
             // Activity (cold/warm start, TTID) and fragment (the four tab screens) lifecycle spans.
             options.setEnableAutoActivityLifecycleTracing(true);
             options.setEnableActivityLifecycleTracingAutoFinish(true);
+            // Fragment breadcrumbs and spans for the four tab screens.
             options.addIntegration(new FragmentLifecycleIntegration(
-                    (Application) context.getApplicationContext(), false, true));
+                    (Application) context.getApplicationContext(), true, true));
 
-            // Sample 25% of traces in release to balance diagnostics vs. data sent externally.
-            options.setTracesSampleRate(BuildConfig.DEBUG ? 1.0 : RELEASE_TELEMETRY_SAMPLE_RATE);
+            // Every transaction: none of them carries an install ID, so sampling would only lose
+            // detail.
+            options.setTracesSampleRate(1.0);
 
-            // Continuous UI profiling tied to sampled transactions (SDK ≥ 8.7).
+            // Continuous UI profiling tied to transactions (SDK ≥ 8.7). Sampled per app session in
+            // release because profile hours count against the plan's quota.
             options.setProfileSessionSampleRate(
-                    BuildConfig.DEBUG ? 1.0 : RELEASE_TELEMETRY_SAMPLE_RATE);
+                    BuildConfig.DEBUG ? 1.0 : RELEASE_PROFILE_SAMPLE_RATE);
             options.setProfileLifecycle(ProfileLifecycle.TRACE);
 
             options.getLogs().setEnabled(true);
@@ -183,11 +272,13 @@ public final class SentryInitializer {
                 return metric;
             });
 
-            // Adds the capturing thread's scan/clean/convert data, so concurrent jobs don't mix.
+            // Adds the capturing thread's scan/clean/convert data, so concurrent jobs don't mix,
+            // and the settings and media capabilities in effect when the error happened.
             options.addEventProcessor(new EventProcessor() {
                 @Override
                 public SentryEvent process(@NonNull SentryEvent event, @NonNull Hint hint) {
                     SentryManager.applyOperationData(event);
+                    SentryManager.applyAppState(event);
                     return event;
                 }
             });
@@ -204,6 +295,9 @@ public final class SentryInitializer {
                     return null;
                 }
                 if (!SentryManager.isEnabled()) {
+                    return null;
+                }
+                if (isFromBeforeOptIn(event, hint, context)) {
                     return null;
                 }
                 SentryPrivacyScrubber.scrubEvent(event);
@@ -234,6 +328,18 @@ public final class SentryInitializer {
         return configured.get();
     }
 
+    /**
+     * Whether {@code event} is a crash or freeze Android recorded before crash reporting was turned
+     * on. The SDK reads the latest one from the system's exit history at startup (a "backfilled"
+     * event), even when it happened while reporting was off, so it is dropped here.
+     */
+    static boolean isFromBeforeOptIn(@NonNull SentryEvent event, @NonNull Hint hint, @NonNull Context context) {
+        if (!HintUtils.hasType(hint, Backfillable.class) || event.getTimestamp() == null) {
+            return false;
+        }
+        return event.getTimestamp().getTime() < AppPreferences.getCrashReportingSince(context);
+    }
+
     private static boolean isVerboseLogLevel(@Nullable SentryLogLevel level) {
         return level == SentryLogLevel.TRACE || level == SentryLogLevel.DEBUG;
     }
@@ -241,7 +347,8 @@ public final class SentryInitializer {
     public static void shutdown() {
         synchronized (INIT_LOCK) {
             if (!initialized) {
-                initializing = false;
+                // A start still in flight sees reports are off when it finishes
+                // (keepIfStillWanted) and closes the SDK itself.
                 return;
             }
             try {

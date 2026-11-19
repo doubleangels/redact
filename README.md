@@ -93,7 +93,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 | **Shortcuts** | Long-press the app icon to jump straight to Clean, Scan, Convert or Censor, or add the **Clean**, **Scan** or **Censor** tiles to Quick Settings. |
 | **Batches** | Clean or convert up to 100 files at once (50 when you share them in from another app). If some files fail, Redact keeps going, reports what succeeded, lists the files it couldn't clean with the reason, and can try just those again. |
 | **Drag, drop and paste** | Drag photos and videos onto Clean, Scan, Convert or Censor from another app in split screen, on a tablet or on a Chromebook, or paste them with **Paste** or Ctrl+V. |
-| **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job. |
+| **Large files** | There is no hard size cap. Redact warns you first when storage or memory looks too low for the job, and a file shared in that would leave less than 256 MB free is skipped rather than allowed to fill your storage. |
 | **Delete originals (optional)** | Turn on **Delete Originals After Cleaning** and Redact asks Android to move the originals to trash after a successful clean. Android shows its own confirmation, so nothing is removed without your say-so. |
 | **Open source, no ads** | No ads and no tracking. The source code is public, so anyone can check how Redact works. |
 | **13 languages** | English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified and Traditional), Hindi and Arabic. Follows your phone's per-app language setting. |
@@ -212,7 +212,7 @@ Redact keeps as much of the original as it can. Where possible, it rebuilds a fi
 | **Clean or share** | JPEG | JPEG | Every pixel, unchanged. Color profile, orientation and the HDR layer of an Ultra HDR photo | The file is rebuilt from its own picture data, so nothing is recompressed. Only the parts a viewer needs are copied, so metadata Redact has never heard of can't slip through. The HDR layer is cleaned too and keeps only its brightness numbers. |
 | | PNG, including animated PNG | PNG | Every pixel, every frame, transparency, color profile and HDR color info | Rebuilt the same way. |
 | | WebP, including animated WebP | WebP | Every pixel and every frame, transparency and color profile | Rebuilt the same way. |
-| | HEIC or HEIF, including bursts and animations | HEIC | The compressed pictures byte for byte, so full resolution, 10-bit color, the HDR layer, transparency and every frame | Rebuilt around its pictures on every Android version, so no HEIC encoder is needed. Metadata items such as XMP, item and handler names, and data a camera or encoder hid inside the compressed pictures (other than HDR information) are removed, and a color profile keeps its colors but loses the fields that can name a device or a date. Depth maps and portrait mattes are left out, as they are from a JPEG: they map the scene in 3D and outline the people in it. In bursts and animations, dates, the encoder's name and location boxes are removed and sound tracks are left out. |
+| | HEIC or HEIF, including bursts and animations | HEIC | The compressed pictures byte for byte, so full resolution, 10-bit color, the HDR layer, transparency and every frame | Rebuilt around its pictures on every Android version, so no HEIC encoder is needed. Metadata items such as XMP, item and handler names, and data a camera or encoder hid inside the compressed pictures (other than HDR information) are removed, and a color profile keeps its colors with its header's device, creator and date fields cleared; with **Strict Clean** or a share, its name and any device or calibration text are replaced too, and a profile that can't be read is left out. Depth maps and portrait mattes are left out, as they are from a JPEG: they map the scene in 3D and outline the people in it. In bursts and animations, dates, the encoder's name and location boxes are removed and sound tracks are left out. |
 | | AVIF, including animated AVIF | AVIF | The same as HEIC | Rebuilt the same way. Android can't save AVIF any other way. |
 | | GIF, including animated GIF | GIF | Every frame, its timing and transparency, and the loop count | Rebuilt block by block. Comments, XMP and other text inside the GIF are removed. |
 | | BMP | PNG | Every pixel | Android can't save BMP, and PNG is just as exact. |
@@ -234,7 +234,7 @@ Redact keeps as much of the original as it can. Where possible, it rebuilds a fi
 
 **Video details.** Audio is saved as AAC (Opus alongside VP9) at the source's bitrate or 128 kbps, whichever is higher, with every channel. If the phone's hardware encoder can't handle the source's size and frame rate, Redact uses the closest it can, such as 4K at 30 fps for a 4K 60 fps video on a phone that only encodes 4K at 30 fps, and keeps the bitrate in proportion. Only the first video and audio track are kept, so extra audio tracks, subtitles, chapters, timed data tracks (such as GPS or sensor logs) and slow-motion markers are left out.
 
-**Faster Video Cleaning.** When this setting is on and Strict Clean is off, an H.264, H.265 or MPEG-4 video is copied into a new MP4, and a VP8 or VP9 video into a new WebM, without encoding it again, so the picture and sound are identical. A WebM has no place for a location and Android reads no recording date from one, so when Keep Location or Keep Date Taken has something to keep, a VP9 video is copied into an MP4 instead, still without encoding the picture again. Vorbis sound, which MP4 can't hold, is encoded again as Opus. A VP8 video is encoded again into an MP4, as MP4 can't hold VP8. Shared videos never use this. Redact only does this when no frame of the video stream has data hidden inside it (SEI user data in H.264 and H.265, other than HDR10+, Dolby Vision and captions, or user data in MPEG-4), and otherwise encodes it as above. AV1 videos, and videos in a codec whose stream Redact can't check, such as H.263, are always encoded again.
+**Faster Video Cleaning.** When this setting is on and Strict Clean is off, an H.264, H.265 or MPEG-4 video is copied into a new MP4, and a VP8 or VP9 video into a new WebM, without encoding it again, so the picture and sound are identical. A WebM has no place for a location and Android reads no recording date from one, so when Keep Location or Keep Date Taken has something to keep, a VP9 video is copied into an MP4 instead, still without encoding the picture again. Vorbis sound, which MP4 can't hold, is encoded again as Opus. A VP8 video is encoded again into an MP4, as MP4 can't hold VP8. Shared videos never use this. Redact only does this when no frame of the video stream has data hidden inside it (SEI user data in H.264 and H.265, other than HDR10+, Dolby Vision and captions, units of a type the standards leave to applications, or user data in MPEG-4), and otherwise encodes it as above. AV1 videos, and videos in a codec whose stream Redact can't check, such as H.263, are always encoded again.
 
 **What is kept from EXIF.** Orientation and color space are always kept, because they only say how to show the picture. Color space matters for cameras that mark Adobe RGB photos with tags instead of an embedded color profile, which would otherwise look washed out. With Strict Clean off, camera settings, location and the date taken can be kept too (see Settings). JPEG, PNG and WebP get those tags back in their own EXIF. HEIC and AVIF get a new EXIF block holding only those tags, and keep their orientation in their own rotation box instead. GIF has nowhere to keep EXIF, so it keeps none. Videos keep their location and recording date when those settings are on. They are saved as MP4 for that, a WebM included. Shared files always keep only their orientation and color space.
 
@@ -248,7 +248,7 @@ You don't need to know any of this to use Redact. But if you'd like to know why 
 
 1. **Your original stays untouched.** Redact works on a private copy that no other app can see. The file you picked is never changed. If you've turned on **Delete Originals After Cleaning**, the original only goes to the trash after the clean copy is safely saved, and Android asks you first.
 2. **It remembers only what you asked to keep.** Every photo needs to know which way is up and what its colors are, so Redact always keeps that. It keeps the location, the date or the camera details only if you turned those options on. Everything else is noted so Redact can tell you afterward what it removed.
-3. **It builds a fresh file instead of erasing.** Think of copying a letter onto clean paper rather than trying to scrub out the parts you don't want. Redact copies over only the picture itself and leaves everything else behind. That way, even hidden details nobody knew to look for never make it into the new file.
+3. **It builds a fresh file instead of erasing.** Think of copying a letter onto clean paper rather than trying to scrub out the parts you don't want. Redact copies over only the picture itself and leaves everything else behind. That way, even hidden details nobody knew to look for never make it into the new file. The picture itself is copied exactly as it was compressed, which keeps its quality but also the way the camera or app compressed it, which can hint at what kind of device made it. Converting a photo encodes it again and leaves no such trace.
 4. **Videos are redrawn from scratch.** A video can hide information inside the moving picture itself, such as a camera's GPS trail. To be sure it's gone, Redact redraws the video frame by frame into a brand-new file. With **Faster Video Cleaning** on, Redact checks every frame first and only takes the quicker route when nothing is hidden.
 5. **A file that can't be copied cleanly is redrawn too.** If a photo is damaged or saved in an unusual way, Redact takes only what you see on screen and saves it as a new image. A picture made that way has nothing else in it.
 6. **Redact checks its own work.** Before anyone else can see the new file, Redact reads it again from beginning to end, as if it had never seen it before, looking for anything that shouldn't be there: a location, dates, device names, notes left by other apps or hidden extras.
@@ -273,7 +273,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Strict Clean** | Removes all hidden information except what a photo needs to display correctly (which way is up, and its color space), turns off the keep options, and always fully re-encodes videos for the most thorough clean. |
+| **Strict Clean** | Removes all hidden information except what a photo needs to display correctly (which way is up, and its color space), turns off the keep options, and always fully re-encodes videos for the most thorough clean. Photos keep their picture exactly as it was encoded, so a forensic examiner may still tell what kind of camera or app made one from how it was compressed; converting a photo encodes it again and removes that too. |
 | **Keep Camera Settings** | Keeps camera make and model, aperture, shutter speed, ISO, focal length, exposure compensation, exposure program and mode, metering mode, flash and white balance on the Clean tab. Ignored with Strict Clean and for shared-in files. |
 | **Keep Location** | Keeps GPS coordinates in photos and videos on the Clean tab (confirmation required, off by default). Ignored with Strict Clean and for shared-in files, which always lose location. |
 | **Approximate Location** | Shown under Keep Location while it is on, and on by default: the kept location is rounded to a tenth of a degree (about 10 km), enough for the town but not the street, and the altitude and GPS time are left out. Turn it off to keep the exact location. Redact checks every clean copy and refuses to save one whose location is finer than this. |
@@ -300,14 +300,14 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Default formats and image quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
+| **Default Image Format** / **Default Video Codec** / **Image Quality** | The formats and quality pre-selected on the Convert tab. You can still change them for each batch. |
 
 **Output Folders**
 
 | Setting | What it does |
 |---|---|
 | **Images** / **Videos** | Tap a folder to open the file browser and pick or create where cleaned and converted files go. After you pick one, Redact offers to use it for the other media type too. Defaults are `Pictures/Redact` and `Movies/Redact`; **Reset to Default** restores either. Existing files are not moved. |
-| **Open Folder** | Shows the folder in your file manager. |
+| **Open Images Folder** / **Open Videos Folder** | Shows the folder in your file manager. |
 | **Keep Original File Names** | Names cleaned and converted files after the originals (for example `IMG_20260117_093012.jpg`) instead of a random name. Off by default, because such names can reveal when a photo was taken. Files shared into Redact always get a random name. |
 | Unavailable folder | If a chosen folder is deleted or its storage is removed, Redact saves to the default instead and marks the folder in red here. |
 
@@ -349,16 +349,16 @@ Open the Settings tab in the app for the full list.
 ## Privacy and security
 
 - **Your files stay on your device** for every core feature. Cleaning, scanning and converting never need a network connection.
-- **No ads, no behavioral tracking, no analytics.**
+- **No ads and no behavioral tracking.** Optional crash reports send anonymous technical totals, never anything tied to you or your phone.
 - **Three optional things can touch the network or another app:**
-  1. **Send Crash Reports** (off by default) sends anonymized diagnostics to [Sentry](https://sentry.io): device model, Android version, app version, stack traces and a few scrubbed tags. File paths, filenames and GPS coordinates are removed before anything is sent. Your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
+  1. **Send Crash Reports** (off by default) sends anonymous technical diagnostics to [Sentry](https://sentry.io), listed exactly in [What Send Crash Reports captures](#what-send-crash-reports-captures). Nothing can tie them to you or your phone, file paths, filenames and GPS coordinates are removed before anything is sent, and your photos and videos are **never** uploaded. Sentry keeps the reports for a limited time, 90 days for crash and error reports and 30 days for performance data and logs, see its [data retention periods](https://docs.sentry.io/security-legal-pii/security/data-retention-periods/).
   2. **Open in maps** from Scan hands coordinates to your default maps app, only after your explicit one-time consent.
   3. **Check for Updates** in Settings asks GitHub once for the newest release's version number, only when you tap it. The request carries nothing about you or your files; like any connection, GitHub sees the IP address it comes from. Redact never checks on its own, and the update itself comes from the store you installed it from.
 - **Every server Redact connects to** is in the table below. There are only two, and Redact contacts neither unless you turn on or tap the feature that needs it. It has no other server, account or backend.
 
 | Domain | When Redact connects | What is sent | Why |
 |---|---|---|---|
-| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: after a crash or error, and when you choose to add a note to an error report | An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs |
+| `o244019.ingest.us.sentry.io` ([Sentry](https://sentry.io), US servers) | Only while **Send Crash Reports** is on: while you use the app, and when you choose to add a note to an error report | The anonymous diagnostics in [What Send Crash Reports captures](#what-send-crash-reports-captures). Paths, file names, coordinates and metadata values are removed first. Never a photo or video. | To find and fix bugs and slow spots |
 | `api.github.com` | Only when you tap **Check for Updates** in Settings | One request for the newest release of Redact, with a fixed User-Agent and nothing about you, your settings or your files | To read the newest version number |
 
 Some buttons open a page in another app, which then makes its own connection. Redact itself sends nothing:
@@ -370,6 +370,72 @@ Some buttons open a page in another app, which then makes its own connection. Re
 | `developer.android.com` | **Project Page** in **Open-Source Licenses** | Library pages |
 | `doubleangels.github.io` | **Privacy Policy** and **Terms of Use** in Settings › About | The policies |
 | `donate.stripe.com` | **Donate** in Settings › About | An optional donation |
+
+### What Send Crash Reports captures
+
+Nothing in this section is sent unless you turn on **Send Crash Reports**. Until then, Sentry isn't even started. Once it's on, Redact sends technical diagnostics with two hard limits: nothing that can tie reports to you or your phone, and nothing that identifies a file or shows what's in it (no names, paths, contents or metadata values). This table is kept up to date with the code (`SentryInitializer`, `SentryPrivacyScrubber`, `AppMetrics`, `ProcessExits`).
+
+| Captured | What exactly | When |
+|---|---|---|
+| Crash, error and freeze reports | Exception type, the stack trace of every thread (class, method, line), and the app's own error messages with paths and names removed. Messages from libraries are replaced. | After a crash, error or app freeze, including native crashes and Android stopping the app for using too much memory |
+| Device and app details | Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version | With each report |
+| Screen layout | Each view's type, internal ID, position, size and visibility. Never any text or picture in it. | With each error |
+| Trail of app events | The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
+| Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none) | With each error |
+| Sessions | Start, end, duration, whether it crashed, and the error count | Every app session |
+| Performance | App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took | Every app session |
+| Code profiles | Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory | About 1 in 4 app sessions |
+| Logs | The app's own log messages, scrubbed | While the app runs |
+| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held | While the app runs |
+| File facts | Format (such as `image/heic`) and the format it was written in, video codec (such as `video/hevc`) and the codec chosen for the output, size class (such as `4k`), length class, frame rate class (such as `up_to_60`), whether a video has sound, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as `GPSLatitude`), never their values | With jobs and errors |
+| A note you write | What you type after **Add Details**, with paths, file names and GPS coordinates removed, up to 1,000 characters | Only if you send one |
+
+| Never captured | How |
+|---|---|
+| Install ID, device ID, user ID, name, email | Removed from every report, session, log and counter |
+| Boot time, time zone, kernel version | Removed, because together with the model and build they could single out a phone |
+| IP address | Never put in a report. Sentry's servers see it when a report arrives, as any server does. |
+| Screenshots, screen recordings, text or pictures on screen | Screenshots are locked off, session replay's code isn't in the app at all, and the screen layout holds no text or pictures |
+| Your photos and videos | Never read for a report |
+| File names, paths and URIs | Scrubbed from every message, breadcrumb, tag and stack trace |
+| Metadata values (GPS coordinates, dates, camera serial numbers and the like) | Never recorded, only tag names and counts |
+| Text you type | Except a note you choose to send |
+| Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps | Turned off or never collected |
+| Anything from before you turned reporting on | Freezes, crashes and process exits Android recorded earlier are dropped |
+| Anything while reporting is off | Sentry isn't started |
+
+#### Names in Sentry
+
+Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from this list.
+
+| Kind | Scheme |
+|---|---|
+| State tags | `group.field`, lower case, at most 32 characters: what was true when the report was made |
+| Result tags | `outcome`, `reason` and `error_type`, the same in every tag and counter |
+| Counters | `area.event`, with what came of it in `outcome` and why in `reason` |
+| Timings and sizes | `area.event.measure`, with the unit (milliseconds, megabytes) sent alongside, never in the name |
+| Breadcrumb categories | a lower-case area, like the SDK's own `ui.click` and `navigation` |
+
+| Tags | When | Names |
+|---|---|---|
+| Job | With errors from a Clean, Share, Convert, Scan or Censor job | `job.type`, `outcome`, `error_type`, `reason` |
+| File | The file being processed, never its name or contents | `file.media_type`, `file.mime_type`, `file.output_mime_type`, `file.has_gps`, `image.resolution_class`, `image.sample_size`, `video.codec`, `video.output_codec`, `video.resolution_class`, `video.duration_class`, `video.frame_rate_class`, `video.rotation`, `video.has_audio` |
+| Checks | What the clean and its checks found | `verify.image_passed`, `verify.video_passed`, `verify.failed_check`, `scan.extraction_failed`, `scan.section_count`, `clean.kept_exif_count`, `clean.removed_exif_count` |
+| Permissions | Whether each permission is granted and whether Android will still ask; `permission.<type>` is one of images, videos, selected_media, media_gps, notifications, storage or other | `permission.type`, `permission.request_code`, `permission.needed`, `permission.all_granted`, `permission.images`, `permission.videos`, `permission.selected_media`, `permission.storage`, `permission.media_gps`, `permission.partial_access`, `permission.persisted_grant`, `permission.rationale_shown`, `permission.gps_rationale_shown`, `permission.settings_needed`, `permission.gps_settings_needed`, `permission.images_can_ask`, `permission.videos_can_ask`, `permission.storage_can_ask`, `permission.gps_can_ask` |
+| App | How the app was opened and what it was doing | `intent.action`, `intent.type`, `intent.unsupported_type`, `intent.unsupported_action`, `ui.theme`, `notification.enabled`, `notification.clean_enabled`, `notification.convert_enabled`, `clean.state`, `clean.selected_count`, `clean.processing_count`, `clean.processed_count`, `share.media_count`, `app.process_state`, `app.background_restricted`, `app.standby_bucket`, `app.installer` |
+| Settings | The settings that change how files are processed, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality` |
+| Phone | What the phone offers for media work, and its state | `device.media_performance_class`, `device.low_ram`, `device.heap_mb`, `device.large_heap_mb`, `device.thermal_status`, `device.power_save` |
+
+| Counters and timings | Names |
+|---|---|
+| Jobs | `job.start`, `job.batch`, `job.batch.size`, `job.batch.duration`, `job.item`, `job.item.duration`, `job.warning` |
+| Cleaning | `clean.method`, `clean.dropped_part`, `verify.result`, `already_clean.check`, `already_clean.check.duration`, `media.unsupported_type` |
+| Converting and video | `convert.output`, `convert.codec_fallback`, `video.downscale`, `video.retry`, `video.transcode_failure` |
+| Censor and sharing | `censor.load`, `censor.save`, `censor.save.regions`, `share.snapshot_failure`, `output.folder_fallback` |
+| App | `app.exit`, `app.exit.memory`, `memory.shortage`, `cache.orphan`, `secure_delete.overwrite.duration`, `secure_delete.fallback`, `service.failure`, `notification.failure`, `permission.result`, `update.check`, `update.check.duration`, `onboarding.end` |
+
+Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
+
 | Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
 
 - **Statistics stay on your phone.** The counts behind Your Privacy Stats are stored only in Redact's private storage, are left out of backups and device transfers, and are never included in crash reports.
@@ -430,13 +496,13 @@ In `Pictures/Redact` and `Movies/Redact` by default, or in the folders you chose
 <details>
 <summary><b>Are there file size limits?</b></summary>
 
-No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts. Images are always processed at full resolution, and only scaled down if the device does not have the free memory to hold one.
+No hard limit. Very large files can still strain a device that is low on storage or memory, so Redact warns you before it starts, and a file shared in from another app is skipped if copying it would leave less than 256 MB free. Images are always processed at full resolution, and only scaled down if the device does not have the free memory to hold one.
 </details>
 
 <details>
 <summary><b>Does Redact use analytics or trackers?</b></summary>
 
-No. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security), which counts the app's own failures, never what you do or how often you use it. The table there lists every server Redact can connect to.
+No trackers, and nothing that follows you. The only thing of this kind is the optional Sentry crash reporting described in [Privacy and security](#privacy-and-security). It sends anonymous technical diagnostics, including totals such as how many files were cleaned and how long they took, but nothing that can tie them to you or your phone. [What Send Crash Reports captures](#what-send-crash-reports-captures) lists exactly what is and isn't sent.
 </details>
 
 <details>
@@ -485,11 +551,14 @@ On Windows use `gradlew.bat`, or Git Bash.
 ### Test and lint
 
 ```bash
-./gradlew testDebugUnitTest  # unit tests (Robolectric, no device needed)
-./gradlew lintRelease        # Android Lint
+./gradlew testDebugUnitTest jacocoTestCoverageVerification  # unit tests (Robolectric) and the 90% line gate
+./gradlew lintRelease                                       # Android Lint
+./gradlew bundleRelease exportReleaseManifest               # the release build, which catches R8 problems
+python3 .github/scripts/check_release_manifest.py           # the shipped permissions and components match app/release-manifest.txt
+./gradlew :app:Pixel_10_Pro_CleanDebugAndroidTest           # cleans real test media with the emulator's codecs
 ```
 
-CI runs `./gradlew test` and Android Lint on every push to `dev` and on every pull request.
+CI runs the first four on every push to `dev` and on every pull request. The last needs an emulator whose video decoders work, which CI's headless one doesn't have, so run it locally before a release.
 
 ### Optional: crash reporting while developing
 
@@ -499,8 +568,10 @@ Crash reporting is off unless a Sentry DSN is supplied at build time. Debug buil
 
 ```
 app/src/main/java/com/doubleangels/redact/
-  CleanFragment, ScanFragment, ConvertFragment, SettingsFragment   the four tabs
+  CleanFragment, ScanFragment, ConvertFragment, CensorFragment     the four tabs
+  SettingsFragment                                                 Settings
   MainActivity, ShareHandlerActivity                               entry points (share-in)
+  CleanTileService, ScanTileService, CensorTileService             the Quick Settings tiles
   StatisticsActivity                                               the Statistics screen
   media/          selecting, processing, converting, MediaStore writes, secure delete
   metadata/       reading (Scan) and stripping metadata
@@ -509,13 +580,14 @@ app/src/main/java/com/doubleangels/redact/
   sentry/         opt-in crash reporting and the privacy scrubber
   stats/          on-device counts behind Statistics
   ui/             view models, adapters, clipboard helper
+  update/         Check for Updates
 app/src/test/                  unit tests (Robolectric; fake MediaStore provider)
 baselineprofile/               macrobenchmark module that generates the baseline profile
 fastlane/metadata/             Google Play listing text, screenshots and icon
 legal/                         source of the privacy policy page
 scripts/                       store screenshots, feature graphic and sample-media tagging
 site/                          the website: landing page and guides
-.github/workflows/             CI, release and privacy-policy publishing
+.github/workflows/             CI, release, and publishing the website, privacy policy and listing images
 ```
 
 ### How a clean works
@@ -524,12 +596,12 @@ site/                          the website: landing page and guides
 
 1. **Copy.** A clean or share copies the source into the app's private cache, and Convert decodes it straight from its URI. The original is only ever read.
 2. **Read what is kept.** The EXIF tags the settings preserve are read (`tagsToPreserve`: orientation, color space and, with its color space, the interoperability index; plus camera settings, location or date taken when enabled and Strict Clean is off), and the rest is counted for the summary.
-3. **Rebuild from an allowlist.** JPEG segments, PNG and WebP chunks, HEIF picture items and properties, and GIF blocks a decoder needs are copied; everything else, including metadata no one has documented yet, is left behind. Inside coded pictures, SEI messages (HEVC) and metadata OBUs (AV1) other than HDR information are dropped, and ICC profile header fields that can name a device or date are cleared.
+3. **Rebuild from an allowlist.** JPEG segments, PNG and WebP chunks, HEIF picture items and properties, and GIF blocks a decoder needs are copied; everything else, including metadata no one has documented yet, is left behind. Inside coded pictures only the units a picture needs are kept: HEVC slices, parameter sets and SEI messages holding HDR information, and AV1 frame, header and HDR or scalability metadata OBUs; filler, padding and every reserved or unspecified type go. ICC profile header fields that can name a device or date are cleared, and with Strict Clean or a share the profile keeps only its colour tags (`IccProfiles`).
    - Video is re-encoded through Media3 with every track forced through the encoder (`AlwaysEncodeFactory`) and none of the source's metadata entries written (`MetadataDroppingMuxerFactory`). Only the first video and audio track are kept. Faster Video Cleaning may keep a transmux instead, only after `VideoStreamMetadata` has read every sample and found no user data; a codec it can't read is never treated as clean.
    - A Motion Photo clip is kept only with Keep Motion Photos: remuxed to its picture and sound, its container blanked, and its stream checked; otherwise it is dropped.
 4. **Fallback.** A file the rebuild can't follow is decoded to pixels and encoded again, and that output is rebuilt too.
 5. **Restore.** Only the tags from step 2 are written back (into a new EXIF item for HEIF).
-6. **Verify while private** (`verifyMetadataRemoval`, `requireVideoMetadataClean`): every EXIF tag must be allowlisted; the file is scanned again (JPEG, PNG and WebP must be readable to the end; HEIF and GIF are walked item by item or block by block); no XMP may remain except a picture-only Ultra HDR or Motion Photo directory; videos must show no container fields and no location, date, author, title or similar key in `MediaMetadataRetriever`.
+6. **Verify while private** (`verifyMetadataRemoval`, `requireVideoMetadataClean`): every EXIF tag must be allowlisted, and the EXIF block is also read by tag number (`ExifBlock`, and the EXIF item of a HEIF), so a tag ExifInterface has no name for, such as Windows' XPAuthor, or data no tag points to fails it; the file is scanned again (JPEG, PNG and WebP must be readable to the end; HEIF and GIF are walked item by item or block by block); no XMP may remain except a picture-only Ultra HDR or Motion Photo directory; videos must show no container fields and no location, date, author, title or similar key in `MediaMetadataRetriever`.
 7. **Fail closed.** A file that fails verification is deleted and never published. A transmuxed video that fails falls back to a full re-encode, which is verified again.
 8. **Publish.** Gallery output is created as a pending MediaStore entry, written once, read back and hashed to match the verified file (cleaned and censored images), then published; on any failure it is discarded. Shares are written to the private `processed/` cache and handed out through a `FileProvider`.
 9. **Clean up.** Working files are securely overwritten and deleted, and anything left by a crash is swept at the next start (`CacheCleanup`).

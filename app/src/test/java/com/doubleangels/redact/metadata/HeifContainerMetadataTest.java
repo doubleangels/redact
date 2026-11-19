@@ -112,6 +112,55 @@ public class HeifContainerMetadataTest {
         assertArrayEquals(before, Files.readAllBytes(again.toPath()));
     }
 
+    /** A cleaned copy of the fixture with an EXIF item holding {@code tiff}. */
+    private File heicWithExif(byte[] tiff) throws Exception {
+        File heic = new File(temp.getRoot(), "exif_" + System.nanoTime() + ".heic");
+        HeifContainerMetadata.sanitize(fixture(), heic);
+        HeifContainerMetadata.addExif(heic, tiff);
+        return heic;
+    }
+
+    private static ImageContainerMetadata.Finding hiddenExif(File heic) {
+        for (ImageContainerMetadata.Finding f : ImageContainerMetadata.scan(heic).findings) {
+            if (f.key.equals("HEIF_EXIF_HIDDEN")) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /** ExifInterface never reads Windows' author tag, so the scan reads the EXIF item itself. */
+    @Test
+    public void anExifItemWithAnXpAuthor_isFound_andTheFileIsNotClean() throws Exception {
+        File heic = heicWithExif(ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe")));
+
+        ImageContainerMetadata.Finding hidden = hiddenExif(heic);
+
+        org.junit.Assert.assertNotNull(hidden);
+        assertEquals("Jane Doe", hidden.text);
+        assertFalse(onlyPictures(heic));
+    }
+
+    @Test
+    public void anExifItemWithBytesNoTagPointsTo_isFound() throws Exception {
+        byte[] named = tiff("KeptMake");
+        byte[] withHidden = new byte[named.length + 120];
+        System.arraycopy(named, 0, withHidden, 0, named.length);
+        byte[] secret = "a name and address nobody points to".getBytes(StandardCharsets.US_ASCII);
+        System.arraycopy(secret, 0, withHidden, named.length, secret.length);
+
+        File heic = heicWithExif(withHidden);
+        org.junit.Assert.assertNotNull(hiddenExif(heic));
+        assertFalse(onlyPictures(heic));
+    }
+
+    @Test
+    public void anExifItemOfNamedTagsOnly_isClean() throws Exception {
+        File heic = heicWithExif(tiff("KeptMake"));
+        assertEquals(null, hiddenExif(heic));
+        assertTrue(onlyPictures(heic));
+    }
+
     @Test
     public void sanitize_isStableOnItsOwnOutput() throws Exception {
         File once = new File(temp.getRoot(), "once.heic");
@@ -143,6 +192,21 @@ public class HeifContainerMetadataTest {
         out.write(type << 1);
         out.write(1);
         out.write(payload, 0, payload.length);
+    }
+
+    /** The HEIC clean read SEI sizes like the video scan did, so a wrapped size looped forever. */
+    @Test(timeout = 20_000)
+    public void filterHevcNalUnits_dropsAnSeiWhoseSizeWouldWrapNegative() throws Exception {
+        byte[] sei = VideoStreamMetadataTest.overflowingSei(new byte[0], 137); // a kept type
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        nal(stream, 39, sei);
+        nal(stream, 1, new byte[] {9, 9, 9, 9}); // slice
+
+        byte[] filtered = HeifContainerMetadata.filterHevcNalUnits(stream.toByteArray(), 4);
+
+        ByteArrayOutputStream expected = new ByteArrayOutputStream();
+        nal(expected, 1, new byte[] {9, 9, 9, 9});
+        assertArrayEquals(expected.toByteArray(), filtered);
     }
 
     @Test
@@ -629,22 +693,138 @@ public class HeifContainerMetadataTest {
         assertFalse(ImageContainerMetadata.scan(source).recognized);
     }
 
+    /**
+     * An auxiliary track is kept only when its auxi box says it is transparency. This one (built
+     * from animated.avif: an auxv track with a tref to track 1, co64 offsets and stz2 sizes) has
+     * no auxi at all, so it is an unknown kind and goes, like a depth map; the picture track is
+     * rebuilt on its own and still points at the right samples.
+     */
     @Test
-    public void animatedAvif_withASecondTrackReferringToTheFirst_keepsBothAndTheReference() throws Exception {
-        // Built from animated.avif: an auxv track with a tref to track 1, co64 offsets and stz2 sizes.
+    public void animatedAvif_withAnAuxiliaryTrackOfNoKnownKind_keepsOnlyThePictureTrack() throws Exception {
         File clean = new File(temp.getRoot(), "two-clean.avif");
         HeifContainerMetadata.sanitize(resource("animated_two_tracks.avif"), clean);
 
         byte[] out = Files.readAllBytes(clean.toPath());
         String text = new String(out, StandardCharsets.ISO_8859_1);
-        assertEquals("both tracks", 2, text.split("trak", -1).length - 1);
-        assertTrue(contains(out, "tref"));
-        assertTrue(contains(out, "auxl"));
-        assertTrue(contains(out, "auxv"));
+        assertEquals("only the picture track", 1, text.split("trak", -1).length - 1);
+        assertFalse(contains(out, "auxv"));
+        assertFalse(contains(out, "auxl"));
 
         File again = new File(temp.getRoot(), "two-again.avif");
         HeifContainerMetadata.sanitize(clean, again);
         assertArrayEquals("the rebuilt tracks point at the right samples", out, Files.readAllBytes(again.toPath()));
         assertTrue(ImageContainerMetadata.scan(clean).isClean());
+    }
+
+    /** Only the NAL types a picture needs are kept; filler, reserved and unspecified ones go. */
+    @Test
+    public void filterHevcNalUnits_keepsOnlyTheTypesAPictureNeeds() throws Exception {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        nal(stream, 32, new byte[] {1, 2, 3}); // VPS
+        nal(stream, 19, new byte[] {7, 7}); // IDR slice
+        nal(stream, 38, new byte[] {(byte) 0xFF, (byte) 0xFF}); // filler
+        nal(stream, 48, "SecretPrivate".getBytes(StandardCharsets.US_ASCII)); // unspecified
+        nal(stream, 45, new byte[] {1}); // reserved
+
+        byte[] filtered = HeifContainerMetadata.filterHevcNalUnits(stream.toByteArray(), 4);
+
+        ByteArrayOutputStream expected = new ByteArrayOutputStream();
+        nal(expected, 32, new byte[] {1, 2, 3});
+        nal(expected, 19, new byte[] {7, 7});
+        assertArrayEquals(expected.toByteArray(), filtered);
+    }
+
+    /** A metadata type is compared in full: 2^32 + 1 is not type 1. Padding and reserved OBUs go. */
+    @Test
+    public void filterAv1Obus_dropsPaddingReservedAndOverlongMetadataTypes() throws Exception {
+        byte[] sequenceHeader = {(byte) (1 << 3 | 0x02), 2, 9, 9};
+        byte[] padding = {(byte) (15 << 3 | 0x02), 2, 'h', 'i'};
+        byte[] reserved = {(byte) (9 << 3 | 0x02), 1, 'x'};
+        // metadata OBU whose type is the leb128 of 2^32 + 1
+        byte[] overlong = {(byte) (5 << 3 | 0x02), 7, (byte) 0x81, (byte) 0x80, (byte) 0x80, (byte) 0x80, 0x10, 'z', 'z'};
+        overlong[1] = 7;
+        byte[] data = cat(sequenceHeader, padding, reserved, overlong);
+
+        byte[] filtered = HeifContainerMetadata.filterAv1Obus(data);
+
+        assertArrayEquals(sequenceHeader, filtered);
+    }
+
+    /** A v2 colour profile whose description is a person's own display name, and a white point. */
+    private static byte[] calibratedIccProfile() throws IOException {
+        byte[] name = ascii("Jordan's monitor\0");
+        byte[] desc = cat(ascii("desc"), u32(0), u32(name.length), name, u32(0), u32(0), u8(0, 0, 0), new byte[67]);
+        byte[] wtpt = cat(ascii("XYZ "), u32(0), u32(0xF6D6), u32(0x10000), u32(0xD32D));
+        int table = 128 + 4 + 2 * 12;
+        int descAt = table;
+        int wtptAt = descAt + ((desc.length + 3) & ~3);
+        byte[] descPadded = java.util.Arrays.copyOf(desc, (desc.length + 3) & ~3);
+        int size = wtptAt + wtpt.length;
+        byte[] header = new byte[128];
+        java.nio.ByteBuffer.wrap(header).putInt(0, size);
+        header[8] = 2;
+        System.arraycopy(ascii("mntr"), 0, header, 12, 4);
+        System.arraycopy(ascii("RGB "), 0, header, 16, 4);
+        System.arraycopy(ascii("XYZ "), 0, header, 20, 4);
+        System.arraycopy(ascii("acsp"), 0, header, 36, 4);
+        return cat(header, u32(2), ascii("desc"), u32(descAt), u32(desc.length),
+                ascii("wtpt"), u32(wtptAt), u32(wtpt.length), descPadded, wtpt);
+    }
+
+    /** A one-picture HEIC whose colour property holds {@code profile}. */
+    private File heifWithProfile(byte[] profile) throws IOException {
+        byte[] picture = u8(0, 0, 0, 5, 1 << 1, 1, 0xAF, 0x12, 0x34);
+        byte[] hvcC = box("hvcC", u8(1), new byte[20], u8(0xFF & (0xFC | 3)), u8(0));
+        byte[] ispe = fullBox("ispe", 0, 0, u32(64), u32(48));
+        byte[] colr = box("colr", ascii("prof"), profile);
+        byte[] ipco = box("ipco", hvcC, ispe, colr);
+        byte[] ipma = fullBox("ipma", 0, 0, u32(1), u16(1), u8(3, 0x80 | 1, 2, 3));
+        byte[] iinf = fullBox("iinf", 0, 0, u16(1), infe(1, "hvc1", "", null));
+        byte[] hdlr = fullBox("hdlr", 0, 0, u32(0), ascii("pict"), new byte[12], u8(0));
+        byte[] ftyp = box("ftyp", ascii("heic"), u32(0), ascii("mif1"), ascii("heic"));
+        byte[] meta = null;
+        long mdatData = 0;
+        for (int pass = 0; pass < 2; pass++) {
+            byte[] iloc = cat(u8(0x44, 0x00), u16(1), u16(1), u16(0), u16(0), u16(1), u32(mdatData), u32(picture.length));
+            meta = fullBox("meta", 0, 0, hdlr, fullBox("pitm", 0, 0, u16(1)),
+                    fullBox("iloc", 0, 0, iloc), iinf, box("iprp", ipco, ipma));
+            mdatData = ftyp.length + meta.length + 8;
+        }
+        File f = new File(temp.getRoot(), "profile-" + System.nanoTime() + ".heic");
+        Files.write(f.toPath(), cat(ftyp, meta, box("mdat", picture)));
+        return f;
+    }
+
+    /** Strict Clean and shares give a HEIC's colour profile a neutral name, as for a JPEG. */
+    @Test
+    public void strictClean_neutralizesAHeicColourProfile_andANormalCleanKeepsItsColours() throws Exception {
+        File source = heifWithProfile(calibratedIccProfile());
+        File strict = new File(temp.getRoot(), "strict.heic");
+        File normal = new File(temp.getRoot(), "normal.heic");
+
+        HeifContainerMetadata.sanitize(source, strict, null, temp.getRoot(), true);
+        HeifContainerMetadata.sanitize(source, normal, null, temp.getRoot(), false);
+
+        byte[] strictOut = Files.readAllBytes(strict.toPath());
+        assertFalse(contains(strictOut, "Jordan"));
+        assertTrue(contains(strictOut, IccProfiles.NEUTRAL_NAME));
+        assertTrue("the colours stay", contains(strictOut, "wtpt"));
+        assertTrue("a normal clean keeps the profile as it was, header cleared",
+                contains(Files.readAllBytes(normal.toPath()), "Jordan"));
+    }
+
+    /** A profile Strict Clean can't follow is left out; the property's place stays. */
+    @Test
+    public void strictClean_leavesOutAHeicProfileItCantFollow() throws Exception {
+        byte[] broken = calibratedIccProfile();
+        java.nio.ByteBuffer.wrap(broken).putInt(128, 5000);
+        File strict = new File(temp.getRoot(), "strict-broken.heic");
+
+        HeifContainerMetadata.sanitize(heifWithProfile(broken), strict, null, temp.getRoot(), true);
+
+        byte[] out = Files.readAllBytes(strict.toPath());
+        assertFalse(contains(out, "Jordan"));
+        assertFalse(contains(out, "colr"));
+        assertTrue(ImageContainerMetadata.scan(strict).recognized);
     }
 }

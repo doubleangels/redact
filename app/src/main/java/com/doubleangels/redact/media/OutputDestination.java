@@ -22,6 +22,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
@@ -103,13 +104,12 @@ public final class OutputDestination {
                 }
                 failure = "ProviderCreatedNothing";
             } catch (Exception e) {
-                failure = e.getClass().getSimpleName();
+                failure = SentryManager.errorType(e);
             }
             // Folder deleted, permission revoked or provider gone: save to the default instead of
             // failing the whole job, and tell the user once so they know where to look.
-            SentryManager.log("The chosen output folder could not be used: " + failure + ".");
-            SentryManager.count("output.folder_fallback", 1,
-                    "media_type", video ? "video" : "image", "error_type", failure);
+            SentryManager.logEvent("output", "The chosen output folder could not be used: " + failure + ".");
+            AppMetrics.outputFolderFallback(video, failure);
             warnFallback(context, tree, video);
         }
 
@@ -150,7 +150,6 @@ public final class OutputDestination {
         warnedFallbacks.clear();
     }
 
-    /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
     /**
      * Copies a verified clean file to its output and returns the SHA-256 of the bytes written, for
      * {@link #requireSameContent} to compare with what actually landed.
@@ -181,9 +180,8 @@ public final class OutputDestination {
             }
         }
         if (!MessageDigest.isEqual(expectedSha256, digest.digest())) {
-            SentryManager.setCustomKey("metadata_verification_passed", false);
-            SentryManager.count("verification.failed", 1,
-                    "media_type", mediaTypeOf(resolver, output), "outcome", "saved_copy_differs");
+            SentryManager.setCustomKey("verify.image_passed", false);
+            AppMetrics.verificationFailed(mediaTypeOf(resolver, output), "saved_copy_differs");
             throw new IOException("Metadata verification failed: the saved copy differs from the verified one");
         }
     }
@@ -209,6 +207,7 @@ public final class OutputDestination {
         }
     }
 
+    /** Makes a finished output visible. Documents in a chosen folder need no publish step. */
     public static void publish(@NonNull ContentResolver resolver, @Nullable Uri uri) {
         MediaStoreWrites.markPublished(resolver, uri);
         clearPendingDocument(uri);
@@ -226,7 +225,7 @@ public final class OutputDestination {
                 resolver.delete(uri, null, null);
             }
         } catch (Exception e) {
-            SentryManager.log("The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("output", "The partial output failed to clean up: " + e.getClass().getSimpleName() + ".");
         }
         clearPendingDocument(uri);
     }
@@ -290,7 +289,7 @@ public final class OutputDestination {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
-                SentryManager.log("An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
+                SentryManager.logEvent("output", "An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }
     }
@@ -300,7 +299,10 @@ public final class OutputDestination {
         return app.getSharedPreferences(PENDING_PREFS, Context.MODE_PRIVATE);
     }
 
-    /** The file name of an output created by {@link #create}, or null when it cannot be read. */
+    /**
+     * The display name of {@code uri} (an output created by {@link #create}, or any picked file), or
+     * null when it cannot be read.
+     */
     @Nullable
     public static String displayName(@NonNull ContentResolver resolver, @NonNull Uri uri) {
         try (Cursor cursor = resolver.query(uri,
@@ -325,7 +327,7 @@ public final class OutputDestination {
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             return resolver.update(uri, values, null, null) > 0 ? uri : null;
         } catch (Exception e) {
-            SentryManager.log("A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("output", "A clean copy could not be renamed: " + e.getClass().getSimpleName() + ".");
             return null;
         }
     }

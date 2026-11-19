@@ -399,6 +399,22 @@ public class VideoContainerWalkerTest {
         assertTrue(contains(scrubbed, bytes("Lavf60")));
     }
 
+    /**
+     * A 64-bit box size near Long.MAX_VALUE made {@code pos + size} overflow past the bounds check,
+     * and the scrub then wrote zeros past the end of the file until the storage was full.
+     */
+    @Test(timeout = 10_000)
+    public void aLargesizeThatOverflows_isRefused_andNothingIsWritten() throws Exception {
+        ByteBuffer udta = ByteBuffer.allocate(32);
+        udta.putInt(1).put(bytes("udta")).putLong(0x7FFFFFFFFFFFFFF8L).put(bytes("SecretLocation00"));
+        byte[] crafted = concat(ftyp(), udta.array());
+        File video = file(crafted);
+
+        assertThrows(IOException.class, () -> VideoContainerMetadata.scrub(video));
+        assertEquals("the file never grows", crafted.length, video.length());
+        assertFalse("never called clean", scan(crafted).isClean());
+    }
+
     @Test
     public void aCleanWebm_staysClean() throws Exception {
         byte[] webm = webm(ebml(INFO, ebml(0x4D80L, bytes("Lavf"))));

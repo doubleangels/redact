@@ -92,7 +92,7 @@ public abstract class TabFragment extends Fragment {
         if (uris.isEmpty()) {
             return false;
         }
-        SentryManager.log("Media was pasted into a tab.");
+        SentryManager.logEvent("ui", "Media was pasted into a tab.");
         onMediaReceived(uris);
         return true;
     }

@@ -30,12 +30,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
 
-import com.doubleangels.redact.ShareHandlerActivity;
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.permission.PermissionManager;
 import com.doubleangels.redact.permission.PermissionStatusHelper;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.sentry.SentryInitializer;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
@@ -130,7 +131,7 @@ public class SettingsFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        backgroundExecutor = Executors.newSingleThreadExecutor();
+        backgroundExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "redact-settings-io"));
         try {
             bindViews(view);
             imageFormatLabels = getResources().getStringArray(R.array.settings_image_format_labels);
@@ -257,7 +258,7 @@ public class SettingsFragment extends TabFragment {
             try {
                 if (!isChecked) {
                     applyNotificationsEnabled(false);
-                    SentryManager.setCustomKey("notifications_enabled", false);
+                    SentryManager.setCustomKey("notification.enabled", false);
                     return;
                 }
                 if (needsNotificationPermission() && !hasNotificationPermission()) {
@@ -265,7 +266,7 @@ public class SettingsFragment extends TabFragment {
                     return;
                 }
                 applyNotificationsEnabled(true);
-                SentryManager.setCustomKey("notifications_enabled", true);
+                SentryManager.setCustomKey("notification.enabled", true);
             } catch (Exception e) {
                 SentryManager.recordException(e);
             }
@@ -273,12 +274,12 @@ public class SettingsFragment extends TabFragment {
 
         switchClean.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setCleanNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("clean_notifications_enabled", isChecked);
+            SentryManager.setCustomKey("notification.clean_enabled", isChecked);
         });
 
         switchConvert.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setConvertNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("convert_notifications_enabled", isChecked);
+            SentryManager.setCustomKey("notification.convert_enabled", isChecked);
         });
 
         switchProgress.setOnCheckedChangeListener((btn, isChecked) ->
@@ -295,7 +296,6 @@ public class SettingsFragment extends TabFragment {
                 if (!isChecked) {
                     AppPreferences.setCrashReportingEnabled(requireContext(), false);
                     SentryInitializer.shutdown();
-                    SentryManager.setCustomKey("crash_reporting_enabled", false);
                     return;
                 }
                 revertSwitch(switchCrashReporting, false);
@@ -311,7 +311,6 @@ public class SettingsFragment extends TabFragment {
                                         true);
                             }
                             setSwitchChecked(switchCrashReporting, true);
-                            SentryManager.setCustomKey("crash_reporting_enabled", true);
                         },
                         null);
             } catch (Exception e) {
@@ -918,7 +917,7 @@ public class SettingsFragment extends TabFragment {
     private void resetAllSettings() {
         Context context = requireContext();
         // A running job may be writing into a chosen folder whose grant this would release.
-        if (ShareHandlerActivity.isShareProcessingActive() || MainViewModel.isAnyProcessing(requireActivity())) {
+        if (MainViewModel.isAnyProcessing(requireActivity())) {
             Notice.show(context, R.string.settings_reset_all_busy, false);
             return;
         }
@@ -1065,25 +1064,29 @@ public class SettingsFragment extends TabFragment {
     }
 
     private void clearTempFiles() {
-        if (ShareHandlerActivity.isShareProcessingActive()) {
-            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
-            return;
-        }
-        if (getActivity() != null && MainViewModel.isAnyProcessing(requireActivity())) {
+        final Context ctx = requireContext().getApplicationContext();
+        AppProcessingScope scope = AppProcessingScope.get(ctx);
+        if (scope.isAnyJobRunning()) {
             Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
             return;
         }
         if (backgroundExecutor == null) {
             return;
         }
-        final Context ctx = requireContext().getApplicationContext();
         backgroundExecutor.execute(() -> {
-            long before = CacheCleanup.getTempCacheSizeBytes(ctx);
-            int deleted = CacheCleanup.clearAllTempFiles(ctx);
+            // Asked again here, on the thread that deletes: a share that came in from another app
+            // since the tap would otherwise lose its working files partway through.
+            boolean busy = scope.isAnyJobRunning();
+            long before = busy ? 0 : CacheCleanup.getTempCacheSizeBytes(ctx);
+            int deleted = busy ? 0 : CacheCleanup.clearAllTempFiles(ctx);
             Activity activity = getActivity();
             if (activity != null) {
                 activity.runOnUiThread(() -> {
                     if (isAdded()) {
+                        if (busy) {
+                            Notice.show(requireContext(), R.string.settings_storage_clear_busy, false);
+                            return;
+                        }
                         refreshStorageSize();
                         // The fragment's context, not ctx: from the application context the notice
                         // can only be a toast, not a snackbar in the screen like every other notice.
@@ -1148,6 +1151,7 @@ public class SettingsFragment extends TabFragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
+                        AppMetrics.permissionResult(Manifest.permission.ACCESS_MEDIA_LOCATION, granted);
                         refreshPermissionStatuses();
                         Notice.show(requireContext(),
                                 granted ? R.string.settings_location_permission_granted : R.string.settings_location_permission_denied,
@@ -1158,9 +1162,10 @@ public class SettingsFragment extends TabFragment {
             registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     granted -> {
+                        AppMetrics.permissionResult("android.permission.POST_NOTIFICATIONS", granted);
                         if (granted) {
                             applyNotificationsEnabled(true);
-                            SentryManager.setCustomKey("notifications_enabled", true);
+                            SentryManager.setCustomKey("notification.enabled", true);
                             Notice.show(requireContext(),
                                     R.string.settings_notifications_permission_granted,
                                     false);

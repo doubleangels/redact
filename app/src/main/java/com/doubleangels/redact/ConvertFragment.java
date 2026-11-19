@@ -25,6 +25,7 @@ import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.MainViewModel;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.SummaryCard;
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.ConvertFileAdapter;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaItem;
@@ -44,9 +45,11 @@ import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.OpenResult;
 import com.doubleangels.redact.ui.ShareResults;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Converts images to JPEG, PNG, WebP, or HEIC and transcodes videos to MP4; saves under
@@ -110,7 +113,7 @@ public class ConvertFragment extends TabFragment {
                     if (uris == null || uris.isEmpty()) {
                         return;
                     }
-                    SentryManager.log("Media was selected successfully in ConvertFragment.");
+                    SentryManager.logEvent("convert", "Media was selected successfully in ConvertFragment.");
                     onMediaReceived(uris);
                 });
     }
@@ -145,7 +148,7 @@ public class ConvertFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.log("The ConvertFragment view was created.");
+        SentryManager.logEvent("convert", "The ConvertFragment view was created.");
 
         statusText = view.findViewById(R.id.statusText);
         shareResultsButton = view.findViewById(R.id.shareResultsButton);
@@ -269,12 +272,12 @@ public class ConvertFragment extends TabFragment {
         convertButton.setOnClickListener(v -> {
             if (viewModel.getConvertProcessingState().getValue()
                     == MainViewModel.ProcessingState.PROCESSING) {
-                SentryManager.log("The conversion is being cancelled.");
+                SentryManager.logEvent("convert", "The conversion is being cancelled.");
                 Haptics.tick(v);
                 viewModel.cancelConversion();
                 return;
             }
-            SentryManager.log("A conversion is starting.");
+            SentryManager.logEvent("convert", "A conversion is starting.");
             runConversion();
         });
 
@@ -566,10 +569,10 @@ public class ConvertFragment extends TabFragment {
     }
 
     private void runConversion() {
-        SentryManager.log("The runConversion method started.");
+        SentryManager.logEvent("convert", "The runConversion method started.");
         List<MediaItem> selectedItems = currentSelectedItems();
         if (selectedItems.isEmpty()) {
-            SentryManager.log("The runConversion method was aborted because nothing was selected.");
+            SentryManager.logEvent("convert", "The runConversion method was aborted because nothing was selected.");
             statusText.setText(R.string.convert_nothing_selected);
             return;
         }
@@ -590,26 +593,44 @@ public class ConvertFragment extends TabFragment {
         // (up to 64KB reads and a cache-directory walk per selected item), which can be slow
         // for cloud-backed URIs; run them off the main thread to avoid jank/ANRs.
         Context appContext = requireContext().getApplicationContext();
-        new Thread(() -> {
+        MediaSelector selector = mediaSelector;
+        // Only a weak reference: a slow read must not keep a closed screen alive.
+        WeakReference<ConvertFragment> screen = new WeakReference<>(this);
+        AppProcessingScope.get(appContext).ioExecutor().execute(() -> {
+            Runnable convert = () -> {
+                ConvertFragment f = screen.get();
+                if (f != null) {
+                    f.viewModel.startConversion(selectedItems, formatIndex, imageFormatIndex, imageFormat);
+                }
+            };
+            boolean hasAnimatedImage;
+            List<ProcessingResourceWarnings.Warning> warnings;
             try {
-                boolean hasAnimatedImage = containsAnimatedImage(selectedItems);
-                List<ProcessingResourceWarnings.Warning> warnings =
-                        ProcessingResourceWarnings.assess(appContext, selectedItems);
-                runOnUiThreadIfAdded(() -> {
-                    if (hasAnimatedImage) {
-                        Notice.show(requireContext(), R.string.animated_image_warning, true);
-                    }
-                    ProcessingResourceWarnings.runWithWarnings(
-                            requireActivity(),
-                            warnings,
-                            () ->
-                                    viewModel.startConversion(
-                                            selectedItems, formatIndex, imageFormatIndex, imageFormat));
-                });
-            } catch (Exception e) {
+                hasAnimatedImage = containsAnimatedImage(selector, selectedItems);
+                warnings = ProcessingResourceWarnings.assess(appContext, selectedItems);
+            } catch (Exception | OutOfMemoryError e) {
                 SentryManager.recordException(e);
+                // The checks only warn; when they can't run, convert without them rather than
+                // leave the button doing nothing, as Clean does.
+                onScreen(screen, f -> convert.run());
+                return;
             }
-        }).start();
+            onScreen(screen, f -> {
+                if (hasAnimatedImage) {
+                    Notice.show(f.requireContext(), R.string.animated_image_warning, true);
+                }
+                ProcessingResourceWarnings.runWithWarnings(f.requireActivity(), warnings, convert);
+            });
+        });
+    }
+
+    /** Runs {@code action} on the main thread if the screen is still there and showing. */
+    private static void onScreen(@NonNull WeakReference<ConvertFragment> screen,
+                                 @NonNull Consumer<ConvertFragment> action) {
+        ConvertFragment fragment = screen.get();
+        if (fragment != null) {
+            fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));
+        }
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {
@@ -630,12 +651,12 @@ public class ConvertFragment extends TabFragment {
         progressText.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    private boolean containsAnimatedImage(@NonNull List<MediaItem> items) {
-        if (mediaSelector == null) {
+    private static boolean containsAnimatedImage(@Nullable MediaSelector selector, @NonNull List<MediaItem> items) {
+        if (selector == null) {
             return false;
         }
         for (MediaItem item : items) {
-            if (mediaSelector.isAnimatedImage(item)) {
+            if (selector.isAnimatedImage(item)) {
                 return true;
             }
         }
@@ -689,10 +710,10 @@ public class ConvertFragment extends TabFragment {
 
     private void onSelectFilesClicked() {
         if (permissionManager != null && permissionManager.shouldRequestStorageBeforePicker()) {
-            SentryManager.log("The app is requesting storage permissions in ConvertFragment.");
+            SentryManager.logEvent("convert", "The app is requesting storage permissions in ConvertFragment.");
             permissionManager.requestStoragePermission();
         } else {
-            SentryManager.log("The app is launching the media picker in ConvertFragment.");
+            SentryManager.logEvent("convert", "The app is launching the media picker in ConvertFragment.");
             openMediaPicker();
         }
     }

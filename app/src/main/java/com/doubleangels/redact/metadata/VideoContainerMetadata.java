@@ -275,7 +275,7 @@ public final class VideoContainerMetadata {
                 } else if (size == 0) {
                     size = end - pos;
                 }
-                if (size < header || pos + size > end) {
+                if (size < header || size > end - pos) {
                     return;
                 }
                 switch (type) {
@@ -518,7 +518,7 @@ public final class VideoContainerMetadata {
                 } else if (size == 0) {
                     size = end - pos;
                 }
-                if (size < header || pos + size > end) {
+                if (size < header || size > end - pos) {
                     throw new IOException("Malformed box " + type);
                 }
                 box(pos, size, header, type, level, depth);
@@ -709,7 +709,7 @@ public final class VideoContainerMetadata {
             while (pos + 8 <= end) {
                 byte[] h = read(pos, 8);
                 long size = boxSize(pos);
-                if (size < 8 || pos + size > end) {
+                if (size < 8 || size > end - pos) {
                     return -1;
                 }
                 if (fourCc(h, 4).equals(wanted)) {
@@ -956,7 +956,7 @@ public final class VideoContainerMetadata {
                 if (size == 0 && u32(h, 4) == 0) {
                     break;
                 }
-                if (size < 8 || pos + size > end) {
+                if (size < 8 || size > end - pos) {
                     return false;
                 }
                 String type = fourCc(h, 4);
@@ -986,7 +986,7 @@ public final class VideoContainerMetadata {
                 } else if (size == 0) {
                     size = end - pos;
                 }
-                if (size < header || pos + size > end) {
+                if (size < header || size > end - pos) {
                     // Unparseable contents still count as something to remove.
                     field("udta", false, null, end - pos);
                     return;
@@ -1029,7 +1029,7 @@ public final class VideoContainerMetadata {
             while (pos + 8 <= end) {
                 count();
                 long size = boxSize(pos);
-                if (size < 8 || pos + size > end) {
+                if (size < 8 || size > end - pos) {
                     field("meta", false, null, end - start);
                     return;
                 }
@@ -1075,7 +1075,7 @@ public final class VideoContainerMetadata {
             while (pos + 8 <= end) {
                 count();
                 long size = u32(read(pos, 4), 0);
-                if (size < 8 || pos + size > end) {
+                if (size < 8 || size > end - pos) {
                     break;
                 }
                 int nameLength = (int) Math.min(size - 8, 512);
@@ -1091,7 +1091,7 @@ public final class VideoContainerMetadata {
                 count();
                 byte[] h = read(pos, 8);
                 long size = u32(h, 0);
-                if (size < 8 || pos + size > end) {
+                if (size < 8 || size > end - pos) {
                     field("ilst", false, null, end - pos);
                     return;
                 }
@@ -1478,13 +1478,25 @@ public final class VideoContainerMetadata {
         }
 
         private void write(long pos, @NonNull byte[] bytes) throws IOException {
+            requireInside(pos, bytes.length);
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) {
                 ch.write(buffer, offset + pos + buffer.position());
             }
         }
 
+        /**
+         * A scrub only ever overwrites bytes inside the region it walked. Writing past its end
+         * would grow the file, so a size that slipped past a check can't fill the storage.
+         */
+        private void requireInside(long pos, long n) throws IOException {
+            if (pos < 0 || n < 0 || n > length - pos) {
+                throw new IOException("Write outside the walked region");
+            }
+        }
+
         private void zero(long pos, long n) throws IOException {
+            requireInside(pos, n);
             byte[] zeros = new byte[(int) Math.min(n, 64 * 1024)];
             long done = 0;
             while (done < n) {

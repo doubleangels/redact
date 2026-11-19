@@ -1,11 +1,14 @@
 package com.doubleangels.redact.update;
 
+import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 import com.doubleangels.redact.BuildConfig;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import org.json.JSONException;
@@ -13,6 +16,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -88,21 +92,30 @@ public final class UpdateChecker {
     @WorkerThread
     @NonNull
     public Result checkNow() {
+        long startedAt = SystemClock.elapsedRealtime();
+        Result result = check();
+        AppMetrics.updateCheck(result.status.name().toLowerCase(Locale.ROOT),
+                SystemClock.elapsedRealtime() - startedAt);
+        return result;
+    }
+
+    @NonNull
+    private Result check() {
         try {
             String latest = latestVersion(fetcher.fetch(LATEST_RELEASE_URL));
             if (latest == null) {
-                SentryManager.log("The update check got no usable version.");
+                SentryManager.logEvent("update", "The update check got no usable version.");
                 return new Result(Result.Status.FAILED, null);
             }
             boolean newer = isNewer(latest, currentVersion);
-            SentryManager.log(newer ? "The update check found a newer version."
+            SentryManager.logEvent("update", newer ? "The update check found a newer version."
                     : "The update check found this is the newest version.");
             return newer
                     ? new Result(Result.Status.NEWER, latest)
                     : new Result(Result.Status.UP_TO_DATE, null);
         } catch (IOException | RuntimeException e) {
             // Offline is normal; only the kind of failure is noted, for a crash report.
-            SentryManager.log("The update check failed: " + e.getClass().getSimpleName() + ".");
+            SentryManager.logEvent("update", "The update check failed: " + e.getClass().getSimpleName() + ".");
             return new Result(Result.Status.FAILED, null);
         }
     }

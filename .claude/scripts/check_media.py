@@ -4,8 +4,10 @@ Usage: python .claude/scripts/check_media.py <file_or_dir> [...]
 
 Prints one line per file and ends with FAIL lines for anything a clean should have removed:
 EXIF GPS, camera make/model/software, an XMP packet, a video location (©xyz, loci or a location
-tag), or the test fixtures' marker strings ("secret", "SecretSoft", "TestCam"). Exits 1 if any
-file fails. Needs Pillow, and ffprobe on PATH for videos.
+tag), the test fixtures' marker strings ("secret", "SecretSoft", "TestCam"), a colour profile
+whose header still names a device, creator or date or that keeps device or calibration text
+(Strict Clean, the default, replaces it), and a HEIF depth map, disparity map or matte,
+still or in a sequence. Exits 1 if any file fails. Needs Pillow, and ffprobe on PATH for videos.
 
 The EXIF placeholders Android's ExifInterface cannot clear (Orientation, ImageWidth, ImageLength
 and LightSource set to 0) are expected and not reported.
@@ -16,7 +18,13 @@ import re
 import subprocess
 import sys
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+
+try:  # HEIC and HEIF need the pillow-heif plugin (pip install pillow-heif)
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:
+    pillow_heif = None
 
 Image.MAX_IMAGE_PIXELS = None
 IMAGE_EXT = (".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif")
@@ -25,6 +33,9 @@ IDENTIFYING_EXIF = {0x010F: "Make", 0x0110: "Model", 0x0131: "Software", 0x013B:
                     0x8298: "Copyright", 0xA430: "CameraOwnerName", 0xA431: "BodySerialNumber",
                     0x9003: "DateTimeOriginal"}
 MARKERS = (b"secret", b"SecretSoft", b"TestCam", b"\xa9xyz", b"loci")
+# An auxiliary picture's kind, in a still image's auxC property or a sequence track's auxi box.
+DEPTH_OR_MATTE = re.compile(
+    rb"(?:auxC|auxi).{4}urn:[^\x00]{0,80}?(?:depth|disparity|matte|hevc:2015:auxid:2)", re.S)
 
 
 PICTURE_NAMESPACES = {
@@ -71,9 +82,29 @@ def picture_only_xmp(packet):
     return True
 
 
+def icc_problems(profile):
+    """What a cleaned colour profile still says about a device, its maker or when it was made."""
+    if not profile or len(profile) < 132:
+        return []
+    problems = []
+    if any(profile[24:36]) or any(profile[48:56]) or any(profile[80:84]):
+        problems.append("ICC header")  # date, device maker and model, creator
+    count = int.from_bytes(profile[128:132], "big")
+    tags = {profile[132 + 12 * i:136 + 12 * i] for i in range(min(count, (len(profile) - 132) // 12))}
+    if tags & {b"dmnd", b"dmdd", b"meta", b"targ", b"ciis"}:
+        problems.append("ICC device text")
+    return problems
+
+
 def check_image(path):
     problems = []
-    with Image.open(path) as image:
+    try:
+        image = Image.open(path)
+    except UnidentifiedImageError:
+        # Without a decoder the EXIF can't be read, so the file can't be called clean.
+        return "not decoded", ["EXIF not read (pip install pillow-heif)" if pillow_heif is None
+                               else "EXIF not read (Pillow can't open it)"]
+    with image:
         info = f"{image.format} {image.size[0]}x{image.size[1]}"
         if image.format == "PNG":
             image.load()  # a PNG's eXIf chunk is only read with the image data
@@ -83,6 +114,7 @@ def check_image(path):
                 problems.append(name)
         if exif.get_ifd(0x8825):
             problems.append("GPS")
+        problems += icc_problems(image.info.get("icc_profile"))
     return info, problems
 
 
@@ -109,6 +141,8 @@ def check(path):
     with open(path, "rb") as f:
         data = f.read()
     problems += [m.decode("latin-1") for m in MARKERS if m in data]
+    if lower.endswith((".heic", ".heif")) and DEPTH_OR_MATTE.search(data):
+        problems.append("Depth or matte")
     # A clean keeps XMP that only describes the picture: an Ultra HDR gain map's numbers and the
     # Google container directory naming the primary picture, gain map and Motion Photo video
     # (what UltraHdr.isPictureOnlyXmp accepts). Anything else in an XMP packet, or an Extended

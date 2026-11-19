@@ -50,6 +50,9 @@ public final class OpenResult {
         try {
             type = context.getContentResolver().getType(uri);
         } catch (RuntimeException e) {
+            // The viewer is asked to work out the type itself.
+            SentryManager.logEvent("ui", "A saved result's type could not be read: "
+                    + e.getClass().getSimpleName() + ".");
             type = null;
         }
         Intent view = new Intent(Intent.ACTION_VIEW)
@@ -68,11 +71,11 @@ public final class OpenResult {
         if (!(context instanceof Activity)) {
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
-        SentryManager.log("A saved result is being opened in another app.");
+        SentryManager.logEvent("ui", "A saved result is being opened in another app.");
         try {
             context.startActivity(launch);
         } catch (ActivityNotFoundException | SecurityException e) {
-            SentryManager.log("No app could open a saved result.");
+            SentryManager.logEvent("ui", "No app could open a saved result.");
             Notice.show(context, R.string.open_result_no_app, false);
         }
     }

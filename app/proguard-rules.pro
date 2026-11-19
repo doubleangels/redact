@@ -24,6 +24,14 @@
     public static *** e(...);
     public static *** wtf(...);
     public static *** println(...);
+    public static java.lang.String getStackTraceString(java.lang.Throwable);
+}
+
+# Libraries guard their debug logging with Log.isLoggable (Glide does on nearly every request,
+# FragmentManager and others too). With every call above gone, those checks only waste time and
+# keep the message-building code, so R8 may treat them as false and drop the branches.
+-assumevalues class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int) return false;
 }
 
 -repackageclasses

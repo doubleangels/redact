@@ -22,7 +22,7 @@ Read the code, do not guess from names. Run `git status` first and leave alone a
 
 Before calling anything dead, rule out these ways the app reaches code that grep alone does not show:
 
-- **Reflection.** `MetadataStripper`, `MetadataDisplayer`, `CleanStats` and `AlreadyCleanCheck` walk `ExifInterface.TAG_*` fields, and `MetadataDisplayer` walks `MediaMetadataRetriever`'s fields. `proguard-rules.pro` keeps the EXIF names for that.
+- **Reflection.** `ImageCleaner`, `CleanVerifier`, `MetadataDisplayer`, `CleanStats` and `AlreadyCleanCheck` walk `ExifInterface.TAG_*` fields, and `MetadataDisplayer` walks `MediaMetadataRetriever`'s fields. `proguard-rules.pro` keeps the EXIF names for that. `SentryNamingTest` and `AllowedTagKeysAreUsedTest` read `SentryManager`'s key lists by name, so a renamed list fails them rather than meaning it is unused.
 - **The manifest and XML.** Activities, services, tile services, the `FileProvider`, activity aliases, `@xml/shortcuts`, `@xml/file_paths` and anything named in a layout.
 - **Annotations.** Glide's `@GlideModule` (`RedactGlideModule`), Sentry integrations, lifecycle callbacks and view binding (generated from layout ids).
 - **`app/lint.xml`, the baseline profile generator** (`baselineprofile/`) and the `.claude/scripts` that drive the emulator by view id.

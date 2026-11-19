@@ -383,6 +383,51 @@ public class AlreadyCleanCheckTest {
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(jpegWithXpAuthor(), "image/jpeg")));
     }
 
+    private byte[] compressed(Bitmap.CompressFormat format) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        Bitmap.createBitmap(16, 12, Bitmap.Config.ARGB_8888).compress(format, 90, out);
+        return out.toByteArray();
+    }
+
+    private File write(String suffix, byte[] content) throws IOException {
+        File f = File.createTempFile("check_xp_", suffix, app.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), content);
+        return f;
+    }
+
+    private static final byte[] XP_AUTHOR_TIFF =
+            ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"));
+
+    /** PNGs and WebPs carry EXIF too, so the XP check must find it there, not only in JPEGs. */
+    @Test
+    public void pngWithOnlyAnXpAuthor_needsCleaning() throws IOException {
+        byte[] png = compressed(Bitmap.CompressFormat.PNG);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(write(".png", png), "image/png")));
+        File tagged = write(".png", ExifFixtures.pngWithExif(png, XP_AUTHOR_TIFF, false));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/png")));
+    }
+
+    /** A 1x1 lossless WebP picture (Pillow's), as one VP8L chunk's data. Robolectric cannot encode WebP. */
+    private static final byte[] VP8L_1X1 = {
+            0x2f, 0x00, 0x00, 0x00, 0x00, 0x07, 0x50, (byte) 0x8a, 0x2a, (byte) 0xd4, (byte) 0xa3,
+            (byte) 0xff, (byte) 0x81, (byte) 0x88, (byte) 0xe8, 0x7f, 0x00};
+
+    @Test
+    public void webpWithOnlyAnXpAuthor_needsCleaning() throws IOException {
+        // An extended WebP: VP8X (EXIF flag, 1x1 canvas), the picture, then the EXIF chunk.
+        byte[] tagged = ExifFixtures.webp(
+                "VP8X", new byte[] {0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                "VP8L", VP8L_1X1,
+                "EXIF", XP_AUTHOR_TIFF);
+        byte[] plain = ExifFixtures.webp(
+                "VP8X", new byte[10],
+                "VP8L", VP8L_1X1);
+
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(write(".webp", plain), "image/webp")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(write(".webp", tagged), "image/webp")));
+    }
+
     @Test
     public void imageWithAnExifBlockThatCannotBeFollowed_isUnknown() throws IOException {
         byte[] plain = java.nio.file.Files.readAllBytes(jpeg().toPath());
@@ -414,11 +459,71 @@ public class AlreadyCleanCheckTest {
         AppPreferences.setPreserveLocation(app, false);
     }
 
+    /**
+     * A photo cleaned with camera settings and the date kept is clean for those settings, though
+     * ExifInterface leaves an unreferenced copy of IFD0 in the block it writes them back into.
+     * Cleaning it again would only produce the same file.
+     */
+    @Test
+    public void theCleanCopyOfAPhoto_withCameraAndDateKept_isAlreadyClean() throws IOException {
+        File source = jpeg();
+        ExifInterface exif = new ExifInterface(source.getAbsolutePath());
+        exif.setAttribute(ExifInterface.TAG_MAKE, "Acme Imaging Corporation");
+        exif.setAttribute(ExifInterface.TAG_MODEL, "Field Camera 7");
+        exif.setAttribute(ExifInterface.TAG_F_NUMBER, "1.8");
+        exif.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, "100");
+        exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, "2019:03:04 05:06:07");
+        exif.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, "+01:00");
+        exif.setAttribute(ExifInterface.TAG_ARTIST, "Jane Doe");
+        exif.setLatLong(40.6892, -74.0445);
+        exif.saveAttributes();
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, true);
+        AppPreferences.setPreserveDateTaken(app, true);
+        try {
+            Uri out = new MetadataStripper(app).cleanImage(Uri.fromFile(source), "photo.jpg").uri();
+            org.junit.Assert.assertNotNull(out);
+            assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, new MediaItem(out, false, "photo.jpg")));
+            // The source itself, with its artist and location, still needs a clean.
+            assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(source, "image/jpeg")));
+        } finally {
+            AppPreferences.setStrictClean(app, true);
+            AppPreferences.setPreserveCameraSettings(app, false);
+            AppPreferences.setPreserveDateTaken(app, false);
+        }
+    }
+
     /** Scan lists the XP tag by name with its text. */
     @Test
     public void scan_showsAnXpAuthor() throws IOException {
         java.util.Map<String, String> map = new java.util.TreeMap<>();
         MetadataDisplayer.addTagsExifInterfaceCannotName(app, Uri.fromFile(jpegWithXpAuthor()), map);
         assertEquals("Jane Doe", map.get("XP_AUTHOR"));
+    }
+
+    /** One file whose provider never answers no longer holds the Clean button past the budget. */
+    @Test(timeout = 10_000)
+    public void aFileThatNeverAnswers_isGivenUpOn_atTheBudget() {
+        java.util.concurrent.CountDownLatch never = new java.util.concurrent.CountDownLatch(1);
+        MediaItem hangs = new MediaItem(android.net.Uri.parse("content://cloud/hangs"), false, "hangs.jpg");
+        MediaItem quick = new MediaItem(android.net.Uri.parse("content://cloud/quick"), false, "quick.jpg");
+        long started = System.nanoTime();
+
+        java.util.List<AlreadyCleanCheck.Status> result = AlreadyCleanCheck.assess(
+                java.util.List.of(hangs, quick), 300, item -> {
+                    if (item == hangs) {
+                        try {
+                            never.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    return AlreadyCleanCheck.Status.ALREADY_CLEAN;
+                });
+
+        org.junit.Assert.assertEquals(AlreadyCleanCheck.Status.UNKNOWN, result.get(0));
+        org.junit.Assert.assertEquals(2, result.size());
+        org.junit.Assert.assertTrue("returned at the budget, not when the read ends",
+                (System.nanoTime() - started) / 1_000_000 < 5_000);
     }
 }

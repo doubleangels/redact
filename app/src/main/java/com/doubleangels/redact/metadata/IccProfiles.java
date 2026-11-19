@@ -22,8 +22,8 @@ import java.util.Set;
  * is not a well-known one a neutral name. A profile made by calibrating someone's own display
  * names that display, and often the day it was calibrated, in exactly those places.
  *
- * <p>The profile is never dropped: that would change the colours. One that cannot be followed is
- * returned as it is, so the caller keeps it with its header cleared, as a normal clean does.
+ * <p>A profile that can be followed is never dropped: that would change the colours. One whose
+ * tag table cannot be followed is dropped instead of kept as it is, which would keep its text.
  */
 final class IccProfiles {
 
@@ -43,12 +43,24 @@ final class IccProfiles {
             "view", "tech", "cicp", "clro", "clrt", "clot", "ncl2", "rig0", "rig2", "ciis",
             "desc", "cprt");
 
-    /** The names of the profiles cameras, phones and editors use, which say nothing about a person. */
-    private static final List<String> WELL_KNOWN = List.of(
-            "srgb", "display p3", "adobe rgb", "prophoto", "rec. 2020", "rec.2020", "rec 2020",
-            "itu-r bt.2020", "bt.2020", "bt.709", "rec. 709", "dci-p3", "p3 d65", "generic gray",
-            "dot gain", "gray gamma", "linear srgb", "scrgb", "apple rgb", "colormatch rgb",
-            "ecirgb", "wide gamut rgb");
+    /**
+     * The full names of the profiles cameras, phones and editors ship, which say nothing about a
+     * person, lower-cased with runs of spaces made one. Only a whole name matches: a description
+     * that merely starts with one ("sRGB - Jordan's monitor, 2026-03-01") is someone's own. A
+     * standard profile missing here only gets the neutral name, which changes no colour.
+     */
+    private static final Set<String> WELL_KNOWN = Set.of(
+            "srgb", "srgb iec61966-2.1", "srgb iec61966-2-1", "srgb built-in", "srgb2014",
+            "srgb v4 icc preference perceptual intent beta", "srgb linear", "linear srgb", "scrgb",
+            "display p3", "display p3 d65", "display p3 linear", "display p3 pq", "display p3 hlg",
+            "p3 d65", "dci-p3", "dci(p3) rgb",
+            "adobe rgb", "adobe rgb (1998)", "prophoto rgb", "apple rgb", "colormatch rgb",
+            "ecirgb v2", "ecirgb_v2", "wide gamut rgb",
+            "rec. 2020", "rec.2020", "rec 2020", "itu-r bt.2020", "bt.2020",
+            "rec. 2100 pq", "rec. 2100 hlg", "bt.2100 pq", "bt.2100 hlg", "itu-r bt.2100 pq", "itu-r bt.2100 hlg",
+            "rec. 709", "bt.709", "itu-r bt.709",
+            "generic gray profile", "generic gray gamma 2.2 profile", "gray gamma 2.2", "gray gamma 1.8",
+            "dot gain 10%", "dot gain 15%", "dot gain 20%", "dot gain 25%", "dot gain 30%");
 
     private IccProfiles() {
     }
@@ -58,36 +70,32 @@ final class IccProfiles {
         if (description == null) {
             return false;
         }
-        String lower = description.trim().toLowerCase(Locale.ROOT);
-        for (String name : WELL_KNOWN) {
-            if (lower.startsWith(name)) {
-                return true;
-            }
-        }
-        return false;
+        return WELL_KNOWN.contains(description.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT));
     }
 
     /**
      * {@code profile} with only its colour tags, and a neutral description and copyright unless
-     * it is a well-known profile; {@code profile} itself when its tag table cannot be followed.
+     * it is a well-known profile. Null when its tag table cannot be followed: the profile is then
+     * left out. Kept as it was, its name, device and calibration text would stay, and a table
+     * Redact can't follow is one no viewer can use to show colours either.
      */
-    @NonNull
+    @Nullable
     static byte[] neutralize(@NonNull byte[] profile) {
         try {
             return rebuild(profile);
         } catch (RuntimeException e) {
-            return profile;
+            return null;
         }
     }
 
-    @NonNull
+    @Nullable
     private static byte[] rebuild(@NonNull byte[] p) {
         if (p.length < 132) {
-            return p;
+            return null;
         }
         int count = (int) u32(p, 128);
         if (count < 0 || count > 1000 || 132L + 12L * count > p.length) {
-            return p;
+            return null;
         }
         boolean wellKnown = isWellKnown(ImageContainerMetadata.IccText.read(p, "desc"));
         boolean v4 = (p[8] & 0xFF) >= 4;
@@ -106,7 +114,7 @@ final class IccProfiles {
             long offset = u32(p, entry + 4);
             long size = u32(p, entry + 8);
             if (offset < 128 || size < 8 || offset + size > p.length) {
-                return p; // a table this cannot follow is left to the header clear alone
+                return null; // a table this cannot follow, which no viewer could use either
             }
             byte[] bytes;
             if (!wellKnown && (sig.equals("desc") || sig.equals("cprt"))) {

@@ -60,6 +60,156 @@ public class ExifBlockTest {
         assertFalse(new ExifBlock.Entry(ExifBlock.IFD_EXIF, 0x8769, 4, 1, 4, none).knownToExifInterface());
     }
 
+    // ---- finding the block in each format -------------------------------------------------------
+    // The already-clean check and Scan rely on find() for tags ExifInterface cannot name, so a
+    // block it misses is a photo called clean with an author's name still in it.
+
+    private static final byte[] XP_TIFF =
+            ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"));
+
+    /** A PNG of the signature, an IHDR, any {@code middle} chunks and IEND. */
+    private static byte[] png(String... middleTypes) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'}, 0, 8);
+        ExifFixtures.writePngChunk(out, "IHDR", new byte[13]);
+        for (String type : middleTypes) {
+            ExifFixtures.writePngChunk(out, type, "some text".getBytes());
+        }
+        ExifFixtures.writePngChunk(out, "IEND", new byte[0]);
+        return out.toByteArray();
+    }
+
+    private static String authorIn(byte[] file) throws IOException {
+        byte[] block = ExifBlock.find(new ByteArrayInputStream(file));
+        assertTrue("no EXIF block found", block != null);
+        return ExifBlock.read(block).get(0).xpText();
+    }
+
+    @Test
+    public void find_readsAPngExifChunk_withOrWithoutTheExifHeader() throws IOException {
+        assertEquals("Jane Doe", authorIn(ExifFixtures.pngWithExif(png(), XP_TIFF, false)));
+        assertEquals("Jane Doe", authorIn(ExifFixtures.pngWithExif(png(), XP_TIFF, true)));
+    }
+
+    @Test
+    public void find_skipsOtherPngChunks_andStopsAtIend() throws IOException {
+        // Text chunks come before the EXIF one here; IEND ends a file with none.
+        byte[] textFirst = png("tEXt", "iTXt");
+        int afterText = textFirst.length - 12; // just before IEND
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(textFirst, 0, afterText);
+        ExifFixtures.writePngChunk(out, "eXIf", XP_TIFF);
+        out.write(textFirst, afterText, 12);
+        assertEquals("Jane Doe", authorIn(out.toByteArray()));
+        assertNull(ExifBlock.find(new ByteArrayInputStream(png("tEXt"))));
+    }
+
+    @Test
+    public void find_readsAWebpExifChunk_afterAnOddSizedChunk() throws IOException {
+        // VP8X is 10 bytes; ICCP here is 5, so the reader must skip its padding byte.
+        byte[] file = ExifFixtures.webp("VP8X", new byte[10], "ICCP", new byte[5], "EXIF", XP_TIFF);
+        assertEquals("Jane Doe", authorIn(file));
+        byte[] withHeader = ExifFixtures.webp("VP8X", new byte[10],
+                "EXIF", ExifFixtures.concat(new byte[] {'E', 'x', 'i', 'f', 0, 0}, XP_TIFF));
+        assertEquals("Jane Doe", authorIn(withHeader));
+        assertNull(ExifBlock.find(new ByteArrayInputStream(ExifFixtures.webp("VP8 ", new byte[7]))));
+    }
+
+    @Test
+    public void find_ignoresARiffFileThatIsNotWebp() throws IOException {
+        byte[] wave = ExifFixtures.webp("EXIF", XP_TIFF);
+        wave[8] = 'W';
+        wave[9] = 'A';
+        wave[10] = 'V';
+        wave[11] = 'E';
+        assertNull(ExifBlock.find(new ByteArrayInputStream(wave)));
+    }
+
+    @Test
+    public void find_refusesAnExifChunkTooLargeToHold() {
+        byte[] file = ExifFixtures.webp("EXIF", new byte[8]);
+        // Claim 64 MB, past the 4 MB limit, rather than allocate whatever the file says.
+        ByteBuffer.wrap(file).order(ByteOrder.LITTLE_ENDIAN).putInt(16, 64 * 1024 * 1024);
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(file)));
+    }
+
+    @Test
+    public void find_inAJpeg_skipsAnXmpApp1AndStandaloneMarkers_toReachTheExifOne() throws IOException {
+        byte[] xmp = "http://ns.adobe.com/xap/1.0/\0<x:xmpmeta/>".getBytes();
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xD8}, 0, 2);
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xD0}, 0, 3); // fill byte, then RST0
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xE1, 0, (byte) (xmp.length + 2)}, 0, 4);
+        out.write(xmp, 0, xmp.length);
+        byte[] rest = ExifFixtures.withExif(PLAIN_JPEG, XP_TIFF);
+        out.write(rest, 2, rest.length - 2);
+        assertEquals("Jane Doe", authorIn(out.toByteArray()));
+    }
+
+    @Test
+    public void find_inADamagedJpeg_throwsRatherThanReportNoBlock() {
+        // A caller treats an exception as "cannot vouch for this file"; null would mean "clean".
+        byte[] notAMarker = {(byte) 0xFF, (byte) 0xD8, 0x12, 0x34};
+        byte[] tooShort = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 1};
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(notAMarker)));
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(tooShort)));
+    }
+
+    // ---- an unreferenced copy of IFD0 -----------------------------------------------------------
+    // ExifInterface, writing kept tags back, leaves a copy of IFD0 no pointer reaches. A copy that
+    // repeats IFD0 exactly hides nothing; anything else in that place still could.
+
+    private static final String LONG_MAKE = "Acme Imaging Corporation, a maker of cameras with a long name to fill the block";
+
+    /**
+     * IFD0 (Make, Orientation) and, unreferenced after it, a second IFD with {@code copyMake},
+     * Orientation, and optionally an extra Artist tag, an EXIF pointer, or a next-IFD link.
+     */
+    private static byte[] blockWithCopy(String copyMake, boolean extraArtist, boolean pointer, int next) {
+        byte[] make = (LONG_MAKE + "\0").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        byte[] copy = (copyMake + "\0").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        int copyEntries = 2 + (extraArtist ? 1 : 0) + (pointer ? 1 : 0);
+        int ifd0End = 8 + 2 + 24 + 4;
+        int copyAt = ifd0End + make.length + (make.length & 1);
+        int copyValueAt = copyAt + 2 + 12 * copyEntries + 4;
+        ByteBuffer b = ByteBuffer.allocate(copyValueAt + copy.length).order(ByteOrder.LITTLE_ENDIAN);
+        b.put((byte) 'I').put((byte) 'I').putShort((short) 42).putInt(8);
+        b.putShort((short) 2);
+        b.putShort((short) 0x010F).putShort((short) 2).putInt(make.length).putInt(ifd0End);
+        b.putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt(0);
+        b.put(make);
+        b.position(copyAt);
+        b.putShort((short) copyEntries);
+        b.putShort((short) 0x010F).putShort((short) 2).putInt(copy.length).putInt(copyValueAt);
+        b.putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        if (extraArtist) {
+            b.putShort((short) 0x013B).putShort((short) 2).putInt(4).put(new byte[] {'J', 'o', 'e', 0});
+        }
+        if (pointer) {
+            b.putShort((short) 0x8769).putShort((short) 4).putInt(1).putInt(8);
+        }
+        b.putInt(next);
+        b.put(copy);
+        return b.array();
+    }
+
+    @Test
+    public void anExactUnreferencedCopyOfIfd0_isAccountedFor() throws IOException {
+        assertTrue(ExifBlock.coversWholeBlock(blockWithCopy(LONG_MAKE, false, false, 0)));
+    }
+
+    @Test
+    public void aCopyOfIfd0ThatDiffersAtAll_stillLeavesTheBlockUncovered() throws IOException {
+        // One changed character: the copy could carry the source's value.
+        String changed = LONG_MAKE.replace("Acme", "Acmf");
+        assertFalse(ExifBlock.coversWholeBlock(blockWithCopy(changed, false, false, 0)));
+        // A tag IFD0 doesn't have, a pointer to another directory, or a link to more IFDs.
+        assertFalse(ExifBlock.coversWholeBlock(blockWithCopy(LONG_MAKE, true, false, 0)));
+        assertFalse(ExifBlock.coversWholeBlock(blockWithCopy(LONG_MAKE, false, true, 0)));
+        assertFalse(ExifBlock.coversWholeBlock(blockWithCopy(LONG_MAKE, false, false, 8)));
+    }
+
     @Test
     public void filesWithoutABlock_orInAnotherFormat_giveNull() throws IOException {
         assertNull(ExifBlock.find(new ByteArrayInputStream(PLAIN_JPEG)));
@@ -87,5 +237,40 @@ public class ExifBlockTest {
     @Test
     public void theKnownTagList_isTheOneReadFromExifInterface() {
         assertEquals(147, ExifBlock.exifInterfaceTagCount());
+    }
+
+    /** A big-endian TIFF block: IFD0 with one SHORT entry, then {@code next} as its next-IFD pointer. */
+    private static byte[] tiffWithNext(long next, int extraBytes) {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(8 + 2 + 12 + 4 + extraBytes);
+        b.put((byte) 'M').put((byte) 'M').putShort((short) 42).putInt(8);
+        b.putShort((short) 1).putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt((int) next);
+        return b.array();
+    }
+
+    @Test
+    public void aCompactBlock_isCoveredWhole() throws Exception {
+        org.junit.Assert.assertTrue(ExifBlock.coversWholeBlock(tiffWithNext(0, 0)));
+    }
+
+    /** Bytes no entry points to could hold anything, so a block with many of them isn't covered. */
+    @Test
+    public void unreferencedBytes_leaveTheBlockUncovered() throws Exception {
+        org.junit.Assert.assertTrue("a little padding is fine", ExifBlock.coversWholeBlock(tiffWithNext(0, 16)));
+        org.junit.Assert.assertFalse(ExifBlock.coversWholeBlock(tiffWithNext(0, 500)));
+    }
+
+    /** An IFD chained after IFD1 is never read, so the block isn't covered. */
+    @Test
+    public void anIfdPastIfd1_leavesTheBlockUncovered() throws Exception {
+        // IFD0 -> IFD1 at 26 (one entry), whose next pointer is not zero.
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(26 + 18 + 18);
+        b.put((byte) 'M').put((byte) 'M').putShort((short) 42).putInt(8);
+        b.putShort((short) 1).putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt(26);
+        b.putShort((short) 1).putShort((short) 0x0103).putShort((short) 3).putInt(1).putShort((short) 6).putShort((short) 0);
+        b.putInt(44);
+        b.putShort((short) 0).putInt(0);
+        org.junit.Assert.assertFalse(ExifBlock.coversWholeBlock(b.array()));
     }
 }

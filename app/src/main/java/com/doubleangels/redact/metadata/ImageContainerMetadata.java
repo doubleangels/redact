@@ -10,6 +10,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.BufferedOutputStream;
@@ -78,7 +79,7 @@ public final class ImageContainerMetadata {
 
         Finding(@NonNull String key, @Nullable String text, long bytes, @NonNull Kind kind) {
             this.key = key;
-            this.text = text;
+            this.text = summarizedIfXmp(key, text);
             this.bytes = bytes;
             this.kind = kind;
         }
@@ -87,6 +88,16 @@ public final class ImageContainerMetadata {
         public String toString() {
             return key + "=" + (text != null ? text : bytes + " bytes");
         }
+    }
+
+    /**
+     * XMP text with any picture or other binary data in it described rather than spelled out in
+     * base64 ({@link EmbeddedData}); other text as it is.
+     */
+    @Nullable
+    static String summarizedIfXmp(@NonNull String key, @Nullable String text) {
+        return text != null && (key.equals("XMP") || key.equals("XMP_EXTENDED"))
+                ? EmbeddedData.summarize(text) : text;
     }
 
     /** What a scan found. */
@@ -133,6 +144,12 @@ public final class ImageContainerMetadata {
     /** Furthest into data appended after the picture that is searched for what it holds. */
     private static final long TRAILER_PEEK = 64L * 1024 * 1024;
     private static final int MAX_INFLATED = 4 * 1024 * 1024;
+    /**
+     * Far more than any colour profile holds (a few KB, a few MB for the largest). A chunk that
+     * claims more is read no further and left out, so one crafted file can't ask for an array
+     * as large as itself.
+     */
+    private static final int MAX_ICC_BYTES = 16 * 1024 * 1024;
 
     private ImageContainerMetadata() {
     }
@@ -290,8 +307,8 @@ public final class ImageContainerMetadata {
                 directoryWritten = true;
             } catch (IOException | RuntimeException e) {
                 // The picture written above is complete; it is only without its HDR.
-                SentryManager.log("The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
-                SentryManager.count("clean.part_dropped", 1, "media_type", "image", "outcome", "gain_map");
+                SentryManager.logEvent("image", "The Ultra HDR gain map could not be kept: " + e.getClass().getSimpleName() + ".");
+                AppMetrics.partDropped(false, "gain_map");
             }
         }
         if (motion != null) {
@@ -398,7 +415,9 @@ public final class ImageContainerMetadata {
 
         private void find(@NonNull String key, @Nullable String text, long bytes, @NonNull Kind kind) {
             if (findings.size() < MAX_FINDINGS) {
-                findings.add(new Finding(key, text == null ? null : cap(text), bytes, kind));
+                // Summarized before it is cut, so a picture in XMP is described whole.
+                String shown = summarizedIfXmp(key, text);
+                findings.add(new Finding(key, shown == null ? null : cap(shown), bytes, kind));
             } else if (findings.size() == MAX_FINDINGS) {
                 // Still more to remove; one row says so rather than hundreds.
                 findings.add(new Finding("MORE_METADATA", null, bytes, Kind.OTHER));
@@ -490,8 +509,10 @@ public final class ImageContainerMetadata {
         }
 
         /**
-         * Holds one APP2 piece of a profile. Once all of them have come, in order, the profile is
-         * rebuilt ({@link IccProfiles#neutralize}) and written again as new pieces.
+         * Holds one APP2 piece of a profile. Once every piece has come, in any order, they are put
+         * back in sequence and the profile is rebuilt ({@link IccProfiles#neutralize}) and written
+         * again as new pieces. Pieces that never make a whole, consistent profile are left out
+         * (see {@link #flushPendingIcc}).
          */
         private void holdIccPiece(@NonNull byte[] chunk) throws IOException {
             int sequence = chunk[12] & 0xFF;
@@ -501,23 +522,38 @@ public final class ImageContainerMetadata {
                 pendingIccTotal = total;
             }
             pendingIcc.add(chunk);
-            if (total != pendingIccTotal || sequence != pendingIcc.size()) {
-                pendingIccTotal = -1; // out of order or inconsistent: written as it came
+            if (total != pendingIccTotal || sequence < 1 || sequence > total) {
+                pendingIccTotal = -1; // inconsistent: can't be put back together
             }
             if (pendingIccTotal > 0 && pendingIcc.size() == pendingIccTotal) {
+                List<byte[]> ordered = new ArrayList<>(pendingIcc);
+                ordered.sort((x, y) -> Integer.compare(x[12] & 0xFF, y[12] & 0xFF));
+                for (int i = 0; i < ordered.size(); i++) {
+                    if ((ordered.get(i)[12] & 0xFF) != i + 1) {
+                        return; // a piece twice and another missing: left out at the picture
+                    }
+                }
                 ByteArrayOutputStream whole = new ByteArrayOutputStream();
-                for (byte[] piece : pendingIcc) {
+                for (byte[] piece : ordered) {
                     whole.write(piece, 14, piece.length - 14);
                 }
                 byte[] profile = IccProfiles.neutralize(whole.toByteArray());
                 pendingIcc = null;
-                writeIccPieces(profile);
+                if (profile != null) {
+                    writeIccPieces(profile);
+                }
             }
         }
 
         /** Writes what is held as it came, when the picture starts before the profile is whole. */
         private void flushPendingIcc() throws IOException {
             if (pendingIcc == null) {
+                return;
+            }
+            if (neutralIcc) {
+                // Pieces that never made a whole profile can't be rebuilt, and as they came they
+                // would keep the profile's name and device text, so Strict Clean leaves them out.
+                pendingIcc = null;
                 return;
             }
             for (byte[] piece : pendingIcc) {
@@ -687,7 +723,7 @@ public final class ImageContainerMetadata {
         void finishExtendedXmp() {
             for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
                 String whole = String.join("", extendedXmp.get(entry.getKey()).values());
-                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(whole),
+                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(EmbeddedData.summarize(whole)),
                         extendedXmpBytes.get(entry.getKey()), xmpKind(whole)));
             }
         }
@@ -1157,6 +1193,10 @@ public final class ImageContainerMetadata {
         }
 
         private void pngIcc(long data, int length) throws IOException {
+            if (length > MAX_ICC_BYTES) {
+                find("PNG_CHUNK_ICCP", null, length, Kind.OTHER);
+                return;
+            }
             byte[] chunk = src.read(data, length);
             int nul = indexOf(chunk, new byte[] {0});
             if (nul < 0 || nul + 2 > chunk.length) {
@@ -1177,6 +1217,9 @@ public final class ImageContainerMetadata {
             clearIccHeader(profile, 0);
             if (neutralIcc) {
                 profile = IccProfiles.neutralize(profile);
+                if (profile == null) {
+                    return; // left out: see IccProfiles.neutralize
+                }
             }
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             body.write(ascii("ICC Profile"));
@@ -1282,12 +1325,19 @@ public final class ImageContainerMetadata {
                         anmf(pos, data, size, body);
                         break;
                     case "ICCP": {
+                        if (size > MAX_ICC_BYTES) {
+                            find("WEBP_CHUNK_ICCP", null, size, Kind.OTHER);
+                            break;
+                        }
                         byte[] profile = src.read(data, (int) size);
                         iccInfo(profile);
                         if (body != null) {
                             clearIccHeader(profile, 0);
                             if (neutralIcc) {
                                 profile = IccProfiles.neutralize(profile);
+                                if (profile == null) {
+                                    break; // left out: see IccProfiles.neutralize
+                                }
                             }
                             body.write(ascii("ICCP"));
                             body.write(le32Bytes(profile.length));

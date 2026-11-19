@@ -17,7 +17,6 @@ import androidx.lifecycle.SavedStateHandle;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.FakeMediaStoreProvider;
 import com.doubleangels.redact.R;
-import com.doubleangels.redact.ShareHandlerActivity;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.notifications.ProcessingForegroundService;
@@ -35,12 +34,10 @@ import org.robolectric.RuntimeEnvironment;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /** Batches that really succeed (images are written through the fake MediaStore). */
 @RunWith(RobolectricTestRunner.class)
@@ -87,13 +84,7 @@ public class MainViewModelSuccessFlowTest {
     }
 
     private static void setShareSessions(int count) {
-        try {
-            Field f = ShareHandlerActivity.class.getDeclaredField("activeShareSessions");
-            f.setAccessible(true);
-            ((AtomicInteger) f.get(null)).set(count);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError(e);
-        }
+        AppProcessingScope.get(RuntimeEnvironment.getApplication()).activeSharesForTests().set(count);
     }
 
     // ---- clean ------------------------------------------------------------------------------------

@@ -1,12 +1,15 @@
 package com.doubleangels.redact.media;
 
+import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Overwrites a file's contents once with random data before unlinking it, so its old bytes are not
@@ -26,7 +29,6 @@ import java.security.SecureRandom;
 public final class SecureDelete {
 
     private static final int BUFFER_SIZE = 65536;
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private SecureDelete() {
     }
@@ -41,27 +43,33 @@ public final class SecureDelete {
                 return file.delete();
             }
 
+            long startedAt = SystemClock.elapsedRealtime();
             byte[] randomData = new byte[BUFFER_SIZE];
+            ThreadLocalRandom random = ThreadLocalRandom.current();
             // "rw" plus one sync at the end: "rws" synced every 64 KB write, which made deleting a
             // large video take minutes. The overwrite still reaches storage before the unlink.
             try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
                 long position = 0;
                 while (position < fileSize) {
-                    RANDOM.nextBytes(randomData);
+                    // Fresh bytes for every chunk, so storage that compresses or deduplicates
+                    // can't write the overwrite smaller. They need not be unpredictable, only not
+                    // the original, so the per-thread generator does: no shared lock and far less
+                    // CPU than SecureRandom when several large deletes run at once.
+                    random.nextBytes(randomData);
                     int bytesToWrite = (int) Math.min(randomData.length, fileSize - position);
                     raf.write(randomData, 0, bytesToWrite);
                     position += bytesToWrite;
                 }
                 raf.getFD().sync();
             }
+            AppMetrics.secureDeleteOverwrite(SystemClock.elapsedRealtime() - startedAt);
 
             return unlink(file);
         } catch (Exception e) {
             // The class only: a FileNotFoundException's message holds the file's path.
-            SentryManager.log("An error occurred during secure file deletion: "
+            SentryManager.logEvent("storage", "An error occurred during secure file deletion: "
                     + e.getClass().getSimpleName() + ".");
-            SentryManager.count("secure_delete.fallback", 1, "outcome", "overwrite_failed",
-                    "error_type", e.getClass().getSimpleName());
+            AppMetrics.secureDeleteOverwriteFailed(e);
             return unlink(file);
         }
     }
@@ -73,7 +81,7 @@ public final class SecureDelete {
     private static boolean unlink(@NonNull File file) {
         boolean deleted = file.delete();
         if (!deleted) {
-            SentryManager.count("secure_delete.fallback", 1, "outcome", "unlink_failed");
+            AppMetrics.secureDeleteUnlinkFailed();
         }
         return deleted;
     }

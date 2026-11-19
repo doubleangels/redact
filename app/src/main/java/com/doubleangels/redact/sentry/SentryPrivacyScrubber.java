@@ -16,8 +16,11 @@ import io.sentry.protocol.SentryTransaction;
 import io.sentry.SentryLogEvent;
 import io.sentry.SentryMetricsEvent;
 import io.sentry.protocol.Contexts;
+import io.sentry.protocol.DebugImage;
+import io.sentry.protocol.DebugMeta;
 import io.sentry.protocol.Device;
 import io.sentry.protocol.Feedback;
+import io.sentry.protocol.OperatingSystem;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryStackFrame;
 import io.sentry.protocol.SentryStackTrace;
@@ -356,13 +359,23 @@ public final class SentryPrivacyScrubber {
      * Drops what would tie reports from one phone together. The device context is a {@link Device}
      * object, not a map, so the context loops above never reach it: its {@code id} is the SDK's
      * random ID per installation, and its boot time is the same in every report until the phone
-     * restarts. The model, Android version and the like stay, as the privacy policy says.
+     * restarts. The time zone and kernel version go too: together with the model, build and locale
+     * they narrow a small user base down to one phone, and neither helps find a bug that the
+     * model, Android version and build don't. The rest of the device and OS details stay.
      */
     static void scrubDevice(@Nullable Contexts contexts) {
-        Device device = contexts != null ? contexts.getDevice() : null;
+        if (contexts == null) {
+            return;
+        }
+        Device device = contexts.getDevice();
         if (device != null) {
             device.setId(null);
             device.setBootTime(null);
+            device.setTimezone(null);
+        }
+        OperatingSystem os = contexts.getOperatingSystem();
+        if (os != null) {
+            os.setKernelVersion(null);
         }
     }
 
@@ -370,10 +383,7 @@ public final class SentryPrivacyScrubber {
         if (event == null) {
             return;
         }
-        Message message = event.getMessage();
-        if (message != null && message.getMessage() != null) {
-            message.setMessage(scrub(message.getMessage()));
-        }
+        scrubMessage(event.getMessage());
         if (event.getExceptions() != null) {
             for (SentryException ex : event.getExceptions()) {
                 if (ex.getValue() != null) {
@@ -400,6 +410,7 @@ public final class SentryPrivacyScrubber {
                 scrubStacktrace(thread.getStacktrace());
             }
         }
+        scrubDebugMeta(event.getDebugMeta());
         scrubStringObjectMap(event.getExtras());
         if (event.getContexts() != null) {
             for (Map.Entry<String, Object> entry : event.getContexts().entrySet()) {
@@ -485,6 +496,82 @@ public final class SentryPrivacyScrubber {
         return (Map<String, Object>) map;
     }
 
+    /**
+     * A message's template, its finished text and its parameters. The SDK puts a plain captured
+     * message, and the abort message of a native crash, in the finished text.
+     */
+    private static void scrubMessage(@Nullable Message message) {
+        if (message == null) {
+            return;
+        }
+        if (message.getMessage() != null) {
+            message.setMessage(scrub(message.getMessage()));
+        }
+        if (message.getFormatted() != null) {
+            message.setFormatted(scrub(message.getFormatted()));
+        }
+        if (message.getParams() != null) {
+            List<String> params = new ArrayList<>(message.getParams().size());
+            for (String param : message.getParams()) {
+                params.add(scrub(param));
+            }
+            message.setParams(params);
+        }
+    }
+
+    /**
+     * The libraries listed with a native crash, which Sentry matches to their symbols by build ID,
+     * not by path. Their paths are kept readable but lose the parts that could tell phones apart.
+     */
+    private static void scrubDebugMeta(@Nullable DebugMeta debugMeta) {
+        if (debugMeta == null || debugMeta.getImages() == null) {
+            return;
+        }
+        for (DebugImage image : debugMeta.getImages()) {
+            if (image.getCodeFile() != null) {
+                image.setCodeFile(scrubCodePath(image.getCodeFile()));
+            }
+            if (image.getDebugFile() != null) {
+                image.setDebugFile(scrubCodePath(image.getDebugFile()));
+            }
+        }
+    }
+
+    /** The random folder names Android gives each installed app since Android 11. */
+    private static final Pattern INSTALL_FOLDER = Pattern.compile(
+            "^/data/app/(?:~~[A-Za-z0-9_=-]+/)?([A-Za-z0-9_.]+)-[A-Za-z0-9_=-]+/");
+
+    /** Folders that hold the system's own code, the same on every phone with that build. */
+    private static final String[] SYSTEM_CODE_FOLDERS = {
+            "/system/", "/system_ext/", "/apex/", "/vendor/", "/product/", "/odm/"};
+
+    /**
+     * A loaded library's path. An app's own code ({@code /data/app/~~<random>/<package>-<random>/})
+     * keeps the package and the path inside it without the random names, which differ on every
+     * install; system code is kept; anything else, which could be a file the app opened, is
+     * removed.
+     */
+    static String scrubCodePath(@Nullable String path) {
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+        Matcher installed = INSTALL_FOLDER.matcher(path);
+        if (installed.find()) {
+            return "/data/app/" + installed.group(1) + "/" + safeTail(path.substring(installed.end()));
+        }
+        for (String folder : SYSTEM_CODE_FOLDERS) {
+            if (path.startsWith(folder) && !path.contains("..")) {
+                return path;
+            }
+        }
+        return path.startsWith("[") || path.startsWith("<") ? path : REDACTED;
+    }
+
+    /** The path inside an app's folder (base.apk!/lib/arm64-v8a/libfoo.so, oat/arm64/base.odex). */
+    private static String safeTail(String tail) {
+        return tail.matches("[A-Za-z0-9_.!/-]{1,200}") && !tail.contains("..") ? tail : REDACTED;
+    }
+
     private static void scrubStacktrace(@Nullable SentryStackTrace stacktrace) {
         if (stacktrace == null || stacktrace.getFrames() == null) {
             return;
@@ -501,6 +588,10 @@ public final class SentryPrivacyScrubber {
             }
             if (frame.getFunction() != null) {
                 frame.setFunction(scrubCodeIdentifier(frame.getFunction()));
+            }
+            // A native frame names the library it ran in by path, as the debug images do.
+            if (frame.getPackage() != null) {
+                frame.setPackage(scrubCodePath(frame.getPackage()));
             }
         }
     }

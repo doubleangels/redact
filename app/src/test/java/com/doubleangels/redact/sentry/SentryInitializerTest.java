@@ -1,5 +1,6 @@
 package com.doubleangels.redact.sentry;
 
+import static com.doubleangels.redact.TestWaits.awaitMain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -67,8 +68,95 @@ public class SentryInitializerTest {
         return new SentryMetricsEvent(new SentryId(), (Double) 1.0, "count", "counter", (Double) 1.0);
     }
 
+    /**
+     * Crash reports turned off while the SDK was still starting in the background: shutdown()
+     * found nothing to close then, so the start must close the SDK itself rather than keep it.
+     * Sessions and profiles have no consent check that would stop them later.
+     */
     @Test
-    public void logEvent_isABreadcrumbOnly_neverAStandaloneLog() {
+    public void reportsTurnedOffWhileStarting_closeTheSdkInsteadOfKeepingIt() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        assertTrue(SentryInitializer.runSentryInitSafely(app));
+        assertTrue(Sentry.isEnabled());
+
+        AppPreferences.setCrashReportingEnabled(app, false);
+        SentryInitializer.shutdown(); // too early: nothing is initialized yet
+
+        assertFalse(SentryInitializer.keepIfStillWanted(app));
+        assertFalse(SentryInitializer.isInitialized());
+        assertFalse("the SDK was closed", Sentry.isEnabled());
+    }
+
+    @Test
+    public void reportsStillOn_keepTheSdk() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        assertTrue(SentryInitializer.runSentryInitSafely(app));
+
+        assertTrue(SentryInitializer.keepIfStillWanted(app));
+        assertTrue(SentryInitializer.isInitialized());
+    }
+
+    /** The SDK refusing to start must leave the app running, not end it before reporting is up. */
+    @Test
+    public void anSdkThatFailsToStart_leavesTheAppRunningWithoutReporting() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = "not a dsn";
+
+        assertFalse(SentryInitializer.runSentryInitSafely(app));
+        assertTrue("the SDK's own exception was caught, not avoided",
+                org.robolectric.shadows.ShadowLog.getLogsForTag("SentryInitializer").stream()
+                        .anyMatch(log -> log.throwable instanceof RuntimeException));
+        SentryInitializer.initializeBlocking(app);
+        assertFalse(SentryInitializer.isInitialized());
+    }
+
+    /**
+     * The tag gate on the shared scope: a key off the allow-list never becomes a tag, and a value
+     * is cut to 200 characters. Read back from the SDK's own scope, as a report would carry it.
+     */
+    @Test
+    public void scopeTags_takeOnlyAllowedKeys_cutTo200Characters() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+
+        SentryManager.setCustomKey("unknown_key", "should not be a tag");
+        SentryManager.setCustomKey("file_name", "IMG_1.jpg");
+        SentryManager.setCustomKey("ui.theme", "x".repeat(400));
+        java.util.Map<String, String> tags = new java.util.HashMap<>();
+        Sentry.configureScope(scope -> tags.putAll(scope.getTags()));
+
+        assertFalse(tags.containsKey("unknown_key"));
+        assertFalse(tags.containsKey("file_name"));
+        assertEquals(200, tags.get("ui.theme").length());
+    }
+
+    /** A breadcrumb from logEvent is scrubbed before it is added, so an error never carries a URI. */
+    @Test
+    public void logEventBreadcrumbs_areScrubbed() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+
+        SentryManager.logEvent("Scan", "Opened content://media/external/images/media/7 and /storage/emulated/0/DCIM/a.jpg");
+        java.util.List<String> messages = new java.util.ArrayList<>();
+        Sentry.configureScope(scope -> {
+            for (io.sentry.Breadcrumb b : scope.getBreadcrumbs()) {
+                messages.add(b.getMessage());
+            }
+        });
+
+        String last = messages.get(messages.size() - 1);
+        assertTrue(last, last.startsWith("Opened [redacted]"));
+        assertFalse(last, last.contains("content://") || last.contains("/storage/") || last.contains("a.jpg"));
+    }
+
+    @Test
+    public void logEvent_alsoSendsAScrubbedStructuredLog() {
         AppPreferences.setCrashReportingEnabled(app, true);
         SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
         SentryManager.init(app);
@@ -85,8 +173,36 @@ public class SentryInitializerTest {
         assertEquals(1, sentLogs.size());
         sentLogs.clear();
 
-        SentryManager.logEvent("Clean", "A clean started.");
-        assertTrue("logEvent sent a standalone log: " + sentLogs, sentLogs.isEmpty());
+        SentryManager.logEvent("Clean", "Opened content://media/external/images/media/5 at 100%.");
+        assertEquals(1, sentLogs.size());
+        assertTrue(sentLogs.get(0), sentLogs.get(0).startsWith("Clean: Opened [redacted]"));
+        assertFalse(sentLogs.get(0), sentLogs.get(0).contains("content://"));
+        assertTrue("a '%' is not a format specifier", sentLogs.get(0).endsWith("at 100%."));
+    }
+
+    /**
+     * Logs and metrics carry the distinct ID as user.id, and sessions as their "did". The SDK
+     * fills it with its per-install ID, which would link every report from one phone.
+     */
+    @Test
+    public void initialisation_clearsTheInstallIdSessionsLogsAndMetricsWouldCarry() {
+        AppPreferences.setCrashReportingEnabled(app, true);
+        SentryInitializer.testDsnOverride = UNREACHABLE_DSN;
+        SentryManager.init(app);
+        SentryInitializer.initializeBlocking(app);
+        assertTrue(SentryInitializer.isInitialized());
+
+        SentryOptions options = Sentry.getCurrentScopes().getOptions();
+        assertNull(options.getDistinctId());
+
+        java.util.List<SentryLogEvent> sentLogs = new java.util.ArrayList<>();
+        options.getLogs().setBeforeSend(logEvent -> {
+            sentLogs.add(logEvent);
+            return null;
+        });
+        Sentry.logger().info("probe");
+        assertEquals(1, sentLogs.size());
+        assertNull(sentLogs.get(0).getAttributes().get("user.id"));
     }
 
     @Test
@@ -128,9 +244,19 @@ public class SentryInitializerTest {
         SentryOptions options = Sentry.getCurrentScopes().getOptions();
         assertEquals(UNREACHABLE_DSN, options.getDsn());
         assertFalse(options.isSendDefaultPii());
-        assertFalse(options.isAttachThreads());
-        // No release-health sessions: they would count how often the app is opened.
-        assertFalse(options.isEnableAutoSessionTracking());
+        assertNull(options.getDistinctId());
+        // Nothing that records the screen's pixels.
+        assertFalse(((io.sentry.android.core.SentryAndroidOptions) options).isAttachScreenshot());
+        assertEquals(0.0, options.getSessionReplay().getSessionSampleRate(), 0.0);
+        assertEquals(0.0, options.getSessionReplay().getOnErrorSampleRate(), 0.0);
+        // Every technical detail that can't identify a phone or a file.
+        assertTrue(options.isAttachThreads());
+        assertTrue(((io.sentry.android.core.SentryAndroidOptions) options).isAttachViewHierarchy());
+        assertTrue(options.isEnableAutoSessionTracking());
+        assertTrue(((io.sentry.android.core.SentryAndroidOptions) options).isCollectAdditionalContext());
+        assertFalse(((io.sentry.android.core.SentryAndroidOptions) options)
+                .isEnableSystemEventBreadcrumbsExtras());
+        assertEquals(1.0, options.getTracesSampleRate(), 0.0);
 
         // Breadcrumbs are scrubbed.
         Breadcrumb crumb = new Breadcrumb("opened content://media/external/images/media/5");
@@ -208,11 +334,7 @@ public class SentryInitializerTest {
 
         SentryInitializer.initialize(app);
         SentryInitializer.initialize(app); // a concurrent duplicate request is ignored
-        long end = System.currentTimeMillis() + 3000;
-        while (SentryInitializer.isInitializingForTests() && System.currentTimeMillis() < end) {
-            Thread.sleep(10);
-        }
-        assertFalse("the background attempt settles", SentryInitializer.isInitializingForTests());
+        awaitMain(() -> !SentryInitializer.isInitializingForTests());
 
         assertFalse("an empty DSN never configures the SDK", SentryInitializer.isInitialized());
     }

@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 /**
  * A library decides what goes into an exception's message, so it can hold a path, a URI, a file
  * name or a metadata value. Text sent to Sentry names the exception class instead, and this test
- * fails when a call to {@code SentryManager.log}, {@code logEvent} or {@code recordException} puts
+ * fails when a call to {@code SentryManager.logEvent} or {@code recordException} puts
  * an exception's own text into what it sends.
  */
 public class SentryExceptionTextTest {
@@ -29,7 +29,7 @@ public class SentryExceptionTextTest {
     private static final File SOURCES = new File("src/main/java");
 
     private static final Pattern SENTRY_CALL =
-            Pattern.compile("SentryManager\\.(log|logEvent|recordException)\\s*\\(");
+            Pattern.compile("SentryManager\\.(logEvent|recordException)\\s*\\(");
     private static final Pattern CATCH_PARAMETER =
             Pattern.compile("catch\\s*\\(\\s*(?:final\\s+)?[\\w.]+(?:\\s*\\|\\s*[\\w.]+)*\\s+(\\w+)\\s*\\)");
     private static final Pattern EXCEPTION_TEXT =
@@ -55,7 +55,7 @@ public class SentryExceptionTextTest {
     @Test
     public void detector_flagsTheMessageOfAnException() {
         assertEquals(1, findLeaks("try {} catch (IOException e) {"
-                + " SentryManager.log(\"Failed: \" + e.getMessage() + \".\"); }").size());
+                + " SentryManager.logEvent(\"t\", \"Failed: \" + e.getMessage() + \".\"); }").size());
     }
 
     @Test
@@ -67,9 +67,9 @@ public class SentryExceptionTextTest {
 
     @Test
     public void detector_flagsToStringAndPlainConcatenation() {
-        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.log(\"x\" + e.toString()); }").size());
-        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.log(\"x\" + e + \".\"); }").size());
-        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.log(String.valueOf(e)); }").size());
+        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.logEvent(\"t\", \"x\" + e.toString()); }").size());
+        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.logEvent(\"t\", \"x\" + e + \".\"); }").size());
+        assertEquals(1, findLeaks("catch (Exception e) { SentryManager.logEvent(\"t\", String.valueOf(e)); }").size());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class SentryExceptionTextTest {
     @Test
     public void detector_acceptsTheClassNameAndTheExceptionObject() {
         assertEquals(0, findLeaks("catch (IOException e) {"
-                + " SentryManager.log(\"Failed: \" + e.getClass().getSimpleName() + \".\");"
+                + " SentryManager.logEvent(\"t\", \"Failed: \" + e.getClass().getSimpleName() + \".\");"
                 + " SentryManager.recordException(e);"
                 + " SentryManager.recordException(new Exception(\"Failed.\", e)); }").size());
     }
@@ -89,7 +89,7 @@ public class SentryExceptionTextTest {
     @Test
     public void detector_ignoresParenthesesAndKeywordsInsideStrings() {
         assertEquals(0, findLeaks("catch (IOException e) {"
-                + " SentryManager.log(\"A (toString()) e.getMessage() note.\"); }").size());
+                + " SentryManager.logEvent(\"t\", \"A (toString()) e.getMessage() note.\"); }").size());
     }
 
     /** Returns one entry for each Sentry call whose arguments carry an exception's text. */

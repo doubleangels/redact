@@ -143,7 +143,7 @@ public class CensorFragment extends TabFragment {
                 new ActivityResultContracts.OpenDocument(),
                 uri -> {
                     if (uri != null) {
-                        SentryManager.log("A photo was selected in CensorFragment.");
+                        SentryManager.logEvent("censor", "A photo was selected in CensorFragment.");
                         viewModel.requestOpen(uri);
                     }
                 });
@@ -182,7 +182,7 @@ public class CensorFragment extends TabFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SentryManager.log("The CensorFragment view was created.");
+        SentryManager.logEvent("censor", "The CensorFragment view was created.");
         viewModel = new ViewModelProvider(requireActivity()).get(CensorViewModel.class);
 
         emptyState = view.findViewById(R.id.censorEmptyState);

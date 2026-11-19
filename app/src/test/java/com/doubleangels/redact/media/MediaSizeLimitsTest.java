@@ -74,4 +74,37 @@ public class MediaSizeLimitsTest {
         assertEquals(-1, MediaSizeLimits.declaredSizeBytes(
                 context.getContentResolver(), Uri.fromFile(missing)));
     }
+
+    /** A source that never ends, or is larger than the room left, stops before filling storage. */
+    @org.junit.Test
+    public void aCopyStops_atItsLimit() throws Exception {
+        java.io.InputStream endless = new java.io.InputStream() {
+            @Override
+            public int read() {
+                return 0;
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) {
+                return len;
+            }
+        };
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+        org.junit.Assert.assertThrows(MediaSizeLimits.TooLargeException.class,
+                () -> MediaSizeLimits.copyStream(endless, out, null, 1_000_000));
+        org.junit.Assert.assertTrue("nothing past the limit was written", out.size() <= 1_000_000);
+
+        java.io.ByteArrayOutputStream small = new java.io.ByteArrayOutputStream();
+        org.junit.Assert.assertEquals(5, MediaSizeLimits.copyStream(
+                new java.io.ByteArrayInputStream(new byte[5]), small, null, 5));
+    }
+
+    @org.junit.Test
+    public void theRoomForACopy_leavesAReserve() {
+        java.io.File dir = new java.io.File(System.getProperty("java.io.tmpdir"));
+        long room = MediaSizeLimits.roomFor(dir);
+        org.junit.Assert.assertTrue(room >= 0);
+        org.junit.Assert.assertTrue(room <= Math.max(0, dir.getUsableSpace() - MediaSizeLimits.FREE_SPACE_RESERVE_BYTES));
+    }
 }

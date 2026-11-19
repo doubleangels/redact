@@ -46,7 +46,7 @@
         "@type": "FAQPage",
         "mainEntity": [
             {"@type": "Question", "name": "Does Redact upload my photos?",
-             "acceptedAnswer": {"@type": "Answer", "text": "No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no analytics and no account."}},
+             "acceptedAnswer": {"@type": "Answer", "text": "No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no tracking and no account. Optional crash reports, off by default, send only anonymous diagnostics."}},
             {"@type": "Question", "name": "What metadata does Redact remove?",
              "acceptedAnswer": {"@type": "Answer", "text": "GPS location, device make and model, timestamps, camera settings, XMP, IPTC and comments added by editing apps, data hidden after the picture such as extra preview images and Motion Photo clips, and video container tags such as location and creation time."}},
             {"@type": "Question", "name": "Does cleaning lower the quality?",
@@ -122,11 +122,11 @@
     </ul>
 
     <h2>Private by design</h2>
-    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only things that can ever leave your phone are an anonymous crash report, and only if you turn that on, and an update check that asks GitHub for the newest version number, and only when you tap Check for Updates.</div>
+    <div class="note">Redact never uploads your photos. Cleaning, scanning and converting run on your phone and need no internet connection. Your photos, videos and personal information are never collected or shared. The only things that can ever leave your phone are anonymous crash reports and diagnostics, and only if you turn them on, and an update check that asks GitHub for the newest version number, and only when you tap Check for Updates.</div>
     <ul>
-        <li>No ads, no analytics, no tracking and no account.</li>
+        <li>No ads, no tracking and no account.</li>
         <li>Uses Android's own file picker, so Redact never needs access to your whole library.</li>
-        <li>Optional crash reports stay off unless you turn them on, and never include your photos.</li>
+        <li>Optional crash reports stay off unless you turn them on, never include your photos, and can't be tied to you or your phone. <a href="#crash-reports">See exactly what they contain</a>.</li>
         <li>Open source under the GPL-3.0 license: <a href="https://github.com/doubleangels/redact">read the code on GitHub</a>.</li>
     </ul>
 
@@ -140,9 +140,9 @@
         <tbody>
             <tr>
                 <td><code>o244019.ingest.us.sentry.io</code><br>Sentry, US servers</td>
-                <td>Only while Send Crash Reports is on: after a crash or error, and when you choose to add a note to an error report</td>
-                <td>An anonymized report: stack trace, device model, Android and app version, and a few scrubbed tags. Paths, file names, coordinates and metadata values are removed first. Never a photo or video.</td>
-                <td>To find and fix bugs</td>
+                <td>Only while Send Crash Reports is on: while you use the app, and when you choose to add a note to an error report</td>
+                <td>The anonymous diagnostics listed in <a href="#crash-reports">What Send Crash Reports captures</a>. Paths, file names, coordinates and metadata values are removed first. Never a photo or video.</td>
+                <td>To find and fix bugs and slow spots</td>
             </tr>
             <tr>
                 <td><code>api.github.com</code></td>
@@ -170,10 +170,102 @@
     </table>
     </div>
 
+    <h3 id="crash-reports">What Send Crash Reports captures</h3>
+    <p>Nothing in this section is sent unless you turn on <strong>Send Crash Reports</strong>. Until then, Sentry isn't even started. Once it's on, Redact sends technical diagnostics with two hard limits: nothing that can tie reports to you or your phone, and nothing that identifies a file or shows what's in it (no names, paths, contents or metadata values).</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Captured</th><th>What exactly</th><th>When</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Crash, error and freeze reports</td><td>Exception type, the stack trace of every thread (class, method, line), and the app's own error messages with paths and names removed. Messages from libraries are replaced.</td><td>After a crash, error or app freeze, including native crashes and Android stopping the app for using too much memory</td></tr>
+            <tr><td>Device and app details</td><td>Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version</td><td>With each report</td></tr>
+            <tr><td>Screen layout</td><td>Each view's type, internal ID, position, size and visibility. Never any text or picture in it.</td><td>With each error</td></tr>
+            <tr><td>Trail of app events</td><td>The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal</td><td>With each error</td></tr>
+            <tr><td>Diagnostic tags</td><td>Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none)</td><td>With each error</td></tr>
+            <tr><td>Sessions</td><td>Start, end, duration, whether it crashed, and the error count</td><td>Every app session</td></tr>
+            <tr><td>Performance</td><td>App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took</td><td>Every app session</td></tr>
+            <tr><td>Code profiles</td><td>Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory</td><td>About 1 in 4 app sessions</td></tr>
+            <tr><td>Logs</td><td>The app's own log messages, scrubbed</td><td>While the app runs</td></tr>
+            <tr><td>Counters and timings</td><td>Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as <code>IOException</code>, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held</td><td>While the app runs</td></tr>
+            <tr><td>File facts</td><td>Format (such as <code>image/heic</code>) and the format it was written in, video codec (such as <code>video/hevc</code>) and the codec chosen for the output, size class (such as <code>4k</code>), length class, frame rate class (such as <code>up_to_60</code>), whether a video has sound, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as <code>GPSLatitude</code>), never their values</td><td>With jobs and errors</td></tr>
+            <tr><td>A note you write</td><td>What you type after <strong>Add Details</strong>, with paths, file names and GPS coordinates removed, up to 1,000 characters</td><td>Only if you send one</td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Never captured</th><th>How</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Install ID, device ID, user ID, name, email</td><td>Removed from every report, session, log and counter</td></tr>
+            <tr><td>Boot time, time zone, kernel version</td><td>Removed, because together with the model and build they could single out a phone</td></tr>
+            <tr><td>IP address</td><td>Never put in a report. Sentry's servers see it when a report arrives, as any server does.</td></tr>
+            <tr><td>Screenshots, screen recordings, text or pictures on screen</td><td>Screenshots are locked off, session replay's code isn't in the app at all, and the screen layout holds no text or pictures</td></tr>
+            <tr><td>Your photos and videos</td><td>Never read for a report</td></tr>
+            <tr><td>File names, paths and URIs</td><td>Scrubbed from every message, breadcrumb, tag and stack trace</td></tr>
+            <tr><td>Metadata values (GPS coordinates, dates, camera serial numbers and the like)</td><td>Never recorded, only tag names and counts</td></tr>
+            <tr><td>Text you type</td><td>Except a note you choose to send</td></tr>
+            <tr><td>Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps</td><td>Turned off or never collected</td></tr>
+            <tr><td>Anything from before you turned reporting on</td><td>Freezes, crashes and process exits Android recorded earlier are dropped</td></tr>
+            <tr><td>Anything while reporting is off</td><td>Sentry isn't started</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3 id="sentry-names">Names in Sentry</h3>
+    <p>Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means.</p>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Kind</th><th>Scheme</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>State tags</td><td><code>group.field</code>, lower case, at most 32 characters: what was true when the report was made</td></tr>
+            <tr><td>Result tags</td><td><code>outcome</code>, <code>reason</code> and <code>error_type</code>, the same in every tag and counter</td></tr>
+            <tr><td>Counters</td><td><code>area.event</code>, with what came of it in <code>outcome</code> and why in <code>reason</code></td></tr>
+            <tr><td>Timings and sizes</td><td><code>area.event.measure</code>, with the unit (milliseconds, megabytes) sent alongside, never in the name</td></tr>
+            <tr><td>Breadcrumb categories</td><td>a lower-case area, like the SDK's own <code>ui.click</code> and <code>navigation</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Tags</th><th>When</th><th>Names</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Job</td><td>With errors from a Clean, Share, Convert, Scan or Censor job</td><td><code>job.type</code>, <code>outcome</code>, <code>error_type</code>, <code>reason</code></td></tr>
+            <tr><td>File</td><td>The file being processed, never its name or contents</td><td><code>file.media_type</code>, <code>file.mime_type</code>, <code>file.output_mime_type</code>, <code>file.has_gps</code>, <code>image.resolution_class</code>, <code>image.sample_size</code>, <code>video.codec</code>, <code>video.output_codec</code>, <code>video.resolution_class</code>, <code>video.duration_class</code>, <code>video.frame_rate_class</code>, <code>video.rotation</code>, <code>video.has_audio</code></td></tr>
+            <tr><td>Checks</td><td>What the clean and its checks found</td><td><code>verify.image_passed</code>, <code>verify.video_passed</code>, <code>verify.failed_check</code>, <code>scan.extraction_failed</code>, <code>scan.section_count</code>, <code>clean.kept_exif_count</code>, <code>clean.removed_exif_count</code></td></tr>
+            <tr><td>Permissions</td><td>Whether each permission is granted and whether Android will still ask; <code>permission.&lt;type&gt;</code> is one of images, videos, selected_media, media_gps, notifications, storage or other</td><td><code>permission.type</code>, <code>permission.request_code</code>, <code>permission.needed</code>, <code>permission.all_granted</code>, <code>permission.images</code>, <code>permission.videos</code>, <code>permission.selected_media</code>, <code>permission.storage</code>, <code>permission.media_gps</code>, <code>permission.partial_access</code>, <code>permission.persisted_grant</code>, <code>permission.rationale_shown</code>, <code>permission.gps_rationale_shown</code>, <code>permission.settings_needed</code>, <code>permission.gps_settings_needed</code>, <code>permission.images_can_ask</code>, <code>permission.videos_can_ask</code>, <code>permission.storage_can_ask</code>, <code>permission.gps_can_ask</code></td></tr>
+            <tr><td>App</td><td>How the app was opened and what it was doing</td><td><code>intent.action</code>, <code>intent.type</code>, <code>intent.unsupported_type</code>, <code>intent.unsupported_action</code>, <code>ui.theme</code>, <code>notification.enabled</code>, <code>notification.clean_enabled</code>, <code>notification.convert_enabled</code>, <code>clean.state</code>, <code>clean.selected_count</code>, <code>clean.processing_count</code>, <code>clean.processed_count</code>, <code>share.media_count</code>, <code>app.process_state</code>, <code>app.background_restricted</code>, <code>app.standby_bucket</code>, <code>app.installer</code></td></tr>
+            <tr><td>Settings</td><td>The settings that change how files are processed, with every error; a folder is only <code>chosen</code> or <code>default</code></td><td><code>setting.strict_clean</code>, <code>setting.keep_camera_settings</code>, <code>setting.keep_date_taken</code>, <code>setting.keep_motion_photos</code>, <code>setting.keep_gps</code>, <code>setting.remove_audio</code>, <code>setting.faster_video_cleaning</code>, <code>setting.delete_originals</code>, <code>setting.keep_original_names</code>, <code>setting.auto_clear_temp</code>, <code>setting.image_folder</code>, <code>setting.video_folder</code>, <code>setting.default_image_format</code>, <code>setting.default_video_codec</code>, <code>setting.image_quality</code></td></tr>
+            <tr><td>Phone</td><td>What the phone offers for media work, and its state</td><td><code>device.media_performance_class</code>, <code>device.low_ram</code>, <code>device.heap_mb</code>, <code>device.large_heap_mb</code>, <code>device.thermal_status</code>, <code>device.power_save</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Counters and timings</th><th>Names</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Jobs</td><td><code>job.start</code>, <code>job.batch</code>, <code>job.batch.size</code>, <code>job.batch.duration</code>, <code>job.item</code>, <code>job.item.duration</code>, <code>job.warning</code></td></tr>
+            <tr><td>Cleaning</td><td><code>clean.method</code>, <code>clean.dropped_part</code>, <code>verify.result</code>, <code>already_clean.check</code>, <code>already_clean.check.duration</code>, <code>media.unsupported_type</code></td></tr>
+            <tr><td>Converting and video</td><td><code>convert.output</code>, <code>convert.codec_fallback</code>, <code>video.downscale</code>, <code>video.retry</code>, <code>video.transcode_failure</code></td></tr>
+            <tr><td>Censor and sharing</td><td><code>censor.load</code>, <code>censor.save</code>, <code>censor.save.regions</code>, <code>share.snapshot_failure</code>, <code>output.folder_fallback</code></td></tr>
+            <tr><td>App</td><td><code>app.exit</code>, <code>app.exit.memory</code>, <code>memory.shortage</code>, <code>cache.orphan</code>, <code>secure_delete.overwrite.duration</code>, <code>secure_delete.fallback</code>, <code>service.failure</code>, <code>notification.failure</code>, <code>permission.result</code>, <code>update.check</code>, <code>update.check.duration</code>, <code>onboarding.end</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <p>Breadcrumb categories: <code>clean</code>, <code>share</code>, <code>convert</code>, <code>scan</code>, <code>censor</code>, <code>verify</code>, <code>image</code>, <code>video</code>, <code>media</code>, <code>metadata</code>, <code>output</code>, <code>storage</code>, <code>permission</code>, <code>notification</code>, <code>update</code>, <code>ui</code>, <code>app.lifecycle</code>. The SDK adds its own, such as <code>ui.click</code>, <code>navigation</code> and <code>device.event</code>.</p>
+
     <h2>Questions</h2>
     <details>
         <summary>Does Redact upload my photos?</summary>
-        <p>No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no analytics and no account.</p>
+        <p>No. Cleaning, scanning and converting all run on your phone and need no internet connection. Redact has no ads, no tracking and no account. Optional crash reports, off by default, send only anonymous diagnostics.</p>
     </details>
     <details>
         <summary>What metadata does Redact remove?</summary>

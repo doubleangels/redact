@@ -16,8 +16,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 43
-        versionName "1.13.0"
+        versionCode 44
+        versionName "1.13.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
@@ -34,6 +34,19 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "SENTRY_DSN", "\"${resolveSentryDsnForRelease()}\""
+        }
+    }
+    // Only the languages the app is translated into (res/xml/locales_config.xml): AppCompat,
+    // Material and the other libraries ship their strings in about 90, which a phone set to one
+    // the app lacks would show beside English text from the app anyway.
+    androidResources {
+        localeFilters += ["en", "ar", "de", "es", "fr", "hi", "it", "ja", "ko", "pt", "ru", "zh-rCN", "zh-rTW"]
+    }
+    packaging {
+        resources {
+            // Read only by kotlin-reflect, which the app doesn't use, and by the coroutines
+            // debug agent, which runs only on a desktop JVM.
+            excludes += ["**/*.kotlin_builtins", "DebugProbesKt.bin"]
         }
     }
     compileOptions {
@@ -126,7 +139,11 @@ def readSentryDsnLocalFile() {
 }
 
 dependencies {
-    implementation(libs.sentry.android)
+    // Session replay is locked off (SentryInitializer), so its module would ship code that never
+    // runs. Without it the SDK has no replay integration to start at all.
+    implementation(libs.sentry.android) {
+        exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
     implementation(libs.sentry.android.fragment)
     implementation libs.activity
     implementation libs.appcompat
@@ -177,8 +194,9 @@ sentry {
     sizeAnalysis {
         enabled = System.getenv("SENTRY_SIZE_ANALYSIS") == "true"
     }
-    // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained; Log->breadcrumb
-    // rewriting is unused (auto breadcrumbs are off).
+    // No DB/OkHttp/Compose in the app and per-file I/O spans are too fine-grained. Logcat->breadcrumb
+    // rewriting stays off too: the app logs through SentryManager.logEvent, which adds its own
+    // breadcrumbs, and release builds strip android.util.Log calls.
     tracingInstrumentation {
         enabled = false
         logcat {

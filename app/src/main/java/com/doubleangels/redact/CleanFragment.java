@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.MediaAdapter;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaPickerContracts;
@@ -51,6 +52,7 @@ import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.ScanViewModel;
 import com.doubleangels.redact.ui.ShareResults;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -122,7 +124,7 @@ public class CleanFragment extends TabFragment {
                 new ActivityResultContracts.OpenMultipleDocuments(),
                 uris -> {
                     if (uris != null && !uris.isEmpty()) {
-                        SentryManager.log("Media was selected successfully.");
+                        SentryManager.logEvent("clean", "Media was selected successfully.");
                         onMediaReceived(uris);
                     }
                 }
@@ -147,7 +149,7 @@ public class CleanFragment extends TabFragment {
             }
             if (mediaSelector != null && viewModel != null) {
                 mediaSelector.processMediaUrisAsync(uris, items -> {
-                    SentryManager.setCustomKey("selected_media_count", items.size());
+                    SentryManager.setCustomKey("clean.selected_count", items.size());
                     viewModel.setSelectedItems(items);
                 });
             }
@@ -167,7 +169,7 @@ public class CleanFragment extends TabFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         try {
-            SentryManager.log("The CleanFragment view was created.");
+            SentryManager.logEvent("clean", "The CleanFragment view was created.");
             viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
             setupViews(view);
             initUtilityClasses();
@@ -263,46 +265,26 @@ public class CleanFragment extends TabFragment {
                 try {
                     if (viewModel.getCleanProcessingState().getValue()
                             == MainViewModel.ProcessingState.PROCESSING) {
-                        SentryManager.log("The clean is being cancelled.");
+                        SentryManager.logEvent("clean", "The clean is being cancelled.");
                         Haptics.tick(v);
                         viewModel.cancelCleaning();
                         return;
                     }
-                    SentryManager.log("A clean is starting.");
+                    SentryManager.logEvent("clean", "A clean is starting.");
                     List<MediaItem> items = viewModel.getSelectedItems().getValue();
                     if (items != null && !items.isEmpty()) {
-                        SentryManager.setCustomKey("processing_items_count", items.size());
+                        SentryManager.setCustomKey("clean.processing_count", items.size());
                         // Animated-image detection and resource assessment both do
                         // content-resolver I/O (up to 64KB reads and a cache-directory walk
                         // per selected item), which can be slow for cloud-backed URIs; run
                         // them off the main thread to avoid jank/ANRs.
                         Context appContext = requireContext().getApplicationContext();
-                        new Thread(() -> {
-                            try {
-                                List<ProcessingResourceWarnings.Warning> warnings =
-                                        ProcessingResourceWarnings.assess(appContext, items);
-                                // Reads each file's metadata, so it also runs off the main thread.
-                                List<AlreadyCleanCheck.Status> cleanStatuses =
-                                        AppPreferences.isWarnAlreadyClean(appContext)
-                                                ? AlreadyCleanCheck.assess(
-                                                        appContext, items, ALREADY_CLEAN_BUDGET_MS)
-                                                : null;
-                                runOnUiThreadIfAdded(() -> {
-                                    confirmAlreadyClean(items, cleanStatuses, chosen ->
-                                            ProcessingResourceWarnings.runWithWarnings(
-                                                    requireActivity(),
-                                                    warnings,
-                                                    () -> viewModel.startCleaning(chosen)));
-                                });
-                            } catch (Exception | OutOfMemoryError e) {
-                                SentryManager.recordException(e);
-                                // The checks only warn; when they can't run, clean without them
-                                // rather than leave the button doing nothing.
-                                runOnUiThreadIfAdded(() -> viewModel.startCleaning(items));
-                            }
-                        }).start();
+                        // Only a weak reference: a slow read must not keep a closed screen alive.
+                        WeakReference<CleanFragment> screen = new WeakReference<>(this);
+                        AppProcessingScope.get(appContext).ioExecutor().execute(
+                                () -> runCleanChecks(appContext, items, screen));
                     } else {
-                        SentryManager.log("No items were selected for processing.");
+                        SentryManager.logEvent("clean", "No items were selected for processing.");
                         uiStateManager.setFirstSelectMediaFilesStatus();
                     }
                 } catch (Exception e) {
@@ -331,7 +313,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsGranted() {
                             try {
-                                SentryManager.setCustomKey("permissions_granted", true);
+                                SentryManager.setCustomKey("permission.all_granted", true);
                                 showReadyStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -341,7 +323,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsDenied() {
                             try {
-                                SentryManager.setCustomKey("permissions_granted", false);
+                                SentryManager.setCustomKey("permission.all_granted", false);
                                 if (permissionManager.isMediaPickerAvailable()) {
                                     showReadyStatus();
                                     if (selectButton != null) {
@@ -361,7 +343,7 @@ public class CleanFragment extends TabFragment {
                         @Override
                         public void onPermissionsRequestStarted() {
                             try {
-                                SentryManager.log("The permission request started.");
+                                SentryManager.logEvent("clean", "The permission request started.");
                                 uiStateManager.setPermissionRequestingStatus();
                             } catch (Exception e) {
                                 SentryManager.recordException(e);
@@ -545,7 +527,7 @@ public class CleanFragment extends TabFragment {
         for (MediaItem item : items) {
             uris.add(item.uri());
         }
-        SentryManager.log("A share without saving is starting.");
+        SentryManager.logEvent("clean", "A share without saving is starting.");
         try {
             ShareHandlerActivity.shareWithoutSaving(requireContext(), uris);
         } catch (RuntimeException e) {
@@ -590,7 +572,7 @@ public class CleanFragment extends TabFragment {
                     lastObservedSelectedItems = items != null
                             ? new ArrayList<>(items) : new ArrayList<>();
                     uiStateManager.setSelectedItemsStatus(items != null ? items.size() : 0);
-                    SentryManager.setCustomKey("selected_items_count", items != null ? items.size() : 0);
+                    SentryManager.setCustomKey("clean.selected_count", items != null ? items.size() : 0);
                 } catch (Exception e) {
                     SentryManager.recordException(e);
                 }
@@ -601,7 +583,7 @@ public class CleanFragment extends TabFragment {
                 try {
                     boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
                     lastObservedCleanState = state;
-                    SentryManager.setCustomKey("processing_state", state.toString());
+                    SentryManager.setCustomKey("clean.state", state.toString());
                     if (quickToggles != null) {
                         quickToggles.setLocked(state == MainViewModel.ProcessingState.PROCESSING);
                     }
@@ -613,7 +595,6 @@ public class CleanFragment extends TabFragment {
                     }
                     switch (state) {
                         case PROCESSING:
-                            SentryManager.log("The processing state changed to PROCESSING.");
                             uiStateManager.showProgress(true);
                             uiStateManager.setProcessingStatus();
                             if (selectButton != null) {
@@ -625,7 +606,6 @@ public class CleanFragment extends TabFragment {
                             break;
 
                         case CANCELLED:
-                            SentryManager.log("The processing state changed to CANCELLED.");
                             uiStateManager.showProgress(false);
                             uiStateManager.setStatus(getString(R.string.status_processing_cancelled));
                             stripButton.setText(R.string.button_strip_exif_data);
@@ -639,12 +619,11 @@ public class CleanFragment extends TabFragment {
                             break;
 
                         case COMPLETED:
-                            SentryManager.log("The processing state changed to COMPLETED.");
                             uiStateManager.showProgress(false);
                             Integer count = viewModel.getCleanProcessedItemCount().getValue();
                             Integer total = viewModel.getCleanBatchTotalCount().getValue();
                             if (count != null) {
-                                SentryManager.setCustomKey("processed_items", count);
+                                SentryManager.setCustomKey("clean.processed_count", count);
                                 int batchTotal = total != null ? total : count;
                                 uiStateManager.setProcessedItemsStatus(
                                         count, batchTotal, viewModel.getCleanSummaryText());
@@ -679,7 +658,6 @@ public class CleanFragment extends TabFragment {
 
                         case IDLE:
                         default:
-                            SentryManager.log("The processing state changed to IDLE.");
                             uiStateManager.showProgress(false);
                             stripButton.setText(R.string.button_strip_exif_data);
                             stripButton.setIconResource(R.drawable.ic_clean);
@@ -733,7 +711,7 @@ public class CleanFragment extends TabFragment {
         if (items.isEmpty() || viewModel == null) {
             return;
         }
-        SentryManager.log("A clean of the files that failed is starting.");
+        SentryManager.logEvent("clean", "A clean of the files that failed is starting.");
         viewModel.setSelectedItems(new ArrayList<>(items));
         viewModel.startCleaning(new ArrayList<>(items));
     }
@@ -802,10 +780,10 @@ public class CleanFragment extends TabFragment {
                 viewModel.setCleanProcessingState(MainViewModel.ProcessingState.IDLE);
             }
             if (permissionManager.shouldRequestStorageBeforePicker()) {
-                SentryManager.log("The app is requesting permissions.");
+                SentryManager.logEvent("clean", "The app is requesting permissions.");
                 permissionManager.requestStoragePermission();
             } else {
-                SentryManager.log("The app is launching the media selector.");
+                SentryManager.logEvent("clean", "The app is launching the media selector.");
                 mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
             }
         } catch (Exception e) {
@@ -853,6 +831,38 @@ public class CleanFragment extends TabFragment {
                     .setNeutralButton(R.string.already_clean_clean_all, (d, w) -> proceed.accept(items));
         }
         FoldDialogs.place(dialog.show());
+    }
+
+    /** The checks before a clean, off the main thread; they only warn, so a failure cleans anyway. */
+    private static void runCleanChecks(@NonNull Context app, @NonNull List<MediaItem> items,
+                                       @NonNull WeakReference<CleanFragment> screen) {
+        List<ProcessingResourceWarnings.Warning> warnings;
+        List<AlreadyCleanCheck.Status> cleanStatuses;
+        try {
+            warnings = ProcessingResourceWarnings.assess(app, items);
+            // Reads each file's metadata, so it also runs off the main thread.
+            cleanStatuses = AppPreferences.isWarnAlreadyClean(app)
+                    ? AlreadyCleanCheck.assess(app, items, ALREADY_CLEAN_BUDGET_MS)
+                    : null;
+        } catch (Exception | OutOfMemoryError e) {
+            SentryManager.recordException(e);
+            // The checks only warn; when they can't run, clean without them rather than leave the
+            // button doing nothing.
+            onScreen(screen, f -> f.viewModel.startCleaning(items));
+            return;
+        }
+        onScreen(screen, f -> f.confirmAlreadyClean(items, cleanStatuses, chosen ->
+                ProcessingResourceWarnings.runWithWarnings(
+                        f.requireActivity(), warnings, () -> f.viewModel.startCleaning(chosen))));
+    }
+
+    /** Runs {@code action} on the main thread if the screen is still there and showing. */
+    private static void onScreen(@NonNull WeakReference<CleanFragment> screen,
+                                 @NonNull Consumer<CleanFragment> action) {
+        CleanFragment fragment = screen.get();
+        if (fragment != null) {
+            fragment.runOnUiThreadIfAdded(() -> action.accept(fragment));
+        }
     }
 
     private void runOnUiThreadIfAdded(Runnable action) {

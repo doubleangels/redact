@@ -47,6 +47,10 @@ public final class CleanQuickToggles {
 
     private void listen(@Nullable Chip chip, @NonNull CompoundButton.OnCheckedChangeListener listener) {
         if (chip != null) {
+            // The chips show the preferences, which sync() reads. A checked state restored with the
+            // view would be stale, and the listener would write it back: after Reset All
+            // Settings recreates the activity, that put Strict Clean back off.
+            chip.setSaveEnabled(false);
             chip.setOnCheckedChangeListener((button, on) -> {
                 if (!syncing) {
                     listener.onCheckedChanged(button, on);

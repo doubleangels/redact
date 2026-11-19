@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -617,6 +616,42 @@ public class ImageContainerWalkerTest {
         assertEquals(ImageContainerMetadata.Kind.LOCATION, r.findings.get(0).kind);
     }
 
+    /**
+     * A portrait photo's extended XMP: the depth map's settings, and the depth map itself as a
+     * base64 JPEG split across two segments. Scan shows the settings and describes the picture.
+     */
+    @Test
+    public void extendedXmp_describesAnEmbeddedDepthMap_insteadOfItsBase64() throws Exception {
+        ByteArrayOutputStream depth = new ByteArrayOutputStream();
+        depth.write(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xC0, 0, 17, 8, 0, 48, 0, 64, 3,
+                1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1});
+        for (int i = 0; i < 600; i++) {
+            depth.write(i * 37);
+        }
+        depth.write(new byte[] {(byte) 0xFF, (byte) 0xD9});
+        String data = java.util.Base64.getEncoder().encodeToString(depth.toByteArray());
+        String xmp = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">"
+                + "<rdf:Description xmlns:GDepth=\"http://ns.google.com/photos/1.0/depthmap/\" GDepth:Format=\"RangeInverse\""
+                + " GDepth:Mime=\"image/jpeg\" GDepth:Data=\"" + data + "\"/></rdf:RDF></x:xmpmeta>";
+        int half = xmp.indexOf("GDepth:Data=\"") + 13 + data.length() / 2; // inside the base64
+        String guid = "0123456789ABCDEF0123456789ABCDEF";
+        byte[] first = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(xmp.length()), be32(0),
+                a(xmp.substring(0, half)));
+        byte[] second = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(xmp.length()), be32(half),
+                a(xmp.substring(half)));
+
+        ImageContainerMetadata.Report r = scan(jpeg(seg(0xE1, first), seg(0xE1, second)));
+
+        assertEquals(List.of("XMP_EXTENDED"), keys(r.findings));
+        String text = r.findings.get(0).text;
+        assertTrue(text, text.contains("GDepth:Format=\"RangeInverse\""));
+        assertTrue(text, text.contains("GDepth:Mime=\"image/jpeg\""));
+        assertFalse("no base64 left", text.contains(data.substring(0, 40)));
+        assertTrue("the picture is named with its size", text.contains("JPEG") && text.contains("64×48"));
+        assertTrue(text.length() < 600);
+        assertEquals("the size is still the segments'", first.length + second.length, r.findings.get(0).bytes);
+    }
+
     @Test
     public void thumbnails_showTheirSize() throws Exception {
         byte[] jfif = cat(a("JFIF\0"), b(1, 2, 0, 0, 1, 0, 1, 2, 3), new byte[18]);
@@ -831,15 +866,30 @@ public class ImageContainerWalkerTest {
         assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(out).kept, "ICC_PROFILE").text);
     }
 
-    /** Pieces that do not arrive in order are written as they came, so the colours are kept. */
+    /**
+     * Pieces that arrive out of order are put back in sequence and rebuilt, so the colours stay
+     * and the name and device text go. Written as they came, they kept both.
+     */
     @Test
-    public void piecesOutOfOrder_areKeptAsTheyCame() throws Exception {
+    public void piecesOutOfOrder_arePutBackInOrder_andNeutralized() throws Exception {
         byte[] profile = calibratedProfile();
         int half = profile.length / 2;
         byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(2, 2), Arrays.copyOfRange(profile, half, profile.length))),
                 seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, half))));
         byte[] out = sanitizeNeutral(jpeg);
-        assertTrue(contains(out, Arrays.copyOfRange(profile, half, profile.length)));
+        assertTrue("the colour tags stay", contains(out, XYZ));
+        assertFalse(contains(out, a("Jane")));
+        assertEquals(IccProfiles.NEUTRAL_NAME, finding(scan(out).kept, "ICC_PROFILE").text);
+    }
+
+    /** Pieces that never make a whole profile can't be rebuilt, so Strict Clean leaves them out. */
+    @Test
+    public void anIncompleteProfile_isLeftOutOfAStrictClean() throws Exception {
+        byte[] profile = calibratedProfile();
+        byte[] jpeg = jpeg(seg(0xE2, cat(a("ICC_PROFILE\0"), b(1, 2), Arrays.copyOfRange(profile, 0, profile.length / 2))));
+        byte[] out = sanitizeNeutral(jpeg);
+        assertFalse(contains(out, a("Jane")));
+        assertFalse(contains(out, a("ICC_PROFILE")));
     }
 
     @Test
@@ -860,7 +910,7 @@ public class ImageContainerWalkerTest {
     }
 
     @Test
-    public void tagsThatShareData_stillShareIt_andABrokenTableIsLeftAlone() {
+    public void tagsThatShareData_stillShareIt_andABrokenTableIsDropped() {
         byte[] profile = icc("rTRC", iccTag("curv", be32(0)), "gTRC", iccTag("curv", be32(0)),
                 "dmnd", text("Acme"));
         // Point gTRC at rTRC's data, as profile writers do.
@@ -873,6 +923,44 @@ public class ImageContainerWalkerTest {
 
         byte[] broken = icc("wtpt", XYZ);
         System.arraycopy(be32(1 << 20), 0, broken, 132 + 4, 4);
-        assertSame(broken, IccProfiles.neutralize(broken));
+        // Kept as it was, a profile like this would keep its name and device text.
+        org.junit.Assert.assertNull(IccProfiles.neutralize(broken));
+        org.junit.Assert.assertNull("too short to be a profile", IccProfiles.neutralize(new byte[100]));
+    }
+
+    /** Only a standard profile's whole name keeps it; text after one is someone's own. */
+    @Test
+    public void onlyWholeStandardNames_areWellKnown() {
+        assertTrue(IccProfiles.isWellKnown("sRGB IEC61966-2.1"));
+        assertTrue(IccProfiles.isWellKnown("  Display   P3 "));
+        assertTrue(IccProfiles.isWellKnown("Adobe RGB (1998)"));
+        assertFalse(IccProfiles.isWellKnown("sRGB - Jordan's Dell U2720Q 2026-03-01"));
+        assertFalse(IccProfiles.isWellKnown("Display P3 calibrated 2026-03-01"));
+        assertFalse(IccProfiles.isWellKnown("Jordan's monitor"));
+        assertFalse(IccProfiles.isWellKnown(null));
+    }
+
+    /** Strict Clean and shares leave out a profile they can't rebuild rather than keep its text. */
+    @Test
+    public void aProfileThatCantBeRebuilt_isLeftOutOfAStrictClean() throws Exception {
+        byte[] broken = calibratedProfile();
+        System.arraycopy(be32(5000), 0, broken, 128, 4); // more tags than any profile has
+        byte[] vp8x = b(0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        byte[] webp = sanitizeNeutral(webp(webpChunk("VP8X", vp8x), webpChunk("ICCP", broken),
+                webpChunk("VP8 ", new byte[10])));
+
+        assertFalse(contains(webp, a("Jane")));
+        assertFalse(contains(webp, a("ICCP")));
+    }
+
+    /** A colour chunk larger than any profile is left out instead of read whole into memory. */
+    @Test
+    public void anOversizedColourChunk_isLeftOut() throws Exception {
+        byte[] vp8x = b(0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        byte[] webp = webp(webpChunk("VP8X", vp8x), webpChunk("ICCP", new byte[17 * 1024 * 1024]),
+                webpChunk("VP8 ", new byte[10]));
+        byte[] out = sanitizeNeutral(webp);
+        assertFalse(contains(out, a("ICCP")));
+        assertTrue(out.length < 1024 * 1024);
     }
 }

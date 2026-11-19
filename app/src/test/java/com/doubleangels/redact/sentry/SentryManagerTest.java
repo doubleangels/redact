@@ -1,6 +1,8 @@
 package com.doubleangels.redact.sentry;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.doubleangels.redact.media.ProcessingCancelledException;
@@ -12,6 +14,33 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 
 public class SentryManagerTest {
+
+    /** One value per kind of error on every event and metric, readable in a release build too. */
+    @Test
+    public void errorType_isTheSimpleName_andTheAppsOwnKeepTheirNames() {
+        org.junit.Assert.assertEquals("IOException", SentryManager.errorType(new IOException("/storage/a.jpg")));
+        org.junit.Assert.assertEquals("CleanFailedException",
+                SentryManager.errorType(new com.doubleangels.redact.media.CleanFailedException("x")));
+        org.junit.Assert.assertEquals("ProcessingCancelledException",
+                SentryManager.errorType(new ProcessingCancelledException("x")));
+        org.junit.Assert.assertEquals("TooLargeException",
+                SentryManager.errorType(new com.doubleangels.redact.media.MediaSizeLimits.TooLargeException()));
+    }
+
+    /** Every metric attribute key must be on the allow-list, and pairs must be whole. */
+    @Test
+    public void metricAttributes_areAllowListedPairs() {
+        assertNotNull(SentryManager.metricsParams("job.type", "clean"));
+        assertNotNull(SentryManager.metricsParams("job.type", "clean", "file.media_type", "image",
+                "outcome", "failed", "error_type", "IOException"));
+        assertNotNull("a missing value is sent empty", SentryManager.metricsParams("file.media_type", null));
+        assertNull("a file name is never a dimension", SentryManager.metricsParams("file_name", "a.jpg"));
+        assertNull("one bad key drops the lot",
+                SentryManager.metricsParams("job.type", "clean", "uri", "content://x"));
+        assertNull("a value without its key", SentryManager.metricsParams("job.type"));
+        assertNull(SentryManager.metricsParams());
+        assertNull(SentryManager.metricsParams((String[]) null));
+    }
 
     @Test
     public void isUserCancellation_detectsInterruptedCause() {

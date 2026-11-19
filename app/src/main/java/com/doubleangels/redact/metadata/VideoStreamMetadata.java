@@ -179,12 +179,20 @@ public final class VideoStreamMetadata {
                 }
                 return;
             }
-            IntPredicate sei = hevc
-                    ? first -> ((first >> 1) & 0x3F) == 39 || ((first >> 1) & 0x3F) == 40
-                    : first -> (first & 0x1F) == 6;
-            for (byte[] nal : units(data, sei)) {
+            IntPredicate wanted = hevc
+                    ? first -> isSeiType((first >> 1) & 0x3F, true) || isPrivateNalType((first >> 1) & 0x3F, true)
+                    : first -> isSeiType(first & 0x1F, false) || isPrivateNalType(first & 0x1F, false);
+            for (byte[] nal : units(data, wanted)) {
                 if (isSei(nal, hevc)) {
                     seiMessages(unescape(nal, hevc ? 2 : 1), this);
+                } else if (nal.length > 0 && isPrivateNalType(hevc ? (nal[0] >> 1) & 0x3F : nal[0] & 0x1F, hevc)) {
+                    // A unit of a type no standard defines carries the encoder's own data, which
+                    // only encoding the video again removes.
+                    messages++;
+                    bytes += nal.length;
+                    if (text == null) {
+                        text = readableText(nal, 1, nal.length - 1);
+                    }
                 }
             }
         }
@@ -249,6 +257,9 @@ public final class VideoStreamMetadata {
                 av1Metadata(d, payload, length, counter);
             } else if (type == OBU_PADDING && !allZero(d, payload, length)) {
                 count(counter, d, payload, length);
+            } else if (type == 0 || (type >= 9 && type <= 14)) {
+                // Reserved OBU types: data no decoder reads, which only encoding again removes.
+                count(counter, d, payload, length);
             }
             pos = payload + length;
         }
@@ -307,6 +318,19 @@ public final class VideoStreamMetadata {
         return null;
     }
 
+    private static boolean isSeiType(int type, boolean hevc) {
+        return hevc ? type == 39 || type == 40 : type == 6;
+    }
+
+    /**
+     * NAL unit types left to applications or reserved: HEVC 41-61 and H.264 24-31. HEVC 62 and
+     * 63 stay out, as Dolby Vision carries its picture metadata there; filler data is padding.
+     */
+    @VisibleForTesting
+    static boolean isPrivateNalType(int type, boolean hevc) {
+        return hevc ? type >= 41 && type <= 61 : type >= 24 && type <= 31;
+    }
+
     private static boolean isSei(@NonNull byte[] nal, boolean hevc) {
         if (nal.length < (hevc ? 3 : 2)) {
             return false;
@@ -319,8 +343,9 @@ public final class VideoStreamMetadata {
     }
 
     /**
-     * The units of {@code d} whose first byte {@code wanted} accepts, as {@link #nalUnits} splits
-     * them. The rest, the picture data that is nearly all of a sample, is never copied, so every
+     * The NAL units of {@code d} whose first byte {@code wanted} accepts, split at Annex B start
+     * codes or, failing that, at 4-byte length prefixes; trailing zero bytes belong to the next
+     * start code. The rest, the picture data that is nearly all of a sample, is never copied, so every
      * frame of a long video can be read.
      */
     @NonNull
@@ -360,39 +385,6 @@ public final class VideoStreamMetadata {
         return units;
     }
 
-    /** Splits Annex B (start codes) or, failing that, 4-byte length-prefixed data into NAL units. */
-    @NonNull
-    static List<byte[]> nalUnits(@NonNull byte[] d) {
-        List<byte[]> units = new ArrayList<>();
-        int start = nextStartCode(d, 0);
-        if (start >= 0) {
-            while (start >= 0) {
-                int payload = start + (d[start + 2] == 1 ? 3 : 4);
-                int next = nextStartCode(d, payload);
-                int end = next < 0 ? d.length : next;
-                while (end > payload && d[end - 1] == 0) {
-                    end--; // trailing zero bytes belong to the next start code
-                }
-                if (end > payload) {
-                    units.add(Arrays.copyOfRange(d, payload, end));
-                }
-                start = next;
-            }
-            return units;
-        }
-        int pos = 0;
-        while (pos + 4 <= d.length) {
-            int length = ((d[pos] & 0xFF) << 24) | ((d[pos + 1] & 0xFF) << 16)
-                    | ((d[pos + 2] & 0xFF) << 8) | (d[pos + 3] & 0xFF);
-            if (length <= 0 || pos + 4L + length > d.length) {
-                break;
-            }
-            units.add(Arrays.copyOfRange(d, pos + 4, pos + 4 + length));
-            pos += 4 + length;
-        }
-        return units;
-    }
-
     private static int nextStartCode(@NonNull byte[] d, int from) {
         for (int i = from; i + 3 <= d.length; i++) {
             if (d[i] == 0 && d[i + 1] == 0) {
@@ -425,27 +417,15 @@ public final class VideoStreamMetadata {
     }
 
     private static void seiMessages(@NonNull byte[] rbsp, @NonNull Counter counter) {
-        int pos = 0;
-        while (pos < rbsp.length && !(rbsp.length - pos == 1 && (rbsp[pos] & 0xFF) == 0x80)) {
-            int type = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                type += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return;
-            }
-            type += rbsp[pos++] & 0xFF;
-            int size = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                size += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return;
-            }
-            size += rbsp[pos++] & 0xFF;
-            if (pos + size > rbsp.length) {
+        int[] at = {0};
+        while (at[0] < rbsp.length && !(rbsp.length - at[0] == 1 && (rbsp[at[0]] & 0xFF) == 0x80)) {
+            int type = seiNumber(rbsp, at, MAX_SEI_PAYLOAD_TYPE);
+            int size = type < 0 ? -1 : seiNumber(rbsp, at, rbsp.length);
+            int pos = at[0];
+            if (size < 0 || size > rbsp.length - pos) {
+                // Damaged, or larger than its NAL unit: data that can't be read is never called
+                // clean, so it counts as a message.
+                counter.messages++;
                 return;
             }
             if (type == SEI_USER_DATA_UNREGISTERED) {
@@ -463,8 +443,38 @@ public final class VideoStreamMetadata {
                     counter.text = readableText(rbsp, pos, size);
                 }
             }
-            pos += size;
+            at[0] = pos + size;
         }
+    }
+
+    /** Larger than any SEI payload type the standards define, so a longer run is damage. */
+    static final int MAX_SEI_PAYLOAD_TYPE = 65_535;
+
+    /**
+     * An SEI payload type or size at {@code at[0]}: a run of 0xFF bytes worth 255 each, then one
+     * last byte. Moves {@code at[0]} past it. Returns -1 when the data ends first, or when the
+     * value passes {@code max} (the RBSP's length, for a size): summing a long run of 0xFF in an
+     * int wrapped it negative, and the parser then stepped backwards forever.
+     */
+    static int seiNumber(@NonNull byte[] rbsp, @NonNull int[] at, int max) {
+        int pos = at[0];
+        int value = 0;
+        while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
+            value += 255;
+            pos++;
+            if (value > max) {
+                return -1;
+            }
+        }
+        if (pos >= rbsp.length) {
+            return -1;
+        }
+        value += rbsp[pos++] & 0xFF;
+        if (value > max) {
+            return -1;
+        }
+        at[0] = pos;
+        return value;
     }
 
     /**

@@ -25,6 +25,7 @@ import androidx.exifinterface.media.ExifInterface;
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.MetadataStripper;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.BufferedInputStream;
@@ -758,7 +759,7 @@ public final class FormatConverter {
             OutputDestination.publish(resolver, outUri);
             return outUri;
         } catch (IOException | RuntimeException e) {
-            SentryManager.log(
+            SentryManager.logEvent("convert", 
                     "The 16-bit PNG could not be kept at 16 bits, so the app is converting it at 8: "
                             + e.getClass().getSimpleName() + ".");
             if (outUri != null) {
@@ -941,7 +942,7 @@ public final class FormatConverter {
             return decodeWithImageDecoder(context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
-            SentryManager.count("memory.low", 1, "outcome", "decode_failed");
+            AppMetrics.lowMemory("decode_failed");
             throw new IOException("Not enough memory to decode the image", e);
         } catch (ImageDecoder.DecodeException e) {
             // SOURCE_EXCEPTION means the bytes could not be read (a real I/O failure). Any other
@@ -1032,10 +1033,10 @@ public final class FormatConverter {
                 return decode.decode(options);
             } catch (OutOfMemoryError e) {
                 if (attempt >= MAX_OUT_OF_MEMORY_RETRIES) {
-                    SentryManager.count("memory.low", 1, "outcome", "decode_failed");
+                    AppMetrics.lowMemory("decode_failed");
                     throw new IOException("Not enough memory to decode the image", e);
                 }
-                SentryManager.count("memory.low", 1, "outcome", "decode_retry");
+                AppMetrics.lowMemory("decode_retry");
                 sampleSize *= 2;
             }
         }
@@ -1122,53 +1123,11 @@ public final class FormatConverter {
      *
      * @return URI of the new {@link MediaStore} video entry
      */
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex) throws IOException {
-        return convertVideoToMovies(context, sourceUri, baseDisplayName, formatIndex, null);
-    }
-
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, null, -1L);
-    }
-
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex, -1L);
-    }
-
-    @NonNull
-    public static Uri convertVideoToMovies(
-            @NonNull Context context,
-            @NonNull Uri sourceUri,
-            @NonNull String baseDisplayName,
-            int formatIndex,
-            @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex,
-            long transcodeOwnerId)
-            throws IOException {
-        return convertVideoToMovies(
-                context, sourceUri, baseDisplayName, formatIndex, progressListener, outActualFormatIndex,
-                transcodeOwnerId, null);
+    /**
+     * A converted video: where it was saved, and the codec it was encoded with, which is not the
+     * one asked for when the phone can't encode that one (see {@link VideoMedia3Converter}).
+     */
+    public record VideoConversion(@NonNull Uri output, int usedFormatIndex) {
     }
 
     /**
@@ -1176,13 +1135,12 @@ public final class FormatConverter {
      *     queued does not start at all
      */
     @NonNull
-    public static Uri convertVideoToMovies(
+    public static VideoConversion convertVideoToMovies(
             @NonNull Context context,
             @NonNull Uri sourceUri,
             @NonNull String baseDisplayName,
             int formatIndex,
             @Nullable VideoMedia3Converter.TranscodeProgressListener progressListener,
-            @Nullable int[] outActualFormatIndex,
             long transcodeOwnerId,
             @Nullable BooleanSupplier cancelled)
             throws IOException {
@@ -1207,12 +1165,9 @@ public final class FormatConverter {
                     formatIndex,
                     progressListener,
                     transcodeOwnerId);
-            if (outActualFormatIndex != null && outActualFormatIndex.length > 0) {
-                outActualFormatIndex[0] = actualFormat;
-            }
             stripper.requireConvertedVideoClean(outFile, sourceUri);
-            return VideoMedia3Converter.copyToMoviesRedact(
-                    context, outFile, baseDisplayName);
+            return new VideoConversion(
+                    VideoMedia3Converter.copyToMoviesRedact(context, outFile, baseDisplayName), actualFormat);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ProcessingCancelledException("Video conversion interrupted", e);

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -173,7 +174,7 @@ public final class HeifContainerMetadata {
                 } else if (size == 0) {
                     size = length - pos;
                 }
-                if (size < header || pos + size > length) {
+                if (size < header || size > length - pos) {
                     if (!heif) {
                         return ImageContainerMetadata.Report.unrecognized(ImageContainerMetadata.Format.OTHER);
                     }
@@ -326,7 +327,7 @@ public final class HeifContainerMetadata {
     /** {@link #sanitize(File, File)} with its intermediate files in {@code workDir}. */
     public static void sanitize(@NonNull File source, @NonNull File target, @NonNull File workDir)
             throws IOException {
-        sanitize(source, target, null, null, false, workDir);
+        sanitize(source, target, null, null, false, workDir, false);
     }
 
     /**
@@ -336,7 +337,17 @@ public final class HeifContainerMetadata {
      */
     public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
                                 @NonNull File workDir) throws IOException {
-        sanitize(source, target, null, motion, false, workDir);
+        sanitize(source, target, motion, workDir, false);
+    }
+
+    /**
+     * {@link #sanitize(File, File, MotionPhoto.Clip, File)}, and with {@code neutralIcc} (Strict
+     * Clean and shares) the colour profile rebuilt with only its colour tags and a neutral name
+     * ({@link IccProfiles#neutralize}), as for a JPEG, PNG or WebP.
+     */
+    public static void sanitize(@NonNull File source, @NonNull File target, @Nullable MotionPhoto.Clip motion,
+                                @NonNull File workDir, boolean neutralIcc) throws IOException {
+        sanitize(source, target, null, motion, false, workDir, neutralIcc);
     }
 
     /**
@@ -359,7 +370,7 @@ public final class HeifContainerMetadata {
     public static void addExif(@NonNull File file, @NonNull byte[] tiff, @NonNull File workDir) throws IOException {
         File rebuilt = File.createTempFile("heif_exif_", ".heic", workDir);
         try {
-            sanitize(file, rebuilt, tiff, null, true, workDir);
+            sanitize(file, rebuilt, tiff, null, true, workDir, false);
             Files.move(rebuilt.toPath(), file.toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -374,7 +385,8 @@ public final class HeifContainerMetadata {
      *     Photo XMP and video it wrote
      */
     private static void sanitize(@NonNull File source, @NonNull File target, @Nullable byte[] exifTiff,
-            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion, @NonNull File workDir) throws IOException {
+            @Nullable MotionPhoto.Clip motion, boolean keepOwnMotion, @NonNull File workDir,
+            boolean neutralIcc) throws IOException {
         if (source.getCanonicalPath().equals(target.getCanonicalPath())) {
             throw new IOException("Source and target must differ");
         }
@@ -400,7 +412,7 @@ public final class HeifContainerMetadata {
                 } else if (size == 0) {
                     size = length - pos;
                 }
-                if (size < header || pos + size > length) {
+                if (size < header || size > length - pos) {
                     if (ftyp != null && (meta != null || moov != null)) {
                         // Data after the last box, such as a vendor trailer: never copied, so it
                         // need not stop a lossless clean.
@@ -442,6 +454,7 @@ public final class HeifContainerMetadata {
             IOException noStill = null;
             if (meta != null) {
                 rebuild = new Rebuild(in.getChannel(), meta);
+                rebuild.neutralIcc = neutralIcc;
                 try {
                     rebuild.parse();
                 } catch (IOException e) {
@@ -485,7 +498,7 @@ public final class HeifContainerMetadata {
                     tracks = HeifTracks.parse(in, moov);
                 } catch (IOException | RuntimeException e) {
                     // Only the still picture is kept; the frames are dropped, never copied as they are.
-                    SentryManager.log(
+                    SentryManager.logEvent("image", 
                             "The image sequence's tracks could not be followed, so only the still picture is kept: "
                                     + e.getClass().getSimpleName() + ".");
                     tracks = null;
@@ -663,6 +676,8 @@ public final class HeifContainerMetadata {
         private final Map<Long, List<Integer>> itemProperties = new LinkedHashMap<>();
         private long primaryId = -1;
         private final ByteArrayOutputStream newIdat = new ByteArrayOutputStream();
+        /** Strict Clean or a share: the colour profile keeps only its colour tags ({@link IccProfiles}). */
+        boolean neutralIcc;
 
         Rebuild(@NonNull FileChannel in, @NonNull byte[] meta) {
             this.in = in;
@@ -1046,6 +1061,11 @@ public final class HeifContainerMetadata {
                     if (sawExif) {
                         findings.add(new ImageContainerMetadata.Finding("HEIF_EXTRA_EXIF", null,
                                 itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                    } else {
+                        ImageContainerMetadata.Finding hidden = hiddenExif(item);
+                        if (hidden != null) {
+                            findings.add(hidden);
+                        }
                     }
                     sawExif = true;
                     continue;
@@ -1104,6 +1124,47 @@ public final class HeifContainerMetadata {
 
         private static String nonNull(@Nullable String s) {
             return s != null ? s : "";
+        }
+
+        /**
+         * What the EXIF item holds that ExifInterface never reads: tags it has no name for (such
+         * as Windows' XPAuthor) or bytes no tag points to, as {@link ExifBlock} finds them for a
+         * JPEG, PNG or WebP. An item that can't be followed is reported too, since nothing in it
+         * can be vouched for. Null when ExifInterface sees everything the item holds.
+         */
+        @Nullable
+        private ImageContainerMetadata.Finding hiddenExif(@NonNull Item item) {
+            long length = itemLength(item);
+            try {
+                if (length < 4 || length > MAX_DESCRIBED) {
+                    throw new IOException("EXIF item of an unexpected size");
+                }
+                requireInside(item);
+                byte[] data = readItem(item);
+                // The item starts with where the TIFF header is, counted after these four bytes.
+                long headerAt = 4 + (((data[0] & 0xFFL) << 24) | ((data[1] & 0xFFL) << 16)
+                        | ((data[2] & 0xFFL) << 8) | (data[3] & 0xFFL));
+                if (headerAt > data.length) {
+                    throw new IOException("EXIF item header outside the item");
+                }
+                byte[] tiff = Arrays.copyOfRange(data, (int) headerAt, data.length);
+                List<String> unnamed = new ArrayList<>();
+                for (ExifBlock.Entry entry : ExifBlock.read(tiff)) {
+                    if (!entry.knownToExifInterface()) {
+                        String xp = entry.xpText();
+                        unnamed.add(xp != null ? xp : String.format(Locale.ROOT, "0x%04X", entry.tag));
+                    }
+                }
+                if (unnamed.isEmpty() && ExifBlock.coversWholeBlock(tiff)) {
+                    return null;
+                }
+                return new ImageContainerMetadata.Finding("HEIF_EXIF_HIDDEN",
+                        unnamed.isEmpty() ? null : String.join(", ", unnamed), length,
+                        ImageContainerMetadata.Kind.OTHER);
+            } catch (IOException | RuntimeException e) {
+                return new ImageContainerMetadata.Finding("HEIF_EXIF_HIDDEN", null, length,
+                        ImageContainerMetadata.Kind.OTHER);
+            }
         }
 
         private static long itemLength(@NonNull Item item) {
@@ -1542,7 +1603,22 @@ public final class HeifContainerMetadata {
                     int p = headerSize(copy, 0);
                     String colourType = fourCc(copy, p);
                     if ("prof".equals(colourType) || "rICC".equals(colourType)) {
-                        ImageContainerMetadata.clearIccHeader(copy, p + 4);
+                        byte[] profile = Arrays.copyOfRange(copy, p + 4, copy.length);
+                        ImageContainerMetadata.clearIccHeader(profile, 0);
+                        if (neutralIcc) {
+                            profile = IccProfiles.neutralize(profile);
+                            if (profile == null) {
+                                // A profile that can't be followed is left out, as for a JPEG;
+                                // an empty box keeps the property indexes in place.
+                                writeU32(ipco, 8);
+                                ipco.write(ascii("free"));
+                                continue;
+                            }
+                        }
+                        ByteArrayOutputStream colr = new ByteArrayOutputStream();
+                        colr.write(ascii(colourType));
+                        colr.write(profile);
+                        copy = box("colr", colr.toByteArray());
                     }
                 } else if ("hvcC".equals(type)) {
                     copy = filterHvcC(copy);
@@ -1670,40 +1746,35 @@ public final class HeifContainerMetadata {
         return out.toByteArray();
     }
 
+    /**
+     * An allowlist, like the rest of the rebuild: the slices of a picture (0-9 and the random
+     * access ones, 16-21), the parameter sets, access unit delimiter and end markers (32-37), and
+     * SEI (39, 40) holding only how to show the picture. Filler (38), reserved and unspecified
+     * types (41-63, which encoders use for data of their own) are left out.
+     */
     private static boolean keepHevcNal(@NonNull byte[] data, int start, int length) {
         int type = (data[start] >> 1) & 0x3F;
-        if (type != 39 && type != 40) {
+        if (type <= 9 || (type >= 16 && type <= 21) || (type >= 32 && type <= 37)) {
             return true;
+        }
+        if (type != 39 && type != 40) {
+            return false;
         }
         // Read the SEI messages with the emulation prevention bytes removed.
         byte[] rbsp = unescape(data, start + 2, length - 2);
-        int pos = 0;
-        while (pos < rbsp.length) {
-            if (pos == rbsp.length - 1 && (rbsp[pos] & 0xFF) == 0x80) {
+        int[] at = {0};
+        while (at[0] < rbsp.length) {
+            if (at[0] == rbsp.length - 1 && (rbsp[at[0]] & 0xFF) == 0x80) {
                 return true; // rbsp trailing bits
             }
-            int payloadType = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                payloadType += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
+            // Bounded, so a long run of 0xFF can't wrap the size negative and step backwards.
+            int payloadType = VideoStreamMetadata.seiNumber(rbsp, at, VideoStreamMetadata.MAX_SEI_PAYLOAD_TYPE);
+            int payloadSize = payloadType < 0 ? -1 : VideoStreamMetadata.seiNumber(rbsp, at, rbsp.length);
+            if (payloadSize < 0 || !SEI_KEEP.contains(payloadType)
+                    || payloadSize > rbsp.length - at[0]) {
                 return false;
             }
-            payloadType += rbsp[pos++] & 0xFF;
-            int payloadSize = 0;
-            while (pos < rbsp.length && (rbsp[pos] & 0xFF) == 0xFF) {
-                payloadSize += 255;
-                pos++;
-            }
-            if (pos >= rbsp.length) {
-                return false;
-            }
-            payloadSize += rbsp[pos++] & 0xFF;
-            if (!SEI_KEEP.contains(payloadType) || pos + payloadSize > rbsp.length) {
-                return false;
-            }
-            pos += payloadSize;
+            at[0] += payloadSize;
         }
         return true;
     }
@@ -1791,10 +1862,15 @@ public final class HeifContainerMetadata {
                 throw new IOException("Damaged OBU");
             }
             int end = pos + (int) size;
-            boolean keep = true;
+            // An allowlist: sequence header (1), temporal delimiter (2), frame header (3), tile
+            // group (4), frame (6), redundant frame header (7) and tile list (8), and metadata (5)
+            // only of the HDR and scalability types. Padding (15) and reserved types go.
+            boolean keep = (type >= 1 && type <= 4) || (type >= 6 && type <= 8);
             if (type == 5) {
                 long metadataType = size > 0 ? leb128(data, pos)[0] : -1;
-                keep = AV1_METADATA_KEEP.contains((int) metadataType);
+                // Compared in full: cast to int first, 2^32 + 1 read as 1 and was kept.
+                keep = metadataType >= 0 && metadataType <= Integer.MAX_VALUE
+                        && AV1_METADATA_KEEP.contains((int) metadataType);
             }
             if (keep) {
                 out.write(data, start, end - start);
@@ -1872,7 +1948,7 @@ public final class HeifContainerMetadata {
         } else if (size == 0) {
             size = data.length - pos;
         }
-        if (size < 8 || pos + size > data.length) {
+        if (size < 8 || size > data.length - pos) {
             throw new IOException("Damaged box");
         }
         return (int) size;

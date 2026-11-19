@@ -21,10 +21,14 @@ ALLOWLIST = os.path.join(ROOT, "app", "release-manifest.txt")
 # The release variant's merged manifest, copied there by the exportReleaseManifest task in app/build.gradle.
 MANIFEST = os.path.join(ROOT, "app", "build", "outputs", "release-manifest", "AndroidManifest.xml")
 COMPONENTS = ("activity", "activity-alias", "service", "receiver", "provider")
-APP_FLAGS = ("allowBackup", "usesCleartextTraffic", "debuggable")
+APP_FLAGS = ("allowBackup", "usesCleartextTraffic", "debuggable",
+             # What Android backs up, which trust and cleartext rules apply, and flags that
+             # change how storage and installs behave.
+             "dataExtractionRules", "fullBackupContent", "networkSecurityConfig",
+             "requestLegacyExternalStorage", "hasFragileUserData", "testOnly")
 HEADER = """\
 # What the release bundle's merged manifest grants, checked by .github/scripts/check_release_manifest.py
-# after every bundleRelease in CI. A library that adds a permission or an exported component fails
+# after every release build in CI. A library that adds a permission or an exported component fails
 # the build until the line is added here on purpose. Rewrite with --update after an intended change.
 """
 
@@ -43,6 +47,10 @@ def entries(manifest_xml):
         raise ValueError("the manifest has no <application>")
     for flag in APP_FLAGS:
         out.add(f"application {flag}={app.get(ANDROID + flag, 'unset')}")
+    # A provider that can grant access to its files is a way to hand files out, exported or not.
+    for node in app.iter("provider"):
+        if node.get(ANDROID + "grantUriPermissions") == "true":
+            out.add(f"grants-uri provider {node.get(ANDROID + 'name')}")
     for tag in COMPONENTS:
         for node in app.iter(tag):
             exported = node.get(ANDROID + "exported")
