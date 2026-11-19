@@ -50,6 +50,9 @@ public final class OpenResult {
         try {
             type = context.getContentResolver().getType(uri);
         } catch (RuntimeException e) {
+            // The viewer is asked to work out the type itself.
+            SentryManager.logEvent("ui", "A saved result's type could not be read: "
+                    + e.getClass().getSimpleName() + ".");
             type = null;
         }
         Intent view = new Intent(Intent.ACTION_VIEW)

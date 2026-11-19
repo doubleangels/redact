@@ -976,6 +976,10 @@ public class ShareHandlerActivity extends AppCompatActivity {
             try {
                 type = getContentResolver().getType(uri);
             } catch (RuntimeException e) {
+                // The sender's provider failed to answer; the item is still tried, and the copy
+                // and clean decide what it is.
+                SentryManager.logEvent("share", "An inbound item's type could not be read: "
+                        + e.getClass().getSimpleName() + ".");
                 type = null;
             }
             if (isUnsupportedMediaType(type)) {
