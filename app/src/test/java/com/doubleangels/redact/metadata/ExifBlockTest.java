@@ -60,6 +60,101 @@ public class ExifBlockTest {
         assertFalse(new ExifBlock.Entry(ExifBlock.IFD_EXIF, 0x8769, 4, 1, 4, none).knownToExifInterface());
     }
 
+    // ---- finding the block in each format -------------------------------------------------------
+    // The already-clean check and Scan rely on find() for tags ExifInterface cannot name, so a
+    // block it misses is a photo called clean with an author's name still in it.
+
+    private static final byte[] XP_TIFF =
+            ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"));
+
+    /** A PNG of the signature, an IHDR, any {@code middle} chunks and IEND. */
+    private static byte[] png(String... middleTypes) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'}, 0, 8);
+        ExifFixtures.writePngChunk(out, "IHDR", new byte[13]);
+        for (String type : middleTypes) {
+            ExifFixtures.writePngChunk(out, type, "some text".getBytes());
+        }
+        ExifFixtures.writePngChunk(out, "IEND", new byte[0]);
+        return out.toByteArray();
+    }
+
+    private static String authorIn(byte[] file) throws IOException {
+        byte[] block = ExifBlock.find(new ByteArrayInputStream(file));
+        assertTrue("no EXIF block found", block != null);
+        return ExifBlock.read(block).get(0).xpText();
+    }
+
+    @Test
+    public void find_readsAPngExifChunk_withOrWithoutTheExifHeader() throws IOException {
+        assertEquals("Jane Doe", authorIn(ExifFixtures.pngWithExif(png(), XP_TIFF, false)));
+        assertEquals("Jane Doe", authorIn(ExifFixtures.pngWithExif(png(), XP_TIFF, true)));
+    }
+
+    @Test
+    public void find_skipsOtherPngChunks_andStopsAtIend() throws IOException {
+        // Text chunks come before the EXIF one here; IEND ends a file with none.
+        byte[] textFirst = png("tEXt", "iTXt");
+        int afterText = textFirst.length - 12; // just before IEND
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(textFirst, 0, afterText);
+        ExifFixtures.writePngChunk(out, "eXIf", XP_TIFF);
+        out.write(textFirst, afterText, 12);
+        assertEquals("Jane Doe", authorIn(out.toByteArray()));
+        assertNull(ExifBlock.find(new ByteArrayInputStream(png("tEXt"))));
+    }
+
+    @Test
+    public void find_readsAWebpExifChunk_afterAnOddSizedChunk() throws IOException {
+        // VP8X is 10 bytes; ICCP here is 5, so the reader must skip its padding byte.
+        byte[] file = ExifFixtures.webp("VP8X", new byte[10], "ICCP", new byte[5], "EXIF", XP_TIFF);
+        assertEquals("Jane Doe", authorIn(file));
+        byte[] withHeader = ExifFixtures.webp("VP8X", new byte[10],
+                "EXIF", ExifFixtures.concat(new byte[] {'E', 'x', 'i', 'f', 0, 0}, XP_TIFF));
+        assertEquals("Jane Doe", authorIn(withHeader));
+        assertNull(ExifBlock.find(new ByteArrayInputStream(ExifFixtures.webp("VP8 ", new byte[7]))));
+    }
+
+    @Test
+    public void find_ignoresARiffFileThatIsNotWebp() throws IOException {
+        byte[] wave = ExifFixtures.webp("EXIF", XP_TIFF);
+        wave[8] = 'W';
+        wave[9] = 'A';
+        wave[10] = 'V';
+        wave[11] = 'E';
+        assertNull(ExifBlock.find(new ByteArrayInputStream(wave)));
+    }
+
+    @Test
+    public void find_refusesAnExifChunkTooLargeToHold() {
+        byte[] file = ExifFixtures.webp("EXIF", new byte[8]);
+        // Claim 64 MB, past the 4 MB limit, rather than allocate whatever the file says.
+        ByteBuffer.wrap(file).order(ByteOrder.LITTLE_ENDIAN).putInt(16, 64 * 1024 * 1024);
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(file)));
+    }
+
+    @Test
+    public void find_inAJpeg_skipsAnXmpApp1AndStandaloneMarkers_toReachTheExifOne() throws IOException {
+        byte[] xmp = "http://ns.adobe.com/xap/1.0/\0<x:xmpmeta/>".getBytes();
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xD8}, 0, 2);
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xD0}, 0, 3); // fill byte, then RST0
+        out.write(new byte[] {(byte) 0xFF, (byte) 0xE1, 0, (byte) (xmp.length + 2)}, 0, 4);
+        out.write(xmp, 0, xmp.length);
+        byte[] rest = ExifFixtures.withExif(PLAIN_JPEG, XP_TIFF);
+        out.write(rest, 2, rest.length - 2);
+        assertEquals("Jane Doe", authorIn(out.toByteArray()));
+    }
+
+    @Test
+    public void find_inADamagedJpeg_throwsRatherThanReportNoBlock() {
+        // A caller treats an exception as "cannot vouch for this file"; null would mean "clean".
+        byte[] notAMarker = {(byte) 0xFF, (byte) 0xD8, 0x12, 0x34};
+        byte[] tooShort = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 1};
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(notAMarker)));
+        assertThrows(IOException.class, () -> ExifBlock.find(new ByteArrayInputStream(tooShort)));
+    }
+
     @Test
     public void filesWithoutABlock_orInAnotherFormat_giveNull() throws IOException {
         assertNull(ExifBlock.find(new ByteArrayInputStream(PLAIN_JPEG)));

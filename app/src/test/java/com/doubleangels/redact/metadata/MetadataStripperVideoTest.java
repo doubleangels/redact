@@ -426,6 +426,47 @@ public class MetadataStripperVideoTest {
                 f, snapshot(null, null));
     }
 
+    /** Adds tracks the extractor reports for {@code file} opened by path, as the verifier opens it. */
+    private static void tracksByPath(File file, MediaFormat... formats) {
+        for (MediaFormat format : formats) {
+            ShadowMediaExtractor.addTrack(DataSource.toDataSource(file.getAbsolutePath()), format, new byte[] {1, 2, 3, 4});
+        }
+    }
+
+    @Test
+    public void hasAudioTrack_findsASoundTrackAmongTheVideoOnes() throws Exception {
+        File withSound = writeVideo(TestVideos.cleanMp4());
+        tracksByPath(withSound, videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC), audioFormat(MediaFormat.MIMETYPE_AUDIO_AAC));
+        File silent = writeVideo(TestVideos.cleanMp4());
+        tracksByPath(silent, videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC));
+
+        assertTrue(CleanVerifier.hasAudioTrack(withSound));
+        assertFalse(CleanVerifier.hasAudioTrack(silent));
+    }
+
+    @Test
+    public void withRemoveAudioOn_aCopyThatKeptItsSound_isRefused() throws Exception {
+        // Voices and background noise can say who was there; a copy with sound left must not pass.
+        File withSound = writeVideo(TestVideos.cleanMp4());
+        tracksByPath(withSound, videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC), audioFormat(MediaFormat.MIMETYPE_AUDIO_AAC));
+        File silent = writeVideo(TestVideos.cleanMp4());
+        tracksByPath(silent, videoFormat(MediaFormat.MIMETYPE_VIDEO_AVC));
+        AppPreferences.setRemoveAudio(app, true);
+        try {
+            try {
+                requireClean(withSound);
+                fail("a copy with a sound track passed with Remove Audio on");
+            } catch (IOException expected) {
+                assertEquals("Sound left in a video that should have none", expected.getMessage());
+            }
+            requireClean(silent);
+        } finally {
+            AppPreferences.setRemoveAudio(app, false);
+        }
+        // With Remove Audio off, the same sound track is expected and passes.
+        requireClean(withSound);
+    }
+
     @Test
     public void verification_neverPassesAFileWithAMetadataTrack() throws Exception {
         // A metadata track's samples cannot be blanked, so the clean must re-encode instead.

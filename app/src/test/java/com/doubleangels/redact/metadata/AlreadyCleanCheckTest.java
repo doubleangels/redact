@@ -383,6 +383,51 @@ public class AlreadyCleanCheckTest {
         assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(jpegWithXpAuthor(), "image/jpeg")));
     }
 
+    private byte[] compressed(Bitmap.CompressFormat format) {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        Bitmap.createBitmap(16, 12, Bitmap.Config.ARGB_8888).compress(format, 90, out);
+        return out.toByteArray();
+    }
+
+    private File write(String suffix, byte[] content) throws IOException {
+        File f = File.createTempFile("check_xp_", suffix, app.getCacheDir());
+        f.deleteOnExit();
+        java.nio.file.Files.write(f.toPath(), content);
+        return f;
+    }
+
+    private static final byte[] XP_AUTHOR_TIFF =
+            ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"));
+
+    /** PNGs and WebPs carry EXIF too, so the XP check must find it there, not only in JPEGs. */
+    @Test
+    public void pngWithOnlyAnXpAuthor_needsCleaning() throws IOException {
+        byte[] png = compressed(Bitmap.CompressFormat.PNG);
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(write(".png", png), "image/png")));
+        File tagged = write(".png", ExifFixtures.pngWithExif(png, XP_AUTHOR_TIFF, false));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(tagged, "image/png")));
+    }
+
+    /** A 1x1 lossless WebP picture (Pillow's), as one VP8L chunk's data. Robolectric cannot encode WebP. */
+    private static final byte[] VP8L_1X1 = {
+            0x2f, 0x00, 0x00, 0x00, 0x00, 0x07, 0x50, (byte) 0x8a, 0x2a, (byte) 0xd4, (byte) 0xa3,
+            (byte) 0xff, (byte) 0x81, (byte) 0x88, (byte) 0xe8, 0x7f, 0x00};
+
+    @Test
+    public void webpWithOnlyAnXpAuthor_needsCleaning() throws IOException {
+        // An extended WebP: VP8X (EXIF flag, 1x1 canvas), the picture, then the EXIF chunk.
+        byte[] tagged = ExifFixtures.webp(
+                "VP8X", new byte[] {0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                "VP8L", VP8L_1X1,
+                "EXIF", XP_AUTHOR_TIFF);
+        byte[] plain = ExifFixtures.webp(
+                "VP8X", new byte[10],
+                "VP8L", VP8L_1X1);
+
+        assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, item(write(".webp", plain), "image/webp")));
+        assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(write(".webp", tagged), "image/webp")));
+    }
+
     @Test
     public void imageWithAnExifBlockThatCannotBeFollowed_isUnknown() throws IOException {
         byte[] plain = java.nio.file.Files.readAllBytes(jpeg().toPath());
