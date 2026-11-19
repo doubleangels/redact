@@ -417,6 +417,17 @@ final class CleanVerifier {
                 }
             }
 
+            // Tags ExifInterface has no name for (Windows' XPAuthor and XPComment, a vendor's own)
+            // never show up in the sweep above, so the block is read by tag number too, as the
+            // already-clean check does. A clean writes only named tags, so any other one means the
+            // source's EXIF came through. (Bytes no entry points to are not refused here: when it
+            // writes kept tags, ExifInterface leaves an unreferenced copy of IFD0 in the block.)
+            if (!exifBlockHoldsOnlyNamedTags(imageFile)) {
+                SentryManager.logEvent("verify", "The app found an EXIF tag ExifInterface cannot name.");
+                countVerificationFailure("image", "exif_tag");
+                return false;
+            }
+
             // What is kept may be no finer than the settings keep: an approximate location on
             // its grid, a date without its time at midnight.
             if (!KeptPrecision.matchesSettings(context, exif, forSharing)) {
@@ -469,6 +480,26 @@ final class CleanVerifier {
             countVerificationFailure("image", "unreadable");
             return false;
         }
+    }
+
+    /**
+     * Whether a JPEG's, PNG's or WebP's EXIF block, if it has one, holds only tags ExifInterface
+     * names. A block that cannot be followed throws, which fails the check.
+     */
+    private static boolean exifBlockHoldsOnlyNamedTags(@NonNull File file) throws IOException {
+        byte[] block;
+        try (InputStream in = new FileInputStream(file)) {
+            block = ExifBlock.find(in);
+        }
+        if (block == null) {
+            return true;
+        }
+        for (ExifBlock.Entry entry : ExifBlock.read(block)) {
+            if (!entry.knownToExifInterface()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
