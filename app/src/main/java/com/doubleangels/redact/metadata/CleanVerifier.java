@@ -420,10 +420,10 @@ final class CleanVerifier {
             // Tags ExifInterface has no name for (Windows' XPAuthor and XPComment, a vendor's own)
             // never show up in the sweep above, so the block is read by tag number too, as the
             // already-clean check does. A clean writes only named tags, so any other one means the
-            // source's EXIF came through. (Bytes no entry points to are not refused here: when it
-            // writes kept tags, ExifInterface leaves an unreferenced copy of IFD0 in the block.)
-            if (!exifBlockHoldsOnlyNamedTags(imageFile)) {
-                SentryManager.logEvent("verify", "The app found an EXIF tag ExifInterface cannot name.");
+            // source's EXIF came through, and so does data in the block no entry points to (the
+            // unreferenced copy of IFD0 ExifInterface leaves when it writes kept tags is allowed).
+            if (!exifBlockIsAccountedFor(imageFile)) {
+                SentryManager.logEvent("verify", "The app found EXIF data the walk cannot account for.");
                 countVerificationFailure("image", "exif_tag");
                 return false;
             }
@@ -484,9 +484,10 @@ final class CleanVerifier {
 
     /**
      * Whether a JPEG's, PNG's or WebP's EXIF block, if it has one, holds only tags ExifInterface
-     * names. A block that cannot be followed throws, which fails the check.
+     * names and nothing the walk can't account for ({@link ExifBlock#coversWholeBlock}). A block
+     * that cannot be followed throws, which fails the check.
      */
-    private static boolean exifBlockHoldsOnlyNamedTags(@NonNull File file) throws IOException {
+    private static boolean exifBlockIsAccountedFor(@NonNull File file) throws IOException {
         byte[] block;
         try (InputStream in = new FileInputStream(file)) {
             block = ExifBlock.find(in);
@@ -499,7 +500,7 @@ final class CleanVerifier {
                 return false;
             }
         }
-        return true;
+        return ExifBlock.coversWholeBlock(block);
     }
 
     /**

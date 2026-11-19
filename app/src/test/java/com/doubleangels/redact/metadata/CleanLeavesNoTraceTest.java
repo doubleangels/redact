@@ -432,6 +432,7 @@ public class CleanLeavesNoTraceTest {
         variants.put("a GPS block", ExifFixtures.withExif(clean, exifOf(e -> e.setLatLong(40.7, -74.0))));
         variants.put("a date taken", ExifFixtures.withExif(clean,
                 exifOf(e -> e.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, DATE))));
+        variants.put("EXIF data no tag points to", ExifFixtures.withExif(clean, orientationWithHiddenBytes()));
 
         assertEachIsRefused(clean, ".jpg", variants);
     }
@@ -449,6 +450,7 @@ public class CleanLeavesNoTraceTest {
         variants.put("an eXIf XP author", pngWith(clean, "eXIf",
                 ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"))));
         variants.put("data after IEND", cat(clean, ascii("ZQX trailer")));
+        variants.put("eXIf data no tag points to", pngWith(clean, "eXIf", orientationWithHiddenBytes()));
 
         assertEachIsRefused(clean, ".png", variants);
     }
@@ -468,6 +470,9 @@ public class CleanLeavesNoTraceTest {
         variants.put("an unknown chunk", ExifFixtures.webp("VP8X", new byte[10], "VP8L", VP8L_1X1,
                 "ZQXu", ascii("ZQX vendor")));
         variants.put("data after the RIFF", cat(clean, ascii("ZQX trailer")));
+        variants.put("EXIF data no tag points to", ExifFixtures.webp(
+                "VP8X", new byte[] {0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0}, "VP8L", VP8L_1X1,
+                "EXIF", orientationWithHiddenBytes()));
 
         assertEachIsRefused(clean, ".webp", variants);
     }
@@ -691,6 +696,22 @@ public class CleanLeavesNoTraceTest {
         b.putInt(0);
         b.put(text);
         return b.array();
+    }
+
+    /**
+     * An EXIF block holding only an Orientation, which every clean keeps, with 100 bytes after it
+     * that no tag points to: nothing ExifInterface reads, but room for anything.
+     */
+    private static byte[] orientationWithHiddenBytes() {
+        ByteBuffer b = ByteBuffer.allocate(8 + 2 + 12 + 4).order(ByteOrder.LITTLE_ENDIAN);
+        b.put((byte) 'I').put((byte) 'I').putShort((short) 42).putInt(8);
+        b.putShort((short) 1);
+        b.putShort((short) 0x0112).putShort((short) 3).putInt(1).putShort((short) 1).putShort((short) 0);
+        b.putInt(0);
+        byte[] hidden = new byte[100];
+        byte[] text = ascii("ZQX a name and an address nobody points to");
+        System.arraycopy(text, 0, hidden, 0, text.length);
+        return cat(b.array(), hidden);
     }
 
     private interface ExifEdit {
