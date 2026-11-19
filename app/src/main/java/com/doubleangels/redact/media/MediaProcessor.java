@@ -109,9 +109,11 @@ public class MediaProcessor {
          * Called periodically to report progress during processing.
          *
          * @param overallPercent 0–100 across the whole batch
+         * @param fileNumber     the file the batch is on, from 1
+         * @param fileCount      files in the batch
          * @param message        status line including current file and step when available
          */
-        void onProgress(int overallPercent, String message);
+        void onProgress(int overallPercent, int fileNumber, int fileCount, String message);
 
         /**
          * Called when all processing has completed.
@@ -340,7 +342,7 @@ public class MediaProcessor {
                                             index + 1, totalItems, item.displayName(context))
                                             + "\n" + context.getString(R.string.clean_item_failed,
                                                     item.displayName(context));
-                                    mainHandler.post(() -> callback.onProgress((index * 100) / totalItems, line));
+                                    mainHandler.post(() -> callback.onProgress((index * 100) / totalItems, index + 1, totalItems, line));
                                 }
                             }
                         });
@@ -383,11 +385,11 @@ public class MediaProcessor {
             }
             int overall = (index * 100 + percentOfCurrentItem) / totalItems;
             String combined = batchLine + "\n" + message;
-            progressThrottler.maybeRun(() -> mainHandler.post(() -> callback.onProgress(overall, combined)));
+            progressThrottler.maybeRun(() -> mainHandler.post(() -> callback.onProgress(overall, index + 1, totalItems, combined)));
         });
         try {
             progressThrottler.forceRun(() -> mainHandler.post(
-                    () -> callback.onProgress((index * 100) / totalItems, batchLine)));
+                    () -> callback.onProgress((index * 100) / totalItems, index + 1, totalItems, batchLine)));
             // "" when the source has no name: the output then gets a random one.
             String sourceName = item.fileName() != null ? item.fileName() : "";
             CleanResult result = item.isVideo()

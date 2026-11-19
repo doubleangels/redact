@@ -984,6 +984,11 @@
                                 <td class="badge-cell" data-label="Status"><span class="badge badge-off">Optional (Off by Default)</span></td>
                             </tr>
                             <tr>
+                                <td>POST_PROMOTED_NOTIFICATIONS</td>
+                                <td data-label="Used For">On Android 16 and newer, lets the progress notification show how far a Clean or Convert job has got (such as "2/4" or "42%") as a chip in the status bar, while Ongoing Task Progress is on. It never shows a file name. Android grants it at install, and you can turn Live Updates off for Redact in Android's notification settings.</td>
+                                <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Ongoing Task Progress)</span></td>
+                            </tr>
+                            <tr>
                                 <td>FOREGROUND_SERVICE / FOREGROUND_SERVICE_MEDIA_PROCESSING / FOREGROUND_SERVICE_DATA_SYNC</td>
                                 <td data-label="Used For">Keeps a long-running Clean or Convert batch job alive and shows its progress notification when notifications are enabled. Android 14 has no media-processing service type, so the same job runs under the data-sync type there. Despite the name, nothing is synced anywhere, the job works only on files on your phone.</td>
                                 <td class="badge-cell" data-label="Status"><span class="badge badge-cond">Conditional (Notifications)</span></td>

@@ -18,6 +18,10 @@ import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.AppProcessingScope;
 
+import androidx.core.app.NotificationCompat;
+
+import java.util.Locale;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +30,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ServiceController;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowService;
 
 @RunWith(RobolectricTestRunner.class)
@@ -268,5 +273,83 @@ public class ProcessingForegroundServiceTest {
         shadowOf(app).denyPermissions(Manifest.permission.POST_NOTIFICATIONS);
         ProcessingForegroundService.updateProgress(app, 10, "x");
         assertNull(shadowOf(app).getNextStartedService());
+    }
+
+    // ---- the status bar chip (a Live Update, Android 16+) ---------------------------------------
+
+    @Test
+    public void statusChipText_countsFilesInABatch_andShowsThePercentForOne() {
+        Locale before = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.US);
+            assertEquals("2/4", ProcessingForegroundService.statusChipText(37, 2, 4));
+            assertEquals("4/4", ProcessingForegroundService.statusChipText(100, 5, 4));
+            assertEquals("42%", ProcessingForegroundService.statusChipText(42, 1, 1));
+            assertEquals("42%", ProcessingForegroundService.statusChipText(42, 0, 0));
+            assertEquals("0%", ProcessingForegroundService.statusChipText(0, 0, 3));
+        } finally {
+            Locale.setDefault(before);
+        }
+    }
+
+    @Test
+    public void statusChipText_usesThePhonesDigits() {
+        Locale before = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG"));
+            assertEquals("٢/٤", ProcessingForegroundService.statusChipText(37, 2, 4));
+        } finally {
+            Locale.setDefault(before);
+        }
+    }
+
+    @Test
+    @Config(sdk = 36)
+    public void update_onAndroid16_isALiveUpdateWithTheFileCount() {
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, 2);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, 3);
+        runAfterStart(intent);
+
+        Notification n = postedProgressNotification();
+        assertTrue(NotificationCompat.isRequestPromotedOngoing(n));
+        assertEquals(ProcessingForegroundService.statusChipText(30, 2, 3),
+                NotificationCompat.getShortCriticalText(n));
+    }
+
+    @Test
+    @Config(sdk = 36)
+    public void update_withProgressUpdatesOff_isNotALiveUpdate() {
+        AppPreferences.setProgressNotificationsEnabled(app, false);
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        runAfterStart(intent);
+
+        Notification n = postedProgressNotification();
+        assertFalse(NotificationCompat.isRequestPromotedOngoing(n));
+        assertNull(NotificationCompat.getShortCriticalText(n));
+    }
+
+    @Test
+    @Config(sdk = 36)
+    public void start_isNotALiveUpdateUntilProgressArrives() {
+        ServiceController<ProcessingForegroundService> controller =
+                run(action(ProcessingForegroundService.ACTION_START));
+
+        Notification n = shadowOf(controller.get()).getLastForegroundNotification();
+        assertFalse(NotificationCompat.isRequestPromotedOngoing(n));
+    }
+
+    @Test
+    public void staticUpdate_carriesTheFileCount_onlyWhenKnown() {
+        ProcessingForegroundService.updateProgress(app, 10, "t", null, 2, 5);
+        Intent counted = shadowOf(app).getNextStartedService();
+        assertEquals(2, counted.getIntExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, -1));
+        assertEquals(5, counted.getIntExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, -1));
+
+        ProcessingForegroundService.updateProgress(app, 10, "t");
+        Intent plain = shadowOf(app).getNextStartedService();
+        assertFalse(plain.hasExtra(ProcessingForegroundService.EXTRA_FILE_COUNT));
     }
 }

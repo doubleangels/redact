@@ -28,6 +28,7 @@ uses-permission android.permission.FOREGROUND_SERVICE_DATA_SYNC
 uses-permission android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING
 uses-permission android.permission.INTERNET
 uses-permission android.permission.POST_NOTIFICATIONS
+uses-permission android.permission.POST_PROMOTED_NOTIFICATIONS
 uses-permission android.permission.READ_EXTERNAL_STORAGE maxSdkVersion=32
 uses-permission android.permission.READ_MEDIA_IMAGES
 uses-permission android.permission.READ_MEDIA_VIDEO

@@ -161,7 +161,7 @@ public class LocalNotificationsTest {
     public void updateConversionProgress_sendsAClampedUpdateToTheForegroundService() {
         AppPreferences.setProgressNotificationsEnabled(app, true);
 
-        LocalNotifications.updateConversionProgress(app, 250, "converting");
+        LocalNotifications.updateConversionProgress(app, 250, "converting", 0, 0);
 
         android.content.Intent started = Shadows.shadowOf(app).getNextStartedService();
         assertNotNull(started);
@@ -175,7 +175,7 @@ public class LocalNotificationsTest {
     public void updateCleanProgress_sendsANegativeAsZero() {
         AppPreferences.setProgressNotificationsEnabled(app, true);
 
-        LocalNotifications.updateCleanProgress(app, -5, "cleaning");
+        LocalNotifications.updateCleanProgress(app, -5, "cleaning", 0, 0);
 
         android.content.Intent started = Shadows.shadowOf(app).getNextStartedService();
         assertNotNull(started);
@@ -185,23 +185,40 @@ public class LocalNotificationsTest {
     }
 
     @Test
+    public void progressUpdates_passTheFileCountToTheForegroundService() {
+        AppPreferences.setProgressNotificationsEnabled(app, true);
+        LocalNotifications.cancelConvertProgress(app);
+        LocalNotifications.cancelCleanProgress(app);
+
+        LocalNotifications.updateConversionProgress(app, 40, "converting", 2, 5);
+        android.content.Intent convert = Shadows.shadowOf(app).getNextStartedService();
+        assertEquals(2, convert.getIntExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, -1));
+        assertEquals(5, convert.getIntExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, -1));
+
+        LocalNotifications.updateCleanProgress(app, 70, "cleaning", 3, 4);
+        android.content.Intent clean = Shadows.shadowOf(app).getNextStartedService();
+        assertEquals(3, clean.getIntExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, -1));
+        assertEquals(4, clean.getIntExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, -1));
+    }
+
+    @Test
     public void progressUpdates_areThrottledAndCanBeReset() {
         AppPreferences.setProgressNotificationsEnabled(app, true);
         LocalNotifications.cancelConvertProgress(app);
         LocalNotifications.cancelCleanProgress(app);
 
-        LocalNotifications.updateConversionProgress(app, 10, "a");
-        LocalNotifications.updateConversionProgress(app, 20, "b");
+        LocalNotifications.updateConversionProgress(app, 10, "a", 0, 0);
+        LocalNotifications.updateConversionProgress(app, 20, "b", 0, 0);
         assertNotNull(Shadows.shadowOf(app).getNextStartedService());
         assertNull("the second update falls inside the throttle window",
                 Shadows.shadowOf(app).getNextStartedService());
 
         LocalNotifications.cancelConvertProgress(app);
-        LocalNotifications.updateConversionProgress(app, 30, "c");
+        LocalNotifications.updateConversionProgress(app, 30, "c", 0, 0);
         assertNotNull(Shadows.shadowOf(app).getNextStartedService());
 
-        LocalNotifications.updateCleanProgress(app, 10, "a");
-        LocalNotifications.updateCleanProgress(app, 20, "b");
+        LocalNotifications.updateCleanProgress(app, 10, "a", 0, 0);
+        LocalNotifications.updateCleanProgress(app, 20, "b", 0, 0);
         assertNotNull(Shadows.shadowOf(app).getNextStartedService());
         assertNull(Shadows.shadowOf(app).getNextStartedService());
     }
@@ -210,15 +227,15 @@ public class LocalNotificationsTest {
     public void progressUpdates_respectTheirToggles() {
         AppPreferences.setProgressNotificationsEnabled(app, false);
         LocalNotifications.cancelConvertProgress(app);
-        LocalNotifications.updateConversionProgress(app, 10, "a");
-        LocalNotifications.updateCleanProgress(app, 10, "a");
+        LocalNotifications.updateConversionProgress(app, 10, "a", 0, 0);
+        LocalNotifications.updateCleanProgress(app, 10, "a", 0, 0);
         assertNull(Shadows.shadowOf(app).getNextStartedService());
 
         AppPreferences.setProgressNotificationsEnabled(app, true);
         AppPreferences.setConvertNotificationsEnabled(app, false);
         AppPreferences.setCleanNotificationsEnabled(app, false);
-        LocalNotifications.updateConversionProgress(app, 10, "a");
-        LocalNotifications.updateCleanProgress(app, 10, "a");
+        LocalNotifications.updateConversionProgress(app, 10, "a", 0, 0);
+        LocalNotifications.updateCleanProgress(app, 10, "a", 0, 0);
         assertNull(Shadows.shadowOf(app).getNextStartedService());
     }
 

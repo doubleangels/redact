@@ -521,6 +521,7 @@ Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, 
 | `READ_EXTERNAL_STORAGE` | Gallery access on Android 12 and earlier | Where applicable |
 | `ACCESS_MEDIA_LOCATION` | Lets Scan read GPS coordinates embedded in your media | Optional |
 | `POST_NOTIFICATIONS` | Progress and completion notifications | Optional, off until you enable it |
+| `POST_PROMOTED_NOTIFICATIONS` | On Android 16 and newer, shows a job's file count or percent as a chip in the status bar while Ongoing Task Progress is on | Granted at install; you can turn Live Updates off in Android's settings |
 | `FOREGROUND_SERVICE` | Keeps long clean or convert jobs running with a progress notification | Used during jobs |
 
 - **Open source.** Anyone can read the code and check these promises for themselves.
