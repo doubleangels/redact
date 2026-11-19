@@ -459,6 +459,40 @@ public class AlreadyCleanCheckTest {
         AppPreferences.setPreserveLocation(app, false);
     }
 
+    /**
+     * A photo cleaned with camera settings and the date kept is clean for those settings, though
+     * ExifInterface leaves an unreferenced copy of IFD0 in the block it writes them back into.
+     * Cleaning it again would only produce the same file.
+     */
+    @Test
+    public void theCleanCopyOfAPhoto_withCameraAndDateKept_isAlreadyClean() throws IOException {
+        File source = jpeg();
+        ExifInterface exif = new ExifInterface(source.getAbsolutePath());
+        exif.setAttribute(ExifInterface.TAG_MAKE, "Acme Imaging Corporation");
+        exif.setAttribute(ExifInterface.TAG_MODEL, "Field Camera 7");
+        exif.setAttribute(ExifInterface.TAG_F_NUMBER, "1.8");
+        exif.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, "100");
+        exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, "2019:03:04 05:06:07");
+        exif.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, "+01:00");
+        exif.setAttribute(ExifInterface.TAG_ARTIST, "Jane Doe");
+        exif.setLatLong(40.6892, -74.0445);
+        exif.saveAttributes();
+        AppPreferences.setStrictClean(app, false);
+        AppPreferences.setPreserveCameraSettings(app, true);
+        AppPreferences.setPreserveDateTaken(app, true);
+        try {
+            Uri out = new MetadataStripper(app).cleanImage(Uri.fromFile(source), "photo.jpg").uri();
+            org.junit.Assert.assertNotNull(out);
+            assertEquals(Status.ALREADY_CLEAN, AlreadyCleanCheck.assessItem(app, new MediaItem(out, false, "photo.jpg")));
+            // The source itself, with its artist and location, still needs a clean.
+            assertEquals(Status.NEEDS_CLEANING, AlreadyCleanCheck.assessItem(app, item(source, "image/jpeg")));
+        } finally {
+            AppPreferences.setStrictClean(app, true);
+            AppPreferences.setPreserveCameraSettings(app, false);
+            AppPreferences.setPreserveDateTaken(app, false);
+        }
+    }
+
     /** Scan lists the XP tag by name with its text. */
     @Test
     public void scan_showsAnXpAuthor() throws IOException {

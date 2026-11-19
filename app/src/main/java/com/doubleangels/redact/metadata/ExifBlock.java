@@ -360,18 +360,103 @@ public final class ExifBlock {
         if (thumbnailAt >= 0 && thumbnailLength > 0) {
             ranges.add(new long[] {thumbnailAt, thumbnailAt + thumbnailLength});
         }
+        // ExifInterface, writing kept tags back, leaves an unreferenced copy of IFD0 after the
+        // values. A gap that is exactly such a copy holds nothing the file doesn't already show,
+        // so it is accounted for; any other unreferenced data still leaves the block uncovered.
+        List<Entry> ifd0 = new ArrayList<>();
+        for (Entry e : walk.entries) {
+            if (e.ifd == IFD_0) {
+                ifd0.add(e);
+            }
+        }
+        for (int copies = 0; copies < MAX_IFD0_COPIES && uncovered(ranges, tiff.length) > UNREFERENCED_SLACK; copies++) {
+            long gap = firstGap(ranges, tiff.length);
+            if (gap < 0 || !acceptIfd0Copy(tiff, gap, little, ifd0, ranges)) {
+                break;
+            }
+        }
+        return uncovered(ranges, tiff.length) <= UNREFERENCED_SLACK;
+    }
+
+    /** How many unreferenced copies of IFD0 one block may hold. */
+    private static final int MAX_IFD0_COPIES = 2;
+
+    /** Bytes of the block no range in {@code ranges} covers. */
+    private static long uncovered(@NonNull List<long[]> ranges, long length) {
         ranges.sort((x, y) -> Long.compare(x[0], y[0]));
         long covered = 0;
         long end = 0;
         for (long[] r : ranges) {
             long from = Math.max(r[0], end);
-            long to = Math.min(r[1], tiff.length);
+            long to = Math.min(r[1], length);
             if (to > from) {
                 covered += to - from;
                 end = to;
             }
         }
-        return tiff.length - covered <= UNREFERENCED_SLACK;
+        return length - covered;
+    }
+
+    /** Where the first byte no range covers is, past the header; -1 when every byte is covered. */
+    private static long firstGap(@NonNull List<long[]> ranges, long length) {
+        ranges.sort((x, y) -> Long.compare(x[0], y[0]));
+        long end = 0;
+        for (long[] r : ranges) {
+            if (r[0] > end) {
+                return end;
+            }
+            end = Math.max(end, r[1]);
+        }
+        return end < length ? end : -1;
+    }
+
+    /**
+     * Whether an IFD starting at {@code gap} (or a word-aligned byte or two after it) is a copy of
+     * IFD0: chained to nothing, pointing to no other directory or thumbnail, and every entry the
+     * same tag, type, count and value as one of IFD0's. If it is, its bytes join {@code ranges}.
+     */
+    private static boolean acceptIfd0Copy(@NonNull byte[] tiff, long gap, boolean little,
+                                          @NonNull List<Entry> ifd0, @NonNull List<long[]> ranges) {
+        for (long at = gap; at <= gap + 3 && at + 2 + 12 + 4 <= tiff.length; at++) {
+            List<Entry> copy = new ArrayList<>();
+            List<long[]> used = new ArrayList<>();
+            long next;
+            try {
+                next = ifd(tiff, at, IFD_0, little, copy, new HashSet<>(), used);
+            } catch (IOException e) {
+                continue;
+            }
+            if (next != 0 || copy.isEmpty()) {
+                continue;
+            }
+            boolean allCopied = true;
+            for (Entry e : copy) {
+                boolean pointer = e.tag == TAG_EXIF_IFD || e.tag == TAG_GPS_IFD
+                        || e.tag == TAG_INTEROPERABILITY_IFD || e.tag == TAG_SUB_IFDS
+                        || e.tag == TAG_THUMBNAIL_OFFSET || e.tag == TAG_THUMBNAIL_LENGTH;
+                // A value past MAX_VALUE is only partly read, so it could differ unseen.
+                if (pointer || e.size > MAX_VALUE || !sameAsOneOf(e, ifd0)) {
+                    allCopied = false;
+                    break;
+                }
+            }
+            if (allCopied) {
+                ranges.add(new long[] {gap, at}); // the alignment bytes before it
+                ranges.addAll(used);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean sameAsOneOf(@NonNull Entry e, @NonNull List<Entry> entries) {
+        for (Entry other : entries) {
+            if (other.tag == e.tag && other.type == e.type && other.count == e.count
+                    && other.size == e.size && Arrays.equals(other.value, e.value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Reads IFD0, IFD1 and their sub-IFDs, recording the byte ranges they use in {@code ranges}. */
