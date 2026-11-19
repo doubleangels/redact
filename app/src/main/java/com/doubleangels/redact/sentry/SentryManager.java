@@ -73,7 +73,7 @@ public final class SentryManager {
      *   - A key that describes state is "<group>.<field>": job.type, file.mime_type,
      *     video.codec, permission.images, setting.strict_clean, device.low_ram. The group is one
      *     of SentryNamingTest.GROUPS; the field is lower snake_case. A boolean field is named for
-     *     what is true (images, has_audio, needed, rationale_shown); a banded value ends in
+     *     what is true (images, has_audio, request_needed, battery_saver_on); a banded value ends in
      *     _class, a count in _count. At most 32 characters, Sentry's limit for a tag key.
      *   - A key that describes what happened is one of three bare words, the same in every tag
      *     and metric: outcome (success, failed, ...), reason (why, in a fixed word) and error_type
@@ -81,9 +81,13 @@ public final class SentryManager {
      *   - No key mentions a path, URI, file name or location: the scrubber blanks such keys, so
      *     GPS is "gps".
      *   - A metric is "<area>.<event>" when it counts and "<area>.<event>.<measure>" when it is a
-     *     distribution (job.item, job.item.duration). The event is a singular noun; what came of
-     *     it goes in outcome, never in the name; a unit goes in the metric's unit, never in the
-     *     name.
+     *     distribution. The name says exactly what one count or one value is, so it reads without
+     *     the code: job.file_outcome is one file a job finished, job.batch_start one job starting,
+     *     job.file.duration how long one file took, job.batch.file_count how many files one job
+     *     was given. What came of it goes in outcome; a unit goes in the metric's unit, never in
+     *     the name.
+     *   - A transaction or span is "<area>.<event>" naming the work it times, as a plain phrase:
+     *     verify.image_metadata_check, video.fast_remux, share.inbound_copy.
      *   - A breadcrumb category is a lower-case area, optionally ".<sub>" (clean, app.lifecycle),
      *     like the SDK's own (ui.click, navigation).
      */
@@ -95,6 +99,7 @@ public final class SentryManager {
      */
     private static final Set<String> OPERATION_TAG_KEYS = new HashSet<>(Arrays.asList(
             "job.type",
+            "job.operation",
             "outcome",
             "error_type",
             "file.media_type",
@@ -114,7 +119,7 @@ public final class SentryManager {
             "verify.video_passed",
             "verify.failed_check",
             "device.thermal_status",
-            "device.power_save"));
+            "device.battery_saver_on"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
@@ -124,20 +129,20 @@ public final class SentryManager {
             "scan.section_count",
             "clean.kept_exif_count",
             "clean.removed_exif_count",
-            "image.sample_size"));
+            "image.decode_sample_size"));
 
     /** Keys that describe the app as a whole, set on the shared scope, and metric-only keys. */
     private static final Set<String> SCOPE_TAG_KEYS = new HashSet<>(Arrays.asList(
             "permission.type",
             "permission.request_code",
-            "permission.needed",
+            "permission.request_needed",
             "permission.all_granted",
             "permission.images",
             "permission.videos",
             "permission.selected_media",
             "permission.storage",
             "permission.media_gps",
-            "permission.partial_access",
+            "permission.partial_media_access",
             "permission.persisted_grant",
             "permission.rationale_shown",
             "permission.gps_rationale_shown",
@@ -147,20 +152,20 @@ public final class SentryManager {
             "permission.videos_can_ask",
             "permission.storage_can_ask",
             "permission.gps_can_ask",
-            "notification.enabled",
-            "notification.clean_enabled",
-            "notification.convert_enabled",
+            "setting.notifications",
+            "setting.clean_notifications",
+            "setting.convert_notifications",
             "intent.action",
-            "intent.type",
-            "intent.unsupported_type",
+            "intent.mime_type",
+            "intent.unsupported_mime_type",
             "intent.unsupported_action",
             "ui.theme",
             "clean.selected_count",
             "clean.processing_count",
             "clean.processed_count",
-            "clean.state",
-            "share.media_count",
-            "app.process_state",
+            "clean.screen_state",
+            "share.file_count",
+            "app.process_importance",
             "reason"));
 
     /** Every key a tag or metric attribute may use; any other is dropped. */
@@ -485,11 +490,13 @@ public final class SentryManager {
      */
     public static void beginOperation(String operationType) {
         OPERATION_DATA.get().clear();
-        setCustomKey("job.type", operationType);
+        // The step a job is in (image_to_mediastore, video_for_sharing, censor_export...). Metrics
+        // use job.type for the job itself (clean, share, convert, scan, censor).
+        setCustomKey("job.operation", operationType);
         // A hot or battery-saving phone throttles the CPU and codecs: it explains slow or failed
         // video work without saying anything about the person.
         setCustomKey("device.thermal_status", thermalStatus());
-        setCustomKey("device.power_save", isPowerSaveMode());
+        setCustomKey("device.battery_saver_on", isPowerSaveMode());
     }
 
     /**

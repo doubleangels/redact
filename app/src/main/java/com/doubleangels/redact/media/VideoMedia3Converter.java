@@ -724,6 +724,7 @@ public final class VideoMedia3Converter {
             }
         } catch (RuntimeException e) {
             // A codec list that can't be read leaves the export to Media3, as before.
+            AppMetrics.videoProbeFailure("video_encoder", e);
         }
         return null;
     }
@@ -749,6 +750,7 @@ public final class VideoMedia3Converter {
             }
         } catch (RuntimeException e) {
             // Unknown: the caller keeps the source's bitrate unclamped.
+            AppMetrics.videoProbeFailure("audio_encoder", e);
         }
         return max;
     }
@@ -913,6 +915,7 @@ public final class VideoMedia3Converter {
         } catch (Exception e) {
             // Keeping the audio track is the safe default when the source cannot be inspected.
             SentryManager.logEvent("video", "The video's tracks could not be read, so its audio is kept.");
+            AppMetrics.videoProbeFailure("audio_tracks", e);
             return true;
         } finally {
             extractor.release();
@@ -1357,6 +1360,7 @@ public final class VideoMedia3Converter {
             }
         } catch (Exception e) {
             // Whatever was read is kept; the retriever below fills in what it can.
+            AppMetrics.videoProbeFailure("tracks", e);
         } finally {
             extractor.release();
         }
@@ -1387,6 +1391,7 @@ public final class VideoMedia3Converter {
                 }
             } catch (Exception e) {
                 // Left unknown: the export then runs at the source's size and rate, as before.
+                AppMetrics.videoProbeFailure("retriever", e);
             }
         }
         return new SourceVideo(mime, width, height, frameRate, bitrate, audioBitrate);
@@ -1746,7 +1751,7 @@ public final class VideoMedia3Converter {
     @NonNull
     public static Uri copyToMoviesRedact(Context context, File file, String originalFileName)
             throws IOException {
-        return SentryManager.inSpan("output.write",
+        return SentryManager.inSpan("output.file_save",
                 () -> copyToMoviesRedactUntraced(context, file, originalFileName));
     }
 

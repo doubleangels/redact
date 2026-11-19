@@ -60,7 +60,7 @@ public final class InboundSnapshots {
                 break;
             }
             try {
-                File snapshot = SentryManager.inSpan("media.copy", () -> copy(app, uri, stillWanted));
+                File snapshot = SentryManager.inSpan("media.source_copy", () -> copy(app, uri, stillWanted));
                 if (!stillWanted.getAsBoolean() || !keep.test(snapshot)) {
                     // The share was cancelled during the copy and its cleanup has already run,
                     // so nothing else would delete this one.

@@ -792,7 +792,7 @@ public final class FormatConverter {
             @NonNull Uri sourceUri,
             @NonNull Bitmap.CompressFormat format,
             @NonNull String baseDisplayName) throws IOException {
-        return SentryManager.inSpan("convert.image",
+        return SentryManager.inSpan("convert.image_encode",
                 () -> convertImageToPicturesUntraced(context, sourceUri, format, baseDisplayName));
     }
 
@@ -897,7 +897,7 @@ public final class FormatConverter {
     @NonNull
     public static Bitmap decodeUpright(
             @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
-        return SentryManager.inSpan("image.decode",
+        return SentryManager.inSpan("image.upright_decode",
                 () -> decodeUprightUntraced(context, sourceUri, maxDimension));
     }
 

@@ -208,7 +208,7 @@ public class SentryNamingTest {
         }
         for (String job : new String[] {AppMetrics.CLEAN, AppMetrics.CONVERT, AppMetrics.SHARE}) {
             names.add(job + ".batch");
-            names.add(job + ".item");
+            names.add(job + ".file");
         }
         return names;
     }

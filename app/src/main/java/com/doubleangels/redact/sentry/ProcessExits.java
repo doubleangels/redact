@@ -12,8 +12,8 @@ import java.util.List;
 
 /**
  * Counts why Android ended the app's earlier processes (low memory, a crash, a freeze, killed for
- * using too much, the person swiping it away) as {@code app.exit}, with the memory it held as
- * {@code app.exit.memory_mb}. This is how a large video job that the system killed shows up: no
+ * using too much, the person swiping it away) as {@code app.process_exit}, with the memory it held as
+ * {@code app.process_exit.memory_used}. This is how a large video job that the system killed shows up: no
  * crash report is written for it. Only exits since crash reporting was turned on are counted,
  * each once.
  */

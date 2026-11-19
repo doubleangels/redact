@@ -81,7 +81,7 @@ public final class BatchRun {
     public static <T> Result run(@NonNull String job, @NonNull List<T> items, int alreadyFailed,
                                  @NonNull Predicate<T> isVideo, @NonNull BooleanSupplier stopped,
                                  @NonNull Step<T> step, @NonNull Hooks<T> hooks) {
-        // "clean.batch" with a "clean.item" span per file, and likewise for convert and share.
+        // "clean.batch" with a "clean.file" span per file, and likewise for convert and share.
         ITransaction transaction = SentryManager.startTransaction(job + ".batch");
         long startedAt = SystemClock.elapsedRealtime();
         int succeeded = 0;
@@ -92,7 +92,7 @@ public final class BatchRun {
             for (int index = 0; index < items.size() && !stopped.getAsBoolean(); index++) {
                 T item = items.get(index);
                 boolean video = isVideo.test(item);
-                ISpan span = transaction.startChild(job + ".item", job + ".item");
+                ISpan span = transaction.startChild(job + ".file", job + ".file");
                 // The file's steps (copy, transcode, checks, save) become spans under it.
                 ISpan previousSpan = SentryManager.bindCurrentSpan(span);
                 long itemStartedAt = SystemClock.elapsedRealtime();

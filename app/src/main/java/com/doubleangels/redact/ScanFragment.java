@@ -535,7 +535,7 @@ public class ScanFragment extends TabFragment {
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
             finishActiveScanTransaction(SpanStatus.CANCELLED);
-            final ITransaction transaction = SentryManager.startTransaction("scan.extract");
+            final ITransaction transaction = SentryManager.startTransaction("scan.metadata_read");
             activeScanTransaction = transaction;
             final long scanStartMs = SystemClock.elapsedRealtime();
             final boolean scannedVideo = isVideo;
@@ -1124,6 +1124,7 @@ public class ScanFragment extends TabFragment {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_MAPS);
             Notice.show(requireContext(), R.string.scan_maps_not_available, false);
         }
     }

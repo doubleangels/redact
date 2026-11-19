@@ -449,7 +449,7 @@ final class VideoCleaner {
      */
     @Nullable
     File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
-        return SentryManager.inSpan("video.remux",
+        return SentryManager.inSpan("video.fast_remux",
                 () -> fastStripVideoMetadataUntraced(sourceUri, keepLocation, keepDate));
     }
 

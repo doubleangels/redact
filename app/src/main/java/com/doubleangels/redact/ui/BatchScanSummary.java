@@ -115,7 +115,7 @@ public final class BatchScanSummary {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         Handler main = new Handler(Looper.getMainLooper());
         SentryManager.logEvent("scan", "A summary scan of several files is starting.");
-        Thread worker = new Thread(() -> SentryManager.runInTransaction("scan.summary", () -> {
+        Thread worker = new Thread(() -> SentryManager.runInTransaction("scan.multi_file_summary", () -> {
             Tally tally = new Tally();
             try {
                 for (MediaItem item : items) {
@@ -123,7 +123,7 @@ public final class BatchScanSummary {
                         SentryManager.setCurrentSpanStatus(SpanStatus.CANCELLED);
                         return; // closed while reading: no need to finish
                     }
-                    tally.add(item.displayName(app), SentryManager.inSpan("scan.survey",
+                    tally.add(item.displayName(app), SentryManager.inSpan("scan.file_survey",
                             () -> MetadataSurvey.survey(app, item)));
                 }
             } catch (Exception | OutOfMemoryError e) {

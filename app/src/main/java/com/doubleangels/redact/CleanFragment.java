@@ -583,7 +583,7 @@ public class CleanFragment extends TabFragment {
                 try {
                     boolean justCompleted = Haptics.justCompleted(lastObservedCleanState, state);
                     lastObservedCleanState = state;
-                    SentryManager.setCustomKey("clean.state", state.toString());
+                    SentryManager.setCustomKey("clean.screen_state", state.toString());
                     if (quickToggles != null) {
                         quickToggles.setLocked(state == MainViewModel.ProcessingState.PROCESSING);
                     }
@@ -836,7 +836,7 @@ public class CleanFragment extends TabFragment {
     /** The checks before a clean, off the main thread; they only warn, so a failure cleans anyway. */
     private static void runCleanChecks(@NonNull Context app, @NonNull List<MediaItem> items,
                                        @NonNull WeakReference<CleanFragment> screen) {
-        SentryManager.runInTransaction("clean.check", () -> runCleanChecksTraced(app, items, screen));
+        SentryManager.runInTransaction("clean.pre_clean_checks", () -> runCleanChecksTraced(app, items, screen));
     }
 
     private static void runCleanChecksTraced(@NonNull Context app, @NonNull List<MediaItem> items,
@@ -844,10 +844,10 @@ public class CleanFragment extends TabFragment {
         List<ProcessingResourceWarnings.Warning> warnings;
         List<AlreadyCleanCheck.Status> cleanStatuses;
         try {
-            warnings = SentryManager.inSpan("storage.check", () -> ProcessingResourceWarnings.assess(app, items));
+            warnings = SentryManager.inSpan("storage.free_space_check", () -> ProcessingResourceWarnings.assess(app, items));
             // Reads each file's metadata, so it also runs off the main thread.
             cleanStatuses = AppPreferences.isWarnAlreadyClean(app)
-                    ? SentryManager.inSpan("already_clean.check",
+                    ? SentryManager.inSpan("already_clean.selection_check",
                             () -> AlreadyCleanCheck.assess(app, items, ALREADY_CLEAN_BUDGET_MS))
                     : null;
         } catch (Exception | OutOfMemoryError e) {

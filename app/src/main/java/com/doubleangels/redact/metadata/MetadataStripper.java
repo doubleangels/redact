@@ -597,7 +597,7 @@ public class MetadataStripper {
 
     void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile)
             throws IOException {
-        SentryManager.runInSpan("media.copy", () -> copySourceToTempFileUntraced(sourceUri, tempFile));
+        SentryManager.runInSpan("media.source_copy", () -> copySourceToTempFileUntraced(sourceUri, tempFile));
     }
 
     /** The work of {@link #copySourceToTempFile}, outside its media.copy span. */

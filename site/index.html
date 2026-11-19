@@ -187,7 +187,7 @@
             <tr><td>Performance</td><td>App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took, and how long each step of a file took (such as copying, transcoding, checking and saving it), plus the update check and background cleanups. Every step has a fixed name from <a href="#sentry-names">Names in Sentry</a>, never anything about the file.</td><td>Every app session</td></tr>
             <tr><td>Code profiles</td><td>Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory</td><td>About 1 in 4 app sessions</td></tr>
             <tr><td>Logs</td><td>The app's own log messages, scrubbed</td><td>While the app runs</td></tr>
-            <tr><td>Counters and timings</td><td>Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as <code>IOException</code>, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held</td><td>While the app runs</td></tr>
+            <tr><td>Counters and timings</td><td>Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as <code>IOException</code>, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, buttons that found no other app to hand off to (no maps app, browser, Play Store, share target or file manager), Android refusing to keep access to a chosen output folder, video details or encoder limits that couldn't be read, how many old working files and unfinished copies the background cleanups removed, and why Android ended the app's process and how much memory it held</td><td>While the app runs</td></tr>
             <tr><td>File facts</td><td>Format (such as <code>image/heic</code>) and the format it was written in, video codec (such as <code>video/hevc</code>) and the codec chosen for the output, size class (such as <code>4k</code>), length class, frame rate class (such as <code>up_to_60</code>), whether a video has sound, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as <code>GPSLatitude</code>), never their values</td><td>With jobs and errors</td></tr>
             <tr><td>A note you write</td><td>What you type after <strong>Add Details</strong>, with paths, file names and GPS coordinates removed, up to 1,000 characters</td><td>Only if you send one</td></tr>
         </tbody>
@@ -215,19 +215,19 @@
     </div>
 
     <h3 id="sentry-names">Names in Sentry</h3>
-    <p>Every tag, counter, breadcrumb, transaction and span the app sends follows one scheme, so a search in Sentry finds what it means.</p>
+    <p>Every tag, counter, timing, breadcrumb, transaction and span the app sends follows one scheme, and each name says what it measures, so a search in Sentry finds what it means without reading the code.</p>
     <div class="table-wrap">
     <table>
         <thead>
             <tr><th>Kind</th><th>Scheme</th></tr>
         </thead>
         <tbody>
-            <tr><td>State tags</td><td><code>group.field</code>, lower case, at most 32 characters: what was true when the report was made</td></tr>
+            <tr><td>State tags</td><td><code>group.field</code>, lower case, at most 32 characters, naming what was true when the report was made (<code>device.battery_saver_on</code>, <code>share.file_count</code>)</td></tr>
             <tr><td>Result tags</td><td><code>outcome</code>, <code>reason</code> and <code>error_type</code>, the same in every tag and counter</td></tr>
-            <tr><td>Counters</td><td><code>area.event</code>, with what came of it in <code>outcome</code> and why in <code>reason</code></td></tr>
-            <tr><td>Timings and sizes</td><td><code>area.event.measure</code>, with the unit (milliseconds, megabytes) sent alongside, never in the name</td></tr>
+            <tr><td>Counters</td><td><code>area.event</code>, where the event says exactly what one count is (<code>job.file_outcome</code> is one file a job finished), with what came of it in <code>outcome</code> and why in <code>reason</code></td></tr>
+            <tr><td>Timings and sizes</td><td><code>area.event.measure</code>, where the measure says exactly what the number is (<code>job.file.duration</code>, <code>job.batch.file_count</code>), with the unit (milliseconds, megabytes) sent alongside, never in the name</td></tr>
             <tr><td>Breadcrumb categories</td><td>a lower-case area, like the SDK's own <code>ui.click</code> and <code>navigation</code></td></tr>
-            <tr><td>Transactions and spans</td><td><code>area.event</code>, a fixed name for a piece of work (a transaction) or a step inside it (a span), with its status (<code>ok</code>, <code>cancelled</code> or <code>internal_error</code>). The SDK adds its own for app start, screens and taps.</td></tr>
+            <tr><td>Transactions and spans</td><td><code>area.event</code>, naming the work it times as a plain phrase (<code>verify.image_metadata_check</code>, <code>share.inbound_copy</code>), with its status (<code>ok</code>, <code>cancelled</code> or <code>internal_error</code>). The SDK adds its own for app start, screens and taps.</td></tr>
         </tbody>
     </table>
     </div>
@@ -237,41 +237,106 @@
             <tr><th>Tags</th><th>When</th><th>Names</th></tr>
         </thead>
         <tbody>
-            <tr><td>Job</td><td>With errors from a Clean, Share, Convert, Scan or Censor job</td><td><code>job.type</code>, <code>outcome</code>, <code>error_type</code>, <code>reason</code></td></tr>
-            <tr><td>File</td><td>The file being processed, never its name or contents</td><td><code>file.media_type</code>, <code>file.mime_type</code>, <code>file.output_mime_type</code>, <code>file.has_gps</code>, <code>image.resolution_class</code>, <code>image.sample_size</code>, <code>video.codec</code>, <code>video.output_codec</code>, <code>video.resolution_class</code>, <code>video.duration_class</code>, <code>video.frame_rate_class</code>, <code>video.rotation</code>, <code>video.has_audio</code></td></tr>
+            <tr><td>Job</td><td>With errors from a Clean, Share, Convert, Scan or Censor job. <code>job.type</code> is the job (clean, share, convert, scan, censor), <code>job.operation</code> the step it was in (such as image_to_mediastore)</td><td><code>job.type</code>, <code>job.operation</code>, <code>outcome</code>, <code>error_type</code>, <code>reason</code></td></tr>
+            <tr><td>File</td><td>The file being processed, never its name or contents</td><td><code>file.media_type</code>, <code>file.mime_type</code>, <code>file.output_mime_type</code>, <code>file.has_gps</code>, <code>image.resolution_class</code>, <code>image.decode_sample_size</code>, <code>video.codec</code>, <code>video.output_codec</code>, <code>video.resolution_class</code>, <code>video.duration_class</code>, <code>video.frame_rate_class</code>, <code>video.rotation</code>, <code>video.has_audio</code></td></tr>
             <tr><td>Checks</td><td>What the clean and its checks found</td><td><code>verify.image_passed</code>, <code>verify.video_passed</code>, <code>verify.failed_check</code>, <code>scan.extraction_failed</code>, <code>scan.section_count</code>, <code>clean.kept_exif_count</code>, <code>clean.removed_exif_count</code></td></tr>
-            <tr><td>Permissions</td><td>Whether each permission is granted and whether Android will still ask; <code>permission.&lt;type&gt;</code> is one of images, videos, selected_media, media_gps, notifications, storage or other</td><td><code>permission.type</code>, <code>permission.request_code</code>, <code>permission.needed</code>, <code>permission.all_granted</code>, <code>permission.images</code>, <code>permission.videos</code>, <code>permission.selected_media</code>, <code>permission.storage</code>, <code>permission.media_gps</code>, <code>permission.partial_access</code>, <code>permission.persisted_grant</code>, <code>permission.rationale_shown</code>, <code>permission.gps_rationale_shown</code>, <code>permission.settings_needed</code>, <code>permission.gps_settings_needed</code>, <code>permission.images_can_ask</code>, <code>permission.videos_can_ask</code>, <code>permission.storage_can_ask</code>, <code>permission.gps_can_ask</code></td></tr>
-            <tr><td>App</td><td>How the app was opened and what it was doing</td><td><code>intent.action</code>, <code>intent.type</code>, <code>intent.unsupported_type</code>, <code>intent.unsupported_action</code>, <code>ui.theme</code>, <code>notification.enabled</code>, <code>notification.clean_enabled</code>, <code>notification.convert_enabled</code>, <code>clean.state</code>, <code>clean.selected_count</code>, <code>clean.processing_count</code>, <code>clean.processed_count</code>, <code>share.media_count</code>, <code>app.process_state</code>, <code>app.background_restricted</code>, <code>app.standby_bucket</code>, <code>app.installer</code></td></tr>
-            <tr><td>Settings</td><td>The settings that change how files are processed, with every error; a folder is only <code>chosen</code> or <code>default</code></td><td><code>setting.strict_clean</code>, <code>setting.keep_camera_settings</code>, <code>setting.keep_date_taken</code>, <code>setting.keep_motion_photos</code>, <code>setting.keep_gps</code>, <code>setting.remove_audio</code>, <code>setting.faster_video_cleaning</code>, <code>setting.delete_originals</code>, <code>setting.keep_original_names</code>, <code>setting.auto_clear_temp</code>, <code>setting.image_folder</code>, <code>setting.video_folder</code>, <code>setting.default_image_format</code>, <code>setting.default_video_codec</code>, <code>setting.image_quality</code></td></tr>
-            <tr><td>Phone</td><td>What the phone offers for media work, and its state</td><td><code>device.media_performance_class</code>, <code>device.low_ram</code>, <code>device.heap_mb</code>, <code>device.large_heap_mb</code>, <code>device.thermal_status</code>, <code>device.power_save</code></td></tr>
+            <tr><td>Permissions</td><td>Whether each permission is granted and whether Android will still ask; <code>permission.&lt;type&gt;</code> is one of images, videos, selected_media, media_gps, notifications, storage or other, and is true when granted</td><td><code>permission.type</code>, <code>permission.request_code</code>, <code>permission.request_needed</code>, <code>permission.all_granted</code>, <code>permission.images</code>, <code>permission.videos</code>, <code>permission.selected_media</code>, <code>permission.storage</code>, <code>permission.media_gps</code>, <code>permission.partial_media_access</code>, <code>permission.persisted_grant</code>, <code>permission.rationale_shown</code>, <code>permission.gps_rationale_shown</code>, <code>permission.settings_needed</code>, <code>permission.gps_settings_needed</code>, <code>permission.images_can_ask</code>, <code>permission.videos_can_ask</code>, <code>permission.storage_can_ask</code>, <code>permission.gps_can_ask</code></td></tr>
+            <tr><td>App</td><td>How the app was opened and what it was doing</td><td><code>intent.action</code>, <code>intent.mime_type</code>, <code>intent.unsupported_mime_type</code>, <code>intent.unsupported_action</code>, <code>ui.theme</code>, <code>clean.screen_state</code>, <code>clean.selected_count</code>, <code>clean.processing_count</code>, <code>clean.processed_count</code>, <code>share.file_count</code>, <code>app.process_importance</code>, <code>app.background_restricted</code>, <code>app.standby_bucket</code>, <code>app.installer</code></td></tr>
+            <tr><td>Settings</td><td>The settings that change how files are processed or what the app shows, with every error; a folder is only <code>chosen</code> or <code>default</code></td><td><code>setting.strict_clean</code>, <code>setting.keep_camera_settings</code>, <code>setting.keep_date_taken</code>, <code>setting.keep_motion_photos</code>, <code>setting.keep_gps</code>, <code>setting.remove_audio</code>, <code>setting.faster_video_cleaning</code>, <code>setting.delete_originals</code>, <code>setting.keep_original_names</code>, <code>setting.auto_clear_temp</code>, <code>setting.image_folder</code>, <code>setting.video_folder</code>, <code>setting.default_image_format</code>, <code>setting.default_video_codec</code>, <code>setting.image_quality</code>, <code>setting.notifications</code>, <code>setting.clean_notifications</code>, <code>setting.convert_notifications</code></td></tr>
+            <tr><td>Phone</td><td>What the phone offers for media work, and its state</td><td><code>device.media_performance_class</code>, <code>device.low_ram</code>, <code>device.heap_mb</code>, <code>device.large_heap_mb</code>, <code>device.thermal_status</code>, <code>device.battery_saver_on</code></td></tr>
         </tbody>
     </table>
     </div>
     <div class="table-wrap">
     <table>
         <thead>
-            <tr><th>Counters and timings</th><th>Names</th></tr>
+            <tr><th>Counter or timing</th><th>What it measures</th><th>Broken down by</th></tr>
         </thead>
         <tbody>
-            <tr><td>Jobs</td><td><code>job.start</code>, <code>job.batch</code>, <code>job.batch.size</code>, <code>job.batch.duration</code>, <code>job.item</code>, <code>job.item.duration</code>, <code>job.warning</code></td></tr>
-            <tr><td>Cleaning</td><td><code>clean.method</code>, <code>clean.dropped_part</code>, <code>verify.result</code>, <code>already_clean.check</code>, <code>already_clean.check.duration</code>, <code>media.unsupported_type</code></td></tr>
-            <tr><td>Converting and video</td><td><code>convert.output</code>, <code>convert.codec_fallback</code>, <code>video.downscale</code>, <code>video.retry</code>, <code>video.transcode_failure</code></td></tr>
-            <tr><td>Censor and sharing</td><td><code>censor.load</code>, <code>censor.save</code>, <code>censor.save.regions</code>, <code>share.snapshot_failure</code>, <code>output.folder_fallback</code></td></tr>
-            <tr><td>App</td><td><code>app.exit</code>, <code>app.exit.memory</code>, <code>memory.shortage</code>, <code>cache.orphan</code>, <code>secure_delete.overwrite.duration</code>, <code>secure_delete.fallback</code>, <code>service.failure</code>, <code>notification.failure</code>, <code>permission.result</code>, <code>update.check</code>, <code>update.check.duration</code>, <code>onboarding.end</code></td></tr>
+            <tr><td><code>job.batch_start</code></td><td>One Clean, Share, Convert job starting</td><td><code>job.type</code>, <code>device.thermal_status</code></td></tr>
+            <tr><td><code>job.batch_outcome</code></td><td>One job ending: every file done, some, none, or cancelled</td><td><code>job.type</code>, <code>outcome</code></td></tr>
+            <tr><td><code>job.batch.file_count</code></td><td>How many files one job was given</td><td><code>job.type</code></td></tr>
+            <tr><td><code>job.batch.duration</code></td><td>How long one whole job took</td><td><code>job.type</code></td></tr>
+            <tr><td><code>job.file_outcome</code></td><td>One file a job finished, and how it came out</td><td><code>job.type</code>, <code>file.media_type</code>, <code>outcome</code>, <code>error_type</code></td></tr>
+            <tr><td><code>job.file.duration</code></td><td>How long one successful file took</td><td><code>job.type</code>, <code>file.media_type</code></td></tr>
+            <tr><td><code>job.resource_warning</code></td><td>A large-job or low-storage warning shown before a job</td><td><code>reason</code></td></tr>
+            <tr><td><code>clean.method_used</code></td><td>Which way a file was cleaned: rebuilt, copied as it is, or re-encoded</td><td><code>file.media_type</code>, <code>outcome</code></td></tr>
+            <tr><td><code>clean.discarded_part</code></td><td>A part a clean had to leave out of a file, such as a Motion Photo's video or a depth map</td><td><code>file.media_type</code>, <code>reason</code></td></tr>
+            <tr><td><code>verify.clean_check_outcome</code></td><td>A cleaned file passing or failing the check that nothing identifying is left</td><td><code>file.media_type</code>, <code>outcome</code>, <code>reason</code></td></tr>
+            <tr><td><code>already_clean.file_status</code></td><td>What the check before a Clean found for one file: already clean, needs cleaning, unreadable or out of time</td><td><code>outcome</code>, <code>error_type</code></td></tr>
+            <tr><td><code>already_clean.selection_check.duration</code></td><td>How long that check took for a whole selection</td><td><code>job.type</code></td></tr>
+            <tr><td><code>media.unsupported_shared_type</code></td><td>A shared item in a format the app doesn't take</td><td><code>file.mime_type</code></td></tr>
+            <tr><td><code>convert.output_format</code></td><td>A file converted, by the format it was converted to</td><td><code>file.output_mime_type</code>, <code>outcome</code></td></tr>
+            <tr><td><code>convert.video_codec_fallback</code></td><td>A video conversion that had to use a different codec than asked for</td><td><code>video.output_codec</code></td></tr>
+            <tr><td><code>video.output_downscale</code></td><td>A video written smaller than its source, by the new short side</td><td><code>outcome</code></td></tr>
+            <tr><td><code>video.smaller_size_retry</code></td><td>A transcode tried again at a smaller size</td><td><code>file.media_type</code>, <code>outcome</code></td></tr>
+            <tr><td><code>video.transcode_attempt_failure</code></td><td>One transcode attempt failing</td><td><code>video.output_codec</code>, <code>reason</code></td></tr>
+            <tr><td><code>video.source_probe_failure</code></td><td>Facts about a source video or the phone's encoders that couldn't be read, so a transcode used safe defaults</td><td><code>reason</code>, <code>error_type</code></td></tr>
+            <tr><td><code>censor.photo_open</code></td><td>A photo opened in Censor: loaded, unsupported or failed</td><td><code>outcome</code></td></tr>
+            <tr><td><code>censor.copy_save.region_count</code></td><td>How many areas a saved censored copy covers</td><td>nothing</td></tr>
+            <tr><td><code>censor.downscaled_save</code></td><td>A censored copy that had to be saved smaller than the photo</td><td><code>outcome</code>, <code>reason</code></td></tr>
+            <tr><td><code>share.inbound_copy_failure</code></td><td>A shared item that couldn't be copied in</td><td><code>error_type</code></td></tr>
+            <tr><td><code>output.custom_folder_fallback</code></td><td>The chosen output folder failing, so the default folder was used</td><td><code>file.media_type</code>, <code>error_type</code></td></tr>
+            <tr><td><code>output.folder_grant_failure</code></td><td>Android refusing to keep access to a folder chosen for output</td><td><code>file.media_type</code></td></tr>
+            <tr><td><code>output.unfinished_file_removal</code></td><td>An unfinished copy an earlier run left in a chosen folder, removed or not</td><td><code>outcome</code>, <code>error_type</code></td></tr>
+            <tr><td><code>cache.leftover_file</code></td><td>Working files an earlier run left behind, found at start-up</td><td>nothing</td></tr>
+            <tr><td><code>cache.stale_file_removal</code></td><td>Working files older than a day that the automatic cleanup removed</td><td>nothing</td></tr>
+            <tr><td><code>secure_delete.overwrite.duration</code></td><td>How long overwriting one working copy before deleting it took</td><td><code>outcome</code></td></tr>
+            <tr><td><code>secure_delete.failure</code></td><td>A working copy that couldn't be overwritten, or couldn't even be deleted</td><td><code>reason</code>, <code>error_type</code></td></tr>
+            <tr><td><code>memory.decode_shortage</code></td><td>A picture that had to be decoded smaller for lack of memory, or couldn't be</td><td><code>outcome</code></td></tr>
+            <tr><td><code>app.process_exit</code></td><td>Android ending the app's process, and why</td><td><code>reason</code>, <code>app.process_importance</code></td></tr>
+            <tr><td><code>app.process_exit.memory_used</code></td><td>How much memory the app held when Android ended it</td><td><code>reason</code></td></tr>
+            <tr><td><code>service.foreground_start_failure</code></td><td>The progress service failing to start</td><td><code>outcome</code>, <code>reason</code>, <code>error_type</code></td></tr>
+            <tr><td><code>notification.post_failure</code></td><td>A notification Android refused to show</td><td><code>error_type</code></td></tr>
+            <tr><td><code>permission.request_answer</code></td><td>The answer to a permission request</td><td><code>permission.type</code>, <code>outcome</code></td></tr>
+            <tr><td><code>update.release_check</code></td><td>A Check for Updates result: newer, up to date or failed</td><td><code>outcome</code></td></tr>
+            <tr><td><code>update.release_check.duration</code></td><td>How long a Check for Updates took</td><td><code>outcome</code></td></tr>
+            <tr><td><code>onboarding.intro_exit</code></td><td>How the introduction ended: finished, or left with Back</td><td><code>outcome</code></td></tr>
+            <tr><td><code>ui.external_app_missing</code></td><td>A button that hands off to another app finding none (no maps app, browser, Play Store, share target or file manager)</td><td><code>reason</code></td></tr>
         </tbody>
     </table>
     </div>
     <div class="table-wrap">
     <table>
         <thead>
-            <tr><th>Transactions and spans</th><th>When</th><th>Names</th></tr>
+            <tr><th>Transaction or span</th><th>What it times</th></tr>
         </thead>
         <tbody>
-            <tr><td>Jobs</td><td>Clean, Convert and Share, with a span for each file</td><td><code>clean.batch</code>, <code>clean.item</code>, <code>convert.batch</code>, <code>convert.item</code>, <code>share.batch</code>, <code>share.item</code></td></tr>
-            <tr><td>Before a job</td><td>The checks before a Clean and the copy of shared items</td><td><code>clean.check</code>, <code>storage.check</code>, <code>already_clean.check</code>, <code>share.prepare</code>, <code>share.snapshot</code></td></tr>
-            <tr><td>Steps in a file</td><td>Copying the source, rebuilding or re-encoding a photo, remuxing or transcoding a video, converting, the checks that the output is clean, saving it and the secure delete of working copies</td><td><code>media.copy</code>, <code>image.decode</code>, <code>image.rebuild</code>, <code>image.reencode</code>, <code>video.remux</code>, <code>video.transcode</code>, <code>convert.image</code>, <code>verify.image</code>, <code>verify.video</code>, <code>verify.output</code>, <code>output.write</code>, <code>secure_delete.overwrite</code></td></tr>
-            <tr><td>Scan and Censor</td><td>Reading a file's metadata, the summary of several files, and opening and saving a photo in Censor</td><td><code>scan.extract</code>, <code>scan.read_image</code>, <code>scan.read_video</code>, <code>scan.location</code>, <code>scan.summary</code>, <code>scan.survey</code>, <code>censor.load</code>, <code>censor.save</code></td></tr>
-            <tr><td>App</td><td>The update check and the background cleanups of working files</td><td><code>update.check</code>, <code>cache.cleanup</code>, <code>cache.orphan_sweep</code>, <code>output.sweep</code></td></tr>
+            <tr><td><code>clean.batch</code></td><td>A whole Clean job</td></tr>
+            <tr><td><code>clean.file</code></td><td>One file in a Clean job</td></tr>
+            <tr><td><code>convert.batch</code></td><td>A whole Convert job</td></tr>
+            <tr><td><code>convert.file</code></td><td>One file in a Convert job</td></tr>
+            <tr><td><code>share.batch</code></td><td>Cleaning everything shared to Redact</td></tr>
+            <tr><td><code>share.file</code></td><td>One shared file</td></tr>
+            <tr><td><code>clean.pre_clean_checks</code></td><td>The checks between tapping Clean and the job starting</td></tr>
+            <tr><td><code>storage.free_space_check</code></td><td>Checking there is room for the job</td></tr>
+            <tr><td><code>already_clean.selection_check</code></td><td>Checking which selected files are already clean</td></tr>
+            <tr><td><code>share.inbound_check</code></td><td>Checking what was shared to Redact before copying it</td></tr>
+            <tr><td><code>share.inbound_copy</code></td><td>Copying shared items into the app's private storage</td></tr>
+            <tr><td><code>media.source_copy</code></td><td>Copying one source file into a private working copy</td></tr>
+            <tr><td><code>image.upright_decode</code></td><td>Decoding a photo with its rotation applied</td></tr>
+            <tr><td><code>image.metadata_free_rebuild</code></td><td>Rebuilding a photo from its picture data, leaving the metadata behind</td></tr>
+            <tr><td><code>image.pixel_reencode</code></td><td>Encoding a photo again from its pixels</td></tr>
+            <tr><td><code>video.fast_remux</code></td><td>Copying a video's streams into a new file without its metadata</td></tr>
+            <tr><td><code>video.transcode</code></td><td>Re-encoding a video</td></tr>
+            <tr><td><code>convert.image_encode</code></td><td>Converting one photo to another format</td></tr>
+            <tr><td><code>verify.image_metadata_check</code></td><td>Checking a cleaned photo has no identifying metadata left</td></tr>
+            <tr><td><code>verify.video_metadata_check</code></td><td>Checking a cleaned video has no identifying metadata left</td></tr>
+            <tr><td><code>verify.saved_bytes_check</code></td><td>Checking the saved file holds exactly the bytes that were checked</td></tr>
+            <tr><td><code>output.file_save</code></td><td>Writing a finished file to the output folder</td></tr>
+            <tr><td><code>secure_delete.overwrite</code></td><td>Overwriting and deleting one working copy</td></tr>
+            <tr><td><code>scan.metadata_read</code></td><td>A Scan of one file, from start to the result on screen</td></tr>
+            <tr><td><code>scan.image_metadata_read</code></td><td>Reading a photo's metadata in a Scan</td></tr>
+            <tr><td><code>scan.video_metadata_read</code></td><td>Reading a video's metadata in a Scan</td></tr>
+            <tr><td><code>scan.location_reread</code></td><td>Reading a file's location again after location access is allowed</td></tr>
+            <tr><td><code>scan.multi_file_summary</code></td><td>Scanning several files for the summary</td></tr>
+            <tr><td><code>scan.file_survey</code></td><td>Surveying one file in that summary</td></tr>
+            <tr><td><code>censor.photo_open</code></td><td>Opening a photo in Censor</td></tr>
+            <tr><td><code>censor.copy_save</code></td><td>Saving a censored copy</td></tr>
+            <tr><td><code>update.release_check</code></td><td>Check for Updates asking GitHub for the newest release</td></tr>
+            <tr><td><code>cache.stale_file_cleanup</code></td><td>The automatic cleanup of working files older than a day</td></tr>
+            <tr><td><code>cache.leftover_file_sweep</code></td><td>Deleting working files an earlier run left behind</td></tr>
+            <tr><td><code>output.unfinished_file_sweep</code></td><td>Deleting unfinished copies an earlier run left in a chosen folder</td></tr>
         </tbody>
     </table>
     </div>

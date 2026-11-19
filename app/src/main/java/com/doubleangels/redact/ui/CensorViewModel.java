@@ -268,7 +268,7 @@ public class CensorViewModel extends AndroidViewModel {
         source = uri;
         state.setValue(State.LOADING);
         SentryManager.logEvent("censor", "A photo was opened for censoring.");
-        worker.execute(() -> SentryManager.runInTransaction("censor.load", () -> {
+        worker.execute(() -> SentryManager.runInTransaction("censor.photo_open", () -> {
             try {
                 String name = OutputDestination.displayName(getApplication().getContentResolver(), uri);
                 Bitmap decoded = fitPreview(
@@ -551,7 +551,7 @@ public class CensorViewModel extends AndroidViewModel {
         state.setValue(State.SAVING);
         SentryManager.logEvent("censor", "The app is saving a censored copy.");
         long saveStartMs = SystemClock.elapsedRealtime();
-        worker.execute(() -> SentryManager.runInTransaction("censor.save", () -> {
+        worker.execute(() -> SentryManager.runInTransaction("censor.copy_save", () -> {
             SentryManager.beginOperation("censor_export");
             try {
                 CensorExporter.Result result =

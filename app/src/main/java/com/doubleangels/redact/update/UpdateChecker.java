@@ -95,7 +95,7 @@ public final class UpdateChecker {
     @NonNull
     public Result checkNow() {
         long startedAt = SystemClock.elapsedRealtime();
-        Result result = SentryManager.inTransaction("update.check", () -> {
+        Result result = SentryManager.inTransaction("update.release_check", () -> {
             Result checked = check();
             if (checked.status == Result.Status.FAILED) {
                 SentryManager.setCurrentSpanStatus(SpanStatus.UNAVAILABLE);

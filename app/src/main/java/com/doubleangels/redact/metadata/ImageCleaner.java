@@ -224,7 +224,7 @@ final class ImageCleaner {
             newUri = OutputDestination.create(context, false, newFilename, cleanFormat.mimeType);
             Uri output = newUri;
             File verified = cleanFile;
-            byte[] written = SentryManager.inSpan("output.write", () -> {
+            byte[] written = SentryManager.inSpan("output.file_save", () -> {
                 try (InputStream in = new FileInputStream(verified);
                         OutputStream os = contentResolver.openOutputStream(output)) {
                     if (os == null) {
@@ -805,7 +805,7 @@ final class ImageCleaner {
                                   @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept,
                                   boolean neutralIcc)
             throws IOException {
-        return SentryManager.inSpan("image.rebuild", () -> writePictureOnlyUntraced(
+        return SentryManager.inSpan("image.metadata_free_rebuild", () -> writePictureOnlyUntraced(
                 source, sourceUri, target, outputFormat, fromPixels, motion, kept, neutralIcc));
     }
 
@@ -940,7 +940,7 @@ final class ImageCleaner {
     private void reEncode(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
                           @NonNull FormatConverter.ImageFormatSpec outputFormat,
                           @NonNull Map<String, String> kept) throws IOException {
-        SentryManager.runInSpan("image.reencode",
+        SentryManager.runInSpan("image.pixel_reencode",
                 () -> reEncodeUntraced(source, sourceUri, target, outputFormat, kept));
     }
 
@@ -962,7 +962,7 @@ final class ImageCleaner {
         optionsJustBounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(source.getAbsolutePath(), optionsJustBounds);
         int sampleSize = FormatConverter.calculateInSampleSize(context, optionsJustBounds);
-        SentryManager.setCustomKey("image.sample_size", sampleSize);
+        SentryManager.setCustomKey("image.decode_sample_size", sampleSize);
 
         String path = source.getAbsolutePath();
         Bitmap bitmap = FormatConverter.decodeSampled(

@@ -188,11 +188,11 @@ public class MetadataDisplayer {
                 // Extract either video or image specific metadata
                 if (isVideo) {
                     SentryManager.logEvent("scan", "The app is extracting video metadata.");
-                    SentryManager.runInSpan("scan.read_video",
+                    SentryManager.runInSpan("scan.video_metadata_read",
                             () -> extractVideoMetadataToMap(context, mediaUri, allMetadata, embedded));
                 } else {
                     SentryManager.logEvent("scan", "The app is extracting image metadata.");
-                    SentryManager.runInSpan("scan.read_image",
+                    SentryManager.runInSpan("scan.image_metadata_read",
                             () -> extractImageMetadataToMap(context, mediaUri, allMetadata, embedded));
                 }
 
@@ -277,7 +277,7 @@ public class MetadataDisplayer {
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
-            SentryManager.runInTransaction("scan.location", () -> {
+            SentryManager.runInTransaction("scan.location_reread", () -> {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
