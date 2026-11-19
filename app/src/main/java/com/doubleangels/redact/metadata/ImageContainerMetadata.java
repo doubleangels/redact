@@ -79,7 +79,7 @@ public final class ImageContainerMetadata {
 
         Finding(@NonNull String key, @Nullable String text, long bytes, @NonNull Kind kind) {
             this.key = key;
-            this.text = text;
+            this.text = summarizedIfXmp(key, text);
             this.bytes = bytes;
             this.kind = kind;
         }
@@ -88,6 +88,16 @@ public final class ImageContainerMetadata {
         public String toString() {
             return key + "=" + (text != null ? text : bytes + " bytes");
         }
+    }
+
+    /**
+     * XMP text with any picture or other binary data in it described rather than spelled out in
+     * base64 ({@link EmbeddedData}); other text as it is.
+     */
+    @Nullable
+    static String summarizedIfXmp(@NonNull String key, @Nullable String text) {
+        return text != null && (key.equals("XMP") || key.equals("XMP_EXTENDED"))
+                ? EmbeddedData.summarize(text) : text;
     }
 
     /** What a scan found. */
@@ -405,7 +415,9 @@ public final class ImageContainerMetadata {
 
         private void find(@NonNull String key, @Nullable String text, long bytes, @NonNull Kind kind) {
             if (findings.size() < MAX_FINDINGS) {
-                findings.add(new Finding(key, text == null ? null : cap(text), bytes, kind));
+                // Summarized before it is cut, so a picture in XMP is described whole.
+                String shown = summarizedIfXmp(key, text);
+                findings.add(new Finding(key, shown == null ? null : cap(shown), bytes, kind));
             } else if (findings.size() == MAX_FINDINGS) {
                 // Still more to remove; one row says so rather than hundreds.
                 findings.add(new Finding("MORE_METADATA", null, bytes, Kind.OTHER));
@@ -711,7 +723,7 @@ public final class ImageContainerMetadata {
         void finishExtendedXmp() {
             for (Map.Entry<String, Integer> entry : extendedXmpAt.entrySet()) {
                 String whole = String.join("", extendedXmp.get(entry.getKey()).values());
-                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(whole),
+                findings.set(entry.getValue(), new Finding("XMP_EXTENDED", cap(EmbeddedData.summarize(whole)),
                         extendedXmpBytes.get(entry.getKey()), xmpKind(whole)));
             }
         }

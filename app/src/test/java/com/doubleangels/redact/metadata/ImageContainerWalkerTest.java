@@ -616,6 +616,42 @@ public class ImageContainerWalkerTest {
         assertEquals(ImageContainerMetadata.Kind.LOCATION, r.findings.get(0).kind);
     }
 
+    /**
+     * A portrait photo's extended XMP: the depth map's settings, and the depth map itself as a
+     * base64 JPEG split across two segments. Scan shows the settings and describes the picture.
+     */
+    @Test
+    public void extendedXmp_describesAnEmbeddedDepthMap_insteadOfItsBase64() throws Exception {
+        ByteArrayOutputStream depth = new ByteArrayOutputStream();
+        depth.write(new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xC0, 0, 17, 8, 0, 48, 0, 64, 3,
+                1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1});
+        for (int i = 0; i < 600; i++) {
+            depth.write(i * 37);
+        }
+        depth.write(new byte[] {(byte) 0xFF, (byte) 0xD9});
+        String data = java.util.Base64.getEncoder().encodeToString(depth.toByteArray());
+        String xmp = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">"
+                + "<rdf:Description xmlns:GDepth=\"http://ns.google.com/photos/1.0/depthmap/\" GDepth:Format=\"RangeInverse\""
+                + " GDepth:Mime=\"image/jpeg\" GDepth:Data=\"" + data + "\"/></rdf:RDF></x:xmpmeta>";
+        int half = xmp.indexOf("GDepth:Data=\"") + 13 + data.length() / 2; // inside the base64
+        String guid = "0123456789ABCDEF0123456789ABCDEF";
+        byte[] first = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(xmp.length()), be32(0),
+                a(xmp.substring(0, half)));
+        byte[] second = cat(a("http://ns.adobe.com/xmp/extension/\0"), a(guid), be32(xmp.length()), be32(half),
+                a(xmp.substring(half)));
+
+        ImageContainerMetadata.Report r = scan(jpeg(seg(0xE1, first), seg(0xE1, second)));
+
+        assertEquals(List.of("XMP_EXTENDED"), keys(r.findings));
+        String text = r.findings.get(0).text;
+        assertTrue(text, text.contains("GDepth:Format=\"RangeInverse\""));
+        assertTrue(text, text.contains("GDepth:Mime=\"image/jpeg\""));
+        assertFalse("no base64 left", text.contains(data.substring(0, 40)));
+        assertTrue("the picture is named with its size", text.contains("JPEG") && text.contains("64×48"));
+        assertTrue(text.length() < 600);
+        assertEquals("the size is still the segments'", first.length + second.length, r.findings.get(0).bytes);
+    }
+
     @Test
     public void thumbnails_showTheirSize() throws Exception {
         byte[] jfif = cat(a("JFIF\0"), b(1, 2, 0, 0, 1, 0, 1, 2, 3), new byte[18]);

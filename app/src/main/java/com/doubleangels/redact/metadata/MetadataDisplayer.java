@@ -425,7 +425,11 @@ public class MetadataDisplayer {
                 }
                 String text = finding.text;
                 if (text != null && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(text)) {
-                    embedded.put(finding.key, XmlLikeMetadataFormatter.formatForDisplay(text));
+                    embedded.put(finding.key, XmlLikeMetadataFormatter.formatForDisplay(context, text));
+                    continue;
+                }
+                if (text != null) {
+                    appendValue(embedded, finding.key, EmbeddedData.render(context, text));
                     continue;
                 }
             }
@@ -521,7 +525,7 @@ public class MetadataDisplayer {
                     }
 
                     if (looksLikeXmp) {
-                        trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                        trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(context, trimmedValue);
                     }
 
                     // Store GPS coordinates for later conversion
@@ -756,7 +760,7 @@ public class MetadataDisplayer {
                             }
 
                             if (XmlLikeMetadataFormatter.looksLikeRdfOrXmp(trimmedValue)) {
-                                trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(trimmedValue);
+                                trimmedValue = XmlLikeMetadataFormatter.formatForDisplay(context, trimmedValue);
                             }
 
                             // Remove METADATA_KEY_ prefix and convert to uppercase with underscores, then add to single map
@@ -923,7 +927,7 @@ public class MetadataDisplayer {
             String value = hasLocationPermission || !container.isLocationField(name)
                     ? container.values.get(name) : null;
             if (value != null && name.equals("XMP") && XmlLikeMetadataFormatter.looksLikeRdfOrXmp(value)) {
-                value = XmlLikeMetadataFormatter.formatForDisplay(value);
+                value = XmlLikeMetadataFormatter.formatForDisplay(context, value);
             }
             if (value == null) {
                 Long size = container.sizes.get(name);

@@ -1,6 +1,9 @@
 package com.doubleangels.redact.metadata;
 
+import android.content.Context;
 import android.util.Xml;
+
+import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -30,6 +33,17 @@ final class XmlLikeMetadataFormatter {
                 || t.contains("xmlns:rdf")
                 || t.contains("<rdf:")
                 || (t.startsWith("<?xml") && t.contains("rdf:"));
+    }
+
+    /**
+     * {@link #formatForDisplay(String)}, with pictures and other binary data carried in base64
+     * described by format, size in pixels and size in bytes ({@link EmbeddedData}).
+     */
+    static String formatForDisplay(@NonNull Context context, String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return raw;
+        }
+        return EmbeddedData.render(context, formatForDisplay(EmbeddedData.summarize(raw)));
     }
 
     /**
