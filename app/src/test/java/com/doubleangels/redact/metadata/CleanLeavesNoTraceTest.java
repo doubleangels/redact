@@ -478,6 +478,28 @@ public class CleanLeavesNoTraceTest {
     }
 
     @Test
+    public void verification_refusesAHeicWithHiddenExifLeft() throws Exception {
+        File tagged = TestVideos.resource(app.getFilesDir(), "image/heic_tagged.heic");
+        files.add(tagged);
+        File clean = temp(".heic", new byte[0]);
+        HeifContainerMetadata.sanitize(tagged, clean);
+        byte[] cleanBytes = Files.readAllBytes(clean.toPath());
+
+        Map<String, byte[]> variants = new LinkedHashMap<>();
+        variants.put("an EXIF item with an XP author", heicWithExif(clean,
+                ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe"))));
+        variants.put("an EXIF item with data no tag points to", heicWithExif(clean, orientationWithHiddenBytes()));
+
+        assertEachIsRefused(cleanBytes, ".heic", variants);
+    }
+
+    private byte[] heicWithExif(File clean, byte[] tiff) throws IOException {
+        File copy = temp(".heic", Files.readAllBytes(clean.toPath()));
+        HeifContainerMetadata.addExif(copy, tiff);
+        return Files.readAllBytes(copy.toPath());
+    }
+
+    @Test
     public void verification_refusesAGifWithAnyOneKindOfMetadataLeft() throws Exception {
         Map<String, byte[]> variants = new LinkedHashMap<>();
         variants.put("a comment", gifWith(0xFE, null, ascii("ZQX")));

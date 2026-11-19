@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -1060,6 +1061,11 @@ public final class HeifContainerMetadata {
                     if (sawExif) {
                         findings.add(new ImageContainerMetadata.Finding("HEIF_EXTRA_EXIF", null,
                                 itemLength(item), ImageContainerMetadata.Kind.OTHER));
+                    } else {
+                        ImageContainerMetadata.Finding hidden = hiddenExif(item);
+                        if (hidden != null) {
+                            findings.add(hidden);
+                        }
                     }
                     sawExif = true;
                     continue;
@@ -1118,6 +1124,47 @@ public final class HeifContainerMetadata {
 
         private static String nonNull(@Nullable String s) {
             return s != null ? s : "";
+        }
+
+        /**
+         * What the EXIF item holds that ExifInterface never reads: tags it has no name for (such
+         * as Windows' XPAuthor) or bytes no tag points to, as {@link ExifBlock} finds them for a
+         * JPEG, PNG or WebP. An item that can't be followed is reported too, since nothing in it
+         * can be vouched for. Null when ExifInterface sees everything the item holds.
+         */
+        @Nullable
+        private ImageContainerMetadata.Finding hiddenExif(@NonNull Item item) {
+            long length = itemLength(item);
+            try {
+                if (length < 4 || length > MAX_DESCRIBED) {
+                    throw new IOException("EXIF item of an unexpected size");
+                }
+                requireInside(item);
+                byte[] data = readItem(item);
+                // The item starts with where the TIFF header is, counted after these four bytes.
+                long headerAt = 4 + (((data[0] & 0xFFL) << 24) | ((data[1] & 0xFFL) << 16)
+                        | ((data[2] & 0xFFL) << 8) | (data[3] & 0xFFL));
+                if (headerAt > data.length) {
+                    throw new IOException("EXIF item header outside the item");
+                }
+                byte[] tiff = Arrays.copyOfRange(data, (int) headerAt, data.length);
+                List<String> unnamed = new ArrayList<>();
+                for (ExifBlock.Entry entry : ExifBlock.read(tiff)) {
+                    if (!entry.knownToExifInterface()) {
+                        String xp = entry.xpText();
+                        unnamed.add(xp != null ? xp : String.format(Locale.ROOT, "0x%04X", entry.tag));
+                    }
+                }
+                if (unnamed.isEmpty() && ExifBlock.coversWholeBlock(tiff)) {
+                    return null;
+                }
+                return new ImageContainerMetadata.Finding("HEIF_EXIF_HIDDEN",
+                        unnamed.isEmpty() ? null : String.join(", ", unnamed), length,
+                        ImageContainerMetadata.Kind.OTHER);
+            } catch (IOException | RuntimeException e) {
+                return new ImageContainerMetadata.Finding("HEIF_EXIF_HIDDEN", null, length,
+                        ImageContainerMetadata.Kind.OTHER);
+            }
         }
 
         private static long itemLength(@NonNull Item item) {

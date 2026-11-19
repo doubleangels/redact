@@ -112,6 +112,55 @@ public class HeifContainerMetadataTest {
         assertArrayEquals(before, Files.readAllBytes(again.toPath()));
     }
 
+    /** A cleaned copy of the fixture with an EXIF item holding {@code tiff}. */
+    private File heicWithExif(byte[] tiff) throws Exception {
+        File heic = new File(temp.getRoot(), "exif_" + System.nanoTime() + ".heic");
+        HeifContainerMetadata.sanitize(fixture(), heic);
+        HeifContainerMetadata.addExif(heic, tiff);
+        return heic;
+    }
+
+    private static ImageContainerMetadata.Finding hiddenExif(File heic) {
+        for (ImageContainerMetadata.Finding f : ImageContainerMetadata.scan(heic).findings) {
+            if (f.key.equals("HEIF_EXIF_HIDDEN")) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /** ExifInterface never reads Windows' author tag, so the scan reads the EXIF item itself. */
+    @Test
+    public void anExifItemWithAnXpAuthor_isFound_andTheFileIsNotClean() throws Exception {
+        File heic = heicWithExif(ExifFixtures.tiffWith(ExifBlock.TAG_XP_AUTHOR, ExifFixtures.xpText("Jane Doe")));
+
+        ImageContainerMetadata.Finding hidden = hiddenExif(heic);
+
+        org.junit.Assert.assertNotNull(hidden);
+        assertEquals("Jane Doe", hidden.text);
+        assertFalse(onlyPictures(heic));
+    }
+
+    @Test
+    public void anExifItemWithBytesNoTagPointsTo_isFound() throws Exception {
+        byte[] named = tiff("KeptMake");
+        byte[] withHidden = new byte[named.length + 120];
+        System.arraycopy(named, 0, withHidden, 0, named.length);
+        byte[] secret = "a name and address nobody points to".getBytes(StandardCharsets.US_ASCII);
+        System.arraycopy(secret, 0, withHidden, named.length, secret.length);
+
+        File heic = heicWithExif(withHidden);
+        org.junit.Assert.assertNotNull(hiddenExif(heic));
+        assertFalse(onlyPictures(heic));
+    }
+
+    @Test
+    public void anExifItemOfNamedTagsOnly_isClean() throws Exception {
+        File heic = heicWithExif(tiff("KeptMake"));
+        assertEquals(null, hiddenExif(heic));
+        assertTrue(onlyPictures(heic));
+    }
+
     @Test
     public void sanitize_isStableOnItsOwnOutput() throws Exception {
         File once = new File(temp.getRoot(), "once.heic");
