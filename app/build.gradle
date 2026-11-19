@@ -186,6 +186,10 @@ sentry {
     authToken = sentryAuthToken
     includeProguardMapping = true
     autoUploadProguardMapping = sentryAuthToken != null
+    // Redact is open source, so its own code goes to Sentry too and each stack frame shows its
+    // line. Uploaded by the build (CI, with the token), never from a phone.
+    includeSourceContext = true
+    autoUploadSourceContext = sentryAuthToken != null
     telemetry = false
     // Uploads the release bundle to Sentry Size Analysis after bundleRelease. Only deploy.yml turns
     // it on, so only releases are measured. The bundle holds the app's code and resources, never

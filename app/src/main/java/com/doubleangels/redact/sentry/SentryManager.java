@@ -776,6 +776,22 @@ public final class SentryManager {
     }
 
     /**
+     * Runs background housekeeping (a sweep of leftover files) as the transaction {@code name}. A
+     * {@code RuntimeException} is reported and ends only this sweep, which the next start runs
+     * again, instead of ending the app at launch with nothing on screen to explain it.
+     */
+    public static void runHousekeeping(@NonNull String name, @NonNull Runnable work) {
+        runInTransaction(name, () -> {
+            try {
+                work.run();
+            } catch (RuntimeException e) {
+                recordException(e);
+                failCurrentSpan(e);
+            }
+        });
+    }
+
+    /**
      * Runs {@code task} with {@code parent} as the span this thread's steps nest under, for a
      * transaction started on another thread ({@link #startTransaction(String)}). It neither
      * finishes {@code parent} nor sets its status; a null {@code parent} only runs {@code task}.

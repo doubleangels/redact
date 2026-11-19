@@ -372,10 +372,13 @@ public final class AppMetrics {
     public static final String EXTERNAL_SHARE_SHEET = "share_sheet";
     public static final String EXTERNAL_FOLDER_PICKER = "folder_picker";
     public static final String EXTERNAL_FILE_MANAGER = "file_manager";
+    public static final String EXTERNAL_FILE_PICKER = "file_picker";
+    public static final String EXTERNAL_SYSTEM_SETTINGS = "system_settings";
 
     /**
      * A button that hands off to another app found none to take it (no maps app, browser, Play
-     * Store, share target or file manager), by which kind, as {@code ui.external_app_missing}.
+     * Store, share target, file picker, file manager or system settings), by which kind, as
+     * {@code ui.external_app_missing}.
      */
     public static void externalAppMissing(@NonNull String target) {
         SentryManager.count("ui.external_app_missing", 1, "reason", target);

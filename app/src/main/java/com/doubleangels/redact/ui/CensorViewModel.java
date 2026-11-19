@@ -716,6 +716,14 @@ public class CensorViewModel extends AndroidViewModel {
             if (generation == renderGeneration.get()) {
                 preview.postValue(from);
             }
+        } catch (RuntimeException e) {
+            // A region the effect can't draw leaves the last preview up, rather than ending the
+            // app mid-edit. The save covers the regions again from the photo, so this is only
+            // the preview.
+            SentryManager.recordException(e);
+            if (generation == renderGeneration.get()) {
+                preview.postValue(from);
+            }
         }
     }
 

@@ -302,6 +302,29 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
+    public void runHousekeeping_reportsARuntimeExceptionInsteadOfThrowing() {
+        boolean[] ran = {false};
+        SentryManager.runHousekeeping("cache.stale_file_cleanup", () -> {
+            ran[0] = true;
+            throw new IllegalStateException("provider gone");
+        });
+        assertTrue(ran[0]);
+        FakeSpan parent = new FakeSpan("app.start");
+        SentryManager.runUnder(parent.proxy(), () -> SentryManager.runHousekeeping("output.unfinished_file_sweep",
+                () -> {
+                    throw new SecurityException("revoked");
+                }));
+        assertEquals(SpanStatus.INTERNAL_ERROR, parent.children.get(0).status);
+    }
+
+    @Test(expected = OutOfMemoryError.class)
+    public void runHousekeeping_letsAnErrorThrough() {
+        SentryManager.runHousekeeping("cache.leftover_file_sweep", () -> {
+            throw new OutOfMemoryError();
+        });
+    }
+
+    @Test
     public void inSpan_outsideTracedWork_onlyRunsTheWork() throws Exception {
         assertEquals("done", SentryManager.inSpan("verify.image_metadata_check", () -> "done"));
         SentryManager.Span span = SentryManager.span("video.transcode");

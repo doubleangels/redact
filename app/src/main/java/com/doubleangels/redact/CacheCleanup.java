@@ -117,7 +117,7 @@ public final class CacheCleanup {
         Thread thread = new Thread(() -> {
             // After the orphan sweep, so the two never overwrite the same file at once.
             awaitQuietly(orphanSweep);
-            SentryManager.runInTransaction("cache.stale_file_cleanup", () -> performAutoCleanup(appContext));
+            SentryManager.runHousekeeping("cache.stale_file_cleanup", () -> performAutoCleanup(appContext));
         }, "redact-auto-cleanup");
         autoCleanupThread = thread;
         thread.start();
@@ -168,7 +168,7 @@ public final class CacheCleanup {
         if (orphans.isEmpty() && sharedOutputs.isEmpty()) {
             return;
         }
-        Thread thread = new Thread(() -> SentryManager.runInTransaction("cache.leftover_file_sweep", () -> {
+        Thread thread = new Thread(() -> SentryManager.runHousekeeping("cache.leftover_file_sweep", () -> {
             for (File orphan : orphans) {
                 if (orphan.exists() && !SecureDelete.secureDelete(orphan)) {
                     //noinspection ResultOfMethodCallIgnored

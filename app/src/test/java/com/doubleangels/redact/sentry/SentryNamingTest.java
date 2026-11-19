@@ -192,7 +192,7 @@ public class SentryNamingTest {
 
     /** A transaction or span the app starts, named by a string literal. */
     private static final Pattern TRACE_CALL = Pattern.compile(
-            "SentryManager\\.(?:startTransaction|inTransaction|runInTransaction|inSpan|runInSpan|span)\\(\\s*\"([^\"]*)\"");
+            "SentryManager\\.(?:startTransaction|inTransaction|runInTransaction|runHousekeeping|inSpan|runInSpan|span)\\(\\s*\"([^\"]*)\"");
 
     /**
      * Every transaction and span name the app sends: the literal ones at each call site, and the

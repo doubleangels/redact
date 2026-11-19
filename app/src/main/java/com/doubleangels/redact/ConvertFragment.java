@@ -1,6 +1,7 @@
 package com.doubleangels.redact;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -38,6 +39,7 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.ErrorFeedbackPrompt;
 import com.doubleangels.redact.ui.ReviewPrompt;
@@ -428,7 +430,13 @@ public class ConvertFragment extends TabFragment {
     }
 
     private void openMediaPicker() {
-        mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
+        try {
+            mediaPickerLauncher.launch(MediaPickerContracts.IMAGE_AND_VIDEO_MIME_TYPES);
+        } catch (ActivityNotFoundException e) {
+            // The system file picker is turned off on some managed or stripped-down phones.
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_FILE_PICKER);
+            Notice.show(requireContext(), R.string.status_media_picker_fail, false);
+        }
     }
 
     private int getSelectedFormatIndex() {

@@ -531,7 +531,12 @@ public class SettingsFragment extends TabFragment {
         openSettings.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
-            startActivity(intent);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SYSTEM_SETTINGS);
+                Notice.show(requireContext(), R.string.settings_link_unavailable, false);
+            }
         });
         View rowPermissionLocation = view.findViewById(R.id.rowPermissionLocation);
         if (rowPermissionLocation != null) {

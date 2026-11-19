@@ -1085,6 +1085,7 @@ public class ScanFragment extends TabFragment {
             startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
         } catch (ActivityNotFoundException e) {
             SentryManager.logEvent("scan", "No app can take a metadata report shared as text.");
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SHARE_SHEET);
             Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
         }
     }
