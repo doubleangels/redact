@@ -74,16 +74,15 @@ public final class BatchRun {
      *
      * @param job the job's metric name ({@link AppMetrics#CLEAN}, {@link AppMetrics#CONVERT} or
      *     {@link AppMetrics#SHARE})
-     * @param transactionName the Sentry transaction's name
      * @param alreadyFailed files the job was given but could not even start on (a share's items
      *     that could not be copied in), counted as given and failed
      */
     @NonNull
-    public static <T> Result run(@NonNull String job, @NonNull String transactionName,
-                                 @NonNull List<T> items, int alreadyFailed,
+    public static <T> Result run(@NonNull String job, @NonNull List<T> items, int alreadyFailed,
                                  @NonNull Predicate<T> isVideo, @NonNull BooleanSupplier stopped,
                                  @NonNull Step<T> step, @NonNull Hooks<T> hooks) {
-        ITransaction transaction = SentryManager.startTransaction(transactionName, "task");
+        // "clean.batch" with a "clean.item" span per file, and likewise for convert and share.
+        ITransaction transaction = SentryManager.startTransaction(job + ".batch");
         long startedAt = SystemClock.elapsedRealtime();
         int succeeded = 0;
         int failed = 0;
@@ -93,7 +92,9 @@ public final class BatchRun {
             for (int index = 0; index < items.size() && !stopped.getAsBoolean(); index++) {
                 T item = items.get(index);
                 boolean video = isVideo.test(item);
-                ISpan span = transaction.startChild(job + "_item", "media_item");
+                ISpan span = transaction.startChild(job + ".item", job + ".item");
+                // The file's steps (copy, transcode, checks, save) become spans under it.
+                ISpan previousSpan = SentryManager.bindCurrentSpan(span);
                 long itemStartedAt = SystemClock.elapsedRealtime();
                 try {
                     Outcome outcome = step.run(item, index);
@@ -128,6 +129,7 @@ public final class BatchRun {
                         hooks.onFailed(item, index, e, AppMetrics.outcomeOf(e, unsupported));
                     }
                 } finally {
+                    SentryManager.restoreCurrentSpan(previousSpan);
                     span.finish();
                 }
                 if (stoppedByItem) {

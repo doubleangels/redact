@@ -21,10 +21,15 @@ import org.robolectric.RuntimeEnvironment;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.SentryEvent;
+import io.sentry.SpanStatus;
 import io.sentry.protocol.SentryId;
 
 /**
@@ -267,13 +272,154 @@ public class SentryManagerEnabledTest {
 
     @Test
     public void startTransaction_alwaysReturnsAUsableTransaction() {
-        ITransaction enabled = SentryManager.startTransaction("convert_multiple", "task");
+        ITransaction enabled = SentryManager.startTransaction("convert.batch");
         assertNotNull(enabled);
         enabled.finish();
 
         AppPreferences.setCrashReportingEnabled(app, false);
-        ITransaction disabled = SentryManager.startTransaction("convert_multiple", "task");
+        ITransaction disabled = SentryManager.startTransaction("convert.batch");
         assertNotNull(disabled);
         disabled.finish();
+    }
+
+    @Test
+    public void inSpan_outsideTracedWork_onlyRunsTheWork() throws Exception {
+        assertEquals("done", SentryManager.inSpan("verify.image", () -> "done"));
+        SentryManager.Span span = SentryManager.span("video.transcode");
+        span.failed(new IOException("x"));
+        span.close();
+    }
+
+    @Test
+    public void inSpan_nestsUnderTheThreadsSpanAndEndsOk() throws Exception {
+        FakeSpan parent = new FakeSpan("clean.item");
+        SentryManager.runUnder(parent.proxy(), () -> {
+            String result = SentryManager.inSpan("image.rebuild",
+                    () -> SentryManager.inSpan("verify.image", () -> "clean"));
+            assertEquals("clean", result);
+        });
+        assertEquals(1, parent.children.size());
+        FakeSpan rebuild = parent.children.get(0);
+        assertEquals("image.rebuild", rebuild.operation);
+        assertEquals(SpanStatus.OK, rebuild.status);
+        assertTrue(rebuild.finished);
+        assertEquals(1, rebuild.children.size());
+        assertEquals("verify.image", rebuild.children.get(0).operation);
+        assertTrue(rebuild.children.get(0).finished);
+        // The parent belongs to whoever started it: neither finished nor given a status here.
+        assertFalse(parent.finished);
+        assertNull(parent.status);
+        // And the thread is back outside traced work.
+        assertEquals("plain", SentryManager.inSpan("media.copy", () -> "plain"));
+        assertEquals(1, parent.children.size());
+    }
+
+    @Test
+    public void inSpan_marksAFailureAndRethrowsIt() {
+        FakeSpan parent = new FakeSpan("clean.item");
+        IOException thrown = new IOException("left");
+        try {
+            SentryManager.runUnder(parent.proxy(), () -> SentryManager.runInSpan("verify.video", () -> {
+                throw thrown;
+            }));
+            throw new AssertionError("The failure was swallowed");
+        } catch (IOException e) {
+            assertTrue(e == thrown);
+        }
+        assertEquals(SpanStatus.INTERNAL_ERROR, parent.children.get(0).status);
+        assertTrue(parent.children.get(0).finished);
+    }
+
+    @Test
+    public void inSpan_marksACancellationAsCancelled() {
+        FakeSpan parent = new FakeSpan("share.item");
+        try {
+            SentryManager.runUnder(parent.proxy(), () -> SentryManager.runInSpan("video.transcode", () -> {
+                throw new ProcessingCancelledException("stopped");
+            }));
+        } catch (ProcessingCancelledException expected) {
+            // rethrown unchanged
+        }
+        assertEquals(SpanStatus.CANCELLED, parent.children.get(0).status);
+    }
+
+    @Test
+    public void inTransaction_insideTracedWork_isASpan() {
+        FakeSpan parent = new FakeSpan("censor.save");
+        SentryManager.runUnder(parent.proxy(), () ->
+                SentryManager.runInTransaction("scan.summary", () -> SentryManager.failCurrentSpan(
+                        new IllegalStateException("failed"))));
+        assertEquals("scan.summary", parent.children.get(0).operation);
+        assertEquals(SpanStatus.INTERNAL_ERROR, parent.children.get(0).status);
+    }
+
+    @Test
+    public void spanHandle_isTheThreadsSpanUntilClosed() {
+        FakeSpan parent = new FakeSpan("convert.item");
+        SentryManager.runUnder(parent.proxy(), () -> {
+            SentryManager.Span span = SentryManager.span("video.transcode");
+            SentryManager.runInSpan("output.write", () -> { });
+            span.failed(new InterruptedException());
+            span.close();
+            SentryManager.runInSpan("verify.video", () -> { });
+        });
+        assertEquals(2, parent.children.size());
+        FakeSpan transcode = parent.children.get(0);
+        assertEquals(SpanStatus.CANCELLED, transcode.status);
+        assertTrue(transcode.finished);
+        assertEquals("output.write", transcode.children.get(0).operation);
+        assertEquals("verify.video", parent.children.get(1).operation);
+    }
+
+    @Test
+    public void inSpan_whileReportingIsOff_recordsNothing() {
+        FakeSpan parent = new FakeSpan("clean.item");
+        AppPreferences.setCrashReportingEnabled(app, false);
+        SentryManager.runUnder(parent.proxy(), () -> SentryManager.runInSpan("image.rebuild", () -> { }));
+        assertTrue(parent.children.isEmpty());
+    }
+
+    /** An {@link ISpan} that records what the tracing helpers do to it. */
+    private static final class FakeSpan {
+        final String operation;
+        final List<FakeSpan> children = new ArrayList<>();
+        SpanStatus status;
+        boolean finished;
+
+        FakeSpan(String operation) {
+            this.operation = operation;
+        }
+
+        ISpan proxy() {
+            return (ISpan) Proxy.newProxyInstance(ISpan.class.getClassLoader(), new Class<?>[] {ISpan.class},
+                    (self, method, args) -> {
+                        switch (method.getName()) {
+                            case "startChild": {
+                                FakeSpan child = new FakeSpan((String) args[0]);
+                                children.add(child);
+                                return child.proxy();
+                            }
+                            case "setStatus":
+                                status = (SpanStatus) args[0];
+                                return null;
+                            case "getStatus":
+                                return status;
+                            case "finish":
+                                finished = true;
+                                return null;
+                            case "isFinished":
+                                return finished;
+                            case "getOperation":
+                                return operation;
+                            case "hashCode":
+                                return System.identityHashCode(self);
+                            case "equals":
+                                return self == args[0];
+                            default:
+                                Class<?> type = method.getReturnType();
+                                return type == boolean.class ? Boolean.FALSE : null;
+                        }
+                    });
+        }
     }
 }

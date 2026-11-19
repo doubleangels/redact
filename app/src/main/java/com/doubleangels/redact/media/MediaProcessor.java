@@ -325,7 +325,7 @@ public class MediaProcessor {
             final int totalItems = items.size();
             BatchRun.Result result = new BatchRun.Result(0, 0, true);
             try {
-                result = BatchRun.run(AppMetrics.CLEAN, "clean_multiple", items, 0, MediaItem::isVideo,
+                result = BatchRun.run(AppMetrics.CLEAN, items, 0, MediaItem::isVideo,
                         cancelled::get, (item, index) -> cleanOne(item, index, totalItems, callback),
                         new BatchRun.Hooks<>() {
                             @Override

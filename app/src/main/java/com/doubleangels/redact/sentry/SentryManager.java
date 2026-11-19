@@ -17,6 +17,7 @@ import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
 import io.sentry.Breadcrumb;
+import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.NoOpTransaction;
 import io.sentry.Sentry;
@@ -24,6 +25,7 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryAttribute;
 import io.sentry.SentryAttributes;
 import io.sentry.SentryLevel;
+import io.sentry.SpanStatus;
 import io.sentry.metrics.MetricsUnit;
 import io.sentry.metrics.SentryMetricsParameters;
 import io.sentry.protocol.Feedback;
@@ -649,10 +651,220 @@ public final class SentryManager {
         return scrubbed != null ? scrubbed : "";
     }
 
-    public static ITransaction startTransaction(String name, String operation) {
+    /*
+     * Tracing. A transaction is one piece of work someone waits for or the app does on its own
+     * (a batch, a scan, a censor save, an update check, a cache sweep); a span is one step inside
+     * it (copying the source, a transcode, a check that the output is clean). Both are named
+     * "<area>.<event>" with an area from the naming scheme above, and the names are fixed strings:
+     * a span never carries a file's name, path or anything read from it. SentryNamingTest checks
+     * the shape and that README.md and site/index.html list every one.
+     *
+     * The span work nests under is kept per thread, like the operation data, so a step reached
+     * from a batch's file lands under that file, and the same step reached outside any traced
+     * work records nothing.
+     */
+
+    /** The operation every app transaction uses, so they can be told from the SDK's own. */
+    static final String TASK_OPERATION = "task";
+
+    /** The span work on this thread nests under: a transaction, or a batch's file. */
+    private static final ThreadLocal<ISpan> CURRENT_SPAN = new ThreadLocal<>();
+
+    /** Work that returns a value, run inside a span. */
+    public interface TracedWork<T, E extends Throwable> {
+        T run() throws E;
+    }
+
+    /** Work that returns nothing, run inside a span. */
+    public interface TracedTask<E extends Throwable> {
+        void run() throws E;
+    }
+
+    /**
+     * Starts a transaction that the caller finishes, for work that starts on one thread and ends
+     * in a callback on another. Not bound to any thread: pass it to {@link #runUnder} on the
+     * thread that does the work so its steps nest under it. A no-op while reporting is off.
+     */
+    @NonNull
+    public static ITransaction startTransaction(@NonNull String name) {
         if (!isEnabled()) {
             return NoOpTransaction.getInstance();
         }
-        return Sentry.startTransaction(name, operation);
+        return Sentry.startTransaction(name, TASK_OPERATION);
+    }
+
+    /**
+     * Runs {@code work} as the transaction {@code name}, or as a span of that name when this thread
+     * is already inside traced work, so a job started from inside another doesn't split the trace.
+     * The status is ok when it returns, cancelled when it is stopped and an internal error when it
+     * throws anything else, which is rethrown unchanged.
+     */
+    public static <T, E extends Throwable> T inTransaction(@NonNull String name, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent != null) {
+            return inSpan(name, work);
+        }
+        return traced(startTransaction(name), work);
+    }
+
+    /** {@link #inTransaction(String, TracedWork)} for work that returns nothing. */
+    public static <E extends Throwable> void runInTransaction(@NonNull String name, @NonNull TracedTask<E> task)
+            throws E {
+        inTransaction(name, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs {@code work} as a span named {@code operation} under the traced work on this thread,
+     * with the status set as in {@link #inTransaction(String, TracedWork)}. Outside traced work, or
+     * while reporting is off, it only runs {@code work}.
+     */
+    public static <T, E extends Throwable> T inSpan(@NonNull String operation, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent == null || parent.isFinished() || !isEnabled()) {
+            return work.run();
+        }
+        return traced(parent.startChild(operation, operation), work);
+    }
+
+    /** {@link #inSpan(String, TracedWork)} for work that returns nothing. */
+    public static <E extends Throwable> void runInSpan(@NonNull String operation, @NonNull TracedTask<E> task)
+            throws E {
+        inSpan(operation, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs {@code task} with {@code parent} as the span this thread's steps nest under, for a
+     * transaction started on another thread ({@link #startTransaction(String)}). It neither
+     * finishes {@code parent} nor sets its status; a null {@code parent} only runs {@code task}.
+     */
+    public static <E extends Throwable> void runUnder(@Nullable ISpan parent, @NonNull TracedTask<E> task)
+            throws E {
+        ISpan previous = CURRENT_SPAN.get();
+        CURRENT_SPAN.set(parent);
+        try {
+            task.run();
+        } finally {
+            restoreCurrentSpan(previous);
+        }
+    }
+
+    /**
+     * Makes {@code span} the one this thread's steps nest under and returns the one it replaces,
+     * for a caller that manages a span itself ({@code BatchRun}'s span per file). Hand the
+     * returned span to {@link #restoreCurrentSpan} when it finishes.
+     */
+    @Nullable
+    public static ISpan bindCurrentSpan(@Nullable ISpan span) {
+        ISpan previous = CURRENT_SPAN.get();
+        CURRENT_SPAN.set(span);
+        return previous;
+    }
+
+    /** Puts back the span {@link #bindCurrentSpan} returned. */
+    public static void restoreCurrentSpan(@Nullable ISpan previous) {
+        if (previous == null) {
+            CURRENT_SPAN.remove();
+        } else {
+            CURRENT_SPAN.set(previous);
+        }
+    }
+
+    /**
+     * Marks the traced work on this thread as failed by {@code error}, for work that catches its
+     * own exceptions instead of letting them reach {@link #inTransaction} or {@link #inSpan}.
+     */
+    public static void failCurrentSpan(@NonNull Throwable error) {
+        setCurrentSpanStatus(statusFor(error));
+    }
+
+    /** Sets the status of the traced work on this thread, which otherwise ends ok. */
+    public static void setCurrentSpanStatus(@NonNull SpanStatus status) {
+        ISpan span = CURRENT_SPAN.get();
+        if (span != null && !span.isFinished()) {
+            span.setStatus(status);
+        }
+    }
+
+    /** The status a span gets for work that threw {@code error}. */
+    @NonNull
+    public static SpanStatus statusFor(@NonNull Throwable error) {
+        return isUserCancellation(error) ? SpanStatus.CANCELLED : SpanStatus.INTERNAL_ERROR;
+    }
+
+    /**
+     * Opens a span named {@code operation} under the traced work on this thread, for work a lambda
+     * can't wrap without losing its exception types (it throws two kinds of checked exception).
+     * Call {@link Span#failed} from a catch and {@link Span#close} from a finally. Outside traced
+     * work, or while reporting is off, the span does nothing.
+     */
+    @NonNull
+    public static Span span(@NonNull String operation) {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent == null || parent.isFinished() || !isEnabled()) {
+            return Span.NONE;
+        }
+        return new Span(parent.startChild(operation, operation));
+    }
+
+    /** A span that is this thread's current one until it is closed. */
+    public static final class Span implements AutoCloseable {
+
+        static final Span NONE = new Span(null);
+
+        @Nullable
+        private final ISpan span;
+        @Nullable
+        private final ISpan previous;
+
+        private Span(@Nullable ISpan span) {
+            this.span = span;
+            this.previous = span != null ? bindCurrentSpan(span) : null;
+        }
+
+        /** The work threw {@code error}: cancelled when it was stopped, else an internal error. */
+        public void failed(@NonNull Throwable error) {
+            if (span != null) {
+                span.setStatus(statusFor(error));
+            }
+        }
+
+        /** Finishes the span, ok unless {@link #failed} said otherwise, and puts back its parent. */
+        @Override
+        public void close() {
+            if (span == null) {
+                return;
+            }
+            restoreCurrentSpan(previous);
+            if (span.getStatus() == null) {
+                span.setStatus(SpanStatus.OK);
+            }
+            span.finish();
+        }
+    }
+
+    private static <T, E extends Throwable> T traced(@NonNull ISpan span, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan previous = bindCurrentSpan(span);
+        try {
+            T result = work.run();
+            if (span.getStatus() == null) {
+                span.setStatus(SpanStatus.OK);
+            }
+            return result;
+        } catch (Throwable t) {
+            span.setStatus(statusFor(t));
+            throw t;
+        } finally {
+            restoreCurrentSpan(previous);
+            span.finish();
+        }
     }
 }

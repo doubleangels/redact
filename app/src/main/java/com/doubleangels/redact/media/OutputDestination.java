@@ -262,7 +262,8 @@ public final class OutputDestination {
      */
     public static void scheduleAbandonedDocumentSweep(@NonNull Context context) {
         Context app = context.getApplicationContext();
-        new Thread(() -> sweepAbandonedDocuments(app), "redact-output-sweep").start();
+        new Thread(() -> SentryManager.runInTransaction("output.sweep", () -> sweepAbandonedDocuments(app)),
+                "redact-output-sweep").start();
     }
 
     @VisibleForTesting

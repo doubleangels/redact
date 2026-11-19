@@ -412,7 +412,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final ShareSession session = shareSession;
         // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
         processingActive = true;
-        startShareThread("redact-share-check", session, () -> {
+        startShareThread("redact-share-check", session, () -> SentryManager.runInTransaction("share.prepare", () -> {
             List<Uri> accepted = filterSupportedUris(uris, session);
             List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
                     ? new ArrayList<>()
@@ -428,11 +428,11 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 ProcessingResourceWarnings.runWithWarnings(
                         this, warnings, () -> snapshotAndProcess(accepted, session));
             });
-        });
+        }));
     }
 
     private void snapshotAndProcess(@NonNull List<Uri> accepted, @NonNull ShareSession session) {
-        startShareThread("redact-share-snapshot", session, () -> {
+        startShareThread("redact-share-snapshot", session, () -> SentryManager.runInTransaction("share.snapshot", () -> {
             List<Uri> snapshotted = snapshotInboundUris(accepted, session);
             runOnUiThreadForSession(session, () -> {
                 if (snapshotted.isEmpty()) {
@@ -442,7 +442,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 SentryManager.setCustomKey("share.media_count", snapshotted.size());
                 maybeConfirmAndProcess(snapshotted, session);
             });
-        });
+        }));
     }
 
     /** Runs preparation work on its own thread; cancelling the share interrupts it. */
@@ -547,7 +547,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             boolean[] hasImage = {false};
             Map<Uri, SharedItem> described = new HashMap<>();
             try {
-                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, "share_cleanup", uris, alreadyFailed,
+                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, uris, alreadyFailed,
                         uri -> describe(described, uri).video,
                         () -> !isCurrentSession(session) || Thread.currentThread().isInterrupted(),
                         (uri, i) -> {

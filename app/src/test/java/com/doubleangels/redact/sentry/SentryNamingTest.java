@@ -190,6 +190,55 @@ public class SentryNamingTest {
         assertEquals("Add these to the Names in Sentry tables: " + missing, 0, missing.size());
     }
 
+    /** A transaction or span the app starts, named by a string literal. */
+    private static final Pattern TRACE_CALL = Pattern.compile(
+            "SentryManager\\.(?:startTransaction|inTransaction|runInTransaction|inSpan|runInSpan|span)\\(\\s*\"([^\"]*)\"");
+
+    /**
+     * Every transaction and span name the app sends: the literal ones at each call site, and the
+     * batch and per-file names BatchRun builds from the job.
+     */
+    static Set<String> traceNames() throws IOException {
+        Set<String> names = new TreeSet<>();
+        for (Path file : sources()) {
+            Matcher m = TRACE_CALL.matcher(read(file));
+            while (m.find()) {
+                names.add(m.group(1));
+            }
+        }
+        for (String job : new String[] {AppMetrics.CLEAN, AppMetrics.CONVERT, AppMetrics.SHARE}) {
+            names.add(job + ".batch");
+            names.add(job + ".item");
+        }
+        return names;
+    }
+
+    /**
+     * Transactions and spans follow the metric scheme ("area.event") and are fixed strings, so a
+     * trace can never carry a file's name; and both pages list each one.
+     */
+    @Test
+    public void traceNames_followTheSchemeAndAreListed() throws IOException {
+        Set<String> names = traceNames();
+        String readme = new String(Files.readAllBytes(new File("../README.md").toPath()), StandardCharsets.UTF_8);
+        String site = new String(Files.readAllBytes(new File("../site/index.html").toPath()), StandardCharsets.UTF_8);
+        List<String> wrong = new ArrayList<>();
+        for (String name : names) {
+            Matcher shape = COUNTER_NAME.matcher(name);
+            if (!shape.matches() || !AREAS.contains(shape.group(1))) {
+                wrong.add(name + " is not area.event");
+            }
+            if (!readme.contains("`" + name + "`")) {
+                wrong.add("README.md is missing " + name);
+            }
+            if (!site.contains("<code>" + name + "</code>")) {
+                wrong.add("site/index.html is missing " + name);
+            }
+        }
+        assertTrue("The scan found too few trace names; is the pattern still right?", names.size() > 20);
+        assertEquals("Fix these transaction and span names: " + wrong, 0, wrong.size());
+    }
+
     @Test
     public void metricNamesAndAttributeKeys_followTheRules() throws Exception {
         Method allowed = SentryManager.class.getDeclaredMethod("isAllowedTagKey", String.class);

@@ -535,12 +535,13 @@ public class ScanFragment extends TabFragment {
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
             finishActiveScanTransaction(SpanStatus.CANCELLED);
-            final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
+            final ITransaction transaction = SentryManager.startTransaction("scan.extract");
             activeScanTransaction = transaction;
             final long scanStartMs = SystemClock.elapsedRealtime();
             final boolean scannedVideo = isVideo;
             MetadataDisplayer.extractSectionedMetadata(
-                    requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
+                    requireContext().getApplicationContext(), mediaUri, transaction,
+                    new MetadataDisplayer.SectionedMetadataCallback() {
                 // Both callbacks arrive on the main thread (MetadataDisplayer delivers them there).
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {

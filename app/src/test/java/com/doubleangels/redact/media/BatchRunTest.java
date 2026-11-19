@@ -40,7 +40,7 @@ public class BatchRunTest {
     };
 
     private BatchRun.Result run(List<String> items, AtomicBoolean stopped, BatchRun.Step<String> step) {
-        return BatchRun.run(AppMetrics.CLEAN, "test", items, 0, item -> false, stopped::get, step, hooks);
+        return BatchRun.run(AppMetrics.CLEAN, items, 0, item -> false, stopped::get, step, hooks);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class BatchRunTest {
 
     @Test
     public void filesThatCouldNotStart_areCountedOnlyInTheBatch_notInTheResult() {
-        BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, "test", List.of("a"), 2, item -> true,
+        BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, List.of("a"), 2, item -> true,
                 () -> false, (item, index) -> BatchRun.Outcome.SUCCEEDED, new BatchRun.Hooks<>() { });
 
         assertEquals(1, result.succeeded());

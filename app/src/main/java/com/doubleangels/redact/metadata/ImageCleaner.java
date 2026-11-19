@@ -222,16 +222,19 @@ final class ImageCleaner {
             // write the verified file to it once, then check that the output holds exactly those
             // bytes: a provider that keeps the tail of an older file would add to them.
             newUri = OutputDestination.create(context, false, newFilename, cleanFormat.mimeType);
-            byte[] written;
-            try (InputStream in = new FileInputStream(cleanFile);
-                    OutputStream os = contentResolver.openOutputStream(newUri)) {
-                if (os == null) {
-                    throw new CleanFailedException("Failed to open output stream for new image");
+            Uri output = newUri;
+            File verified = cleanFile;
+            byte[] written = SentryManager.inSpan("output.write", () -> {
+                try (InputStream in = new FileInputStream(verified);
+                        OutputStream os = contentResolver.openOutputStream(output)) {
+                    if (os == null) {
+                        throw new CleanFailedException("Failed to open output stream for new image");
+                    }
+                    MessageDigest digest = OutputDestination.sha256();
+                    MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
+                    return digest.digest();
                 }
-                MessageDigest digest = OutputDestination.sha256();
-                MediaSizeLimits.copyStream(in, new DigestOutputStream(os, digest));
-                written = digest.digest();
-            }
+            });
             host.verifier.requireSameContent(newUri, written);
             OutputDestination.publish(contentResolver, newUri);
             return newUri;
@@ -802,6 +805,18 @@ final class ImageCleaner {
                                   @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept,
                                   boolean neutralIcc)
             throws IOException {
+        return SentryManager.inSpan("image.rebuild", () -> writePictureOnlyUntraced(
+                source, sourceUri, target, outputFormat, fromPixels, motion, kept, neutralIcc));
+    }
+
+    /** The work of {@link #writePictureOnly}, outside its image.rebuild span. */
+    @NonNull
+    private FormatConverter.ImageFormatSpec writePictureOnlyUntraced(@NonNull File source, @NonNull Uri sourceUri,
+                                  @NonNull File target,
+                                  @NonNull FormatConverter.ImageFormatSpec outputFormat, boolean fromPixels,
+                                  @Nullable MotionPhoto.Clip motion, @NonNull Map<String, String> kept,
+                                  boolean neutralIcc)
+            throws IOException {
         ImageContainerMetadata.Format expected = containerFormat(outputFormat.extension);
         // A HEIC the encoder just wrote is still rebuilt below: losslessly, so whatever the
         // encoder put beside the picture goes too.
@@ -923,6 +938,14 @@ final class ImageCleaner {
 
     /** Decodes {@code source} and encodes its pixels, which carry no metadata, to {@code target}. */
     private void reEncode(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
+                          @NonNull FormatConverter.ImageFormatSpec outputFormat,
+                          @NonNull Map<String, String> kept) throws IOException {
+        SentryManager.runInSpan("image.reencode",
+                () -> reEncodeUntraced(source, sourceUri, target, outputFormat, kept));
+    }
+
+    /** The work of {@link #reEncode}, outside its image.reencode span. */
+    private void reEncodeUntraced(@NonNull File source, @NonNull Uri sourceUri, @NonNull File target,
                           @NonNull FormatConverter.ImageFormatSpec outputFormat,
                           @NonNull Map<String, String> kept) throws IOException {
         FormatConverter.ImageFormatSpec bitmapOutput = FormatConverter.encodableSpecFor(outputFormat);

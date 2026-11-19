@@ -599,7 +599,7 @@ public final class ProcessingRepository {
                                int runGeneration, @Nullable SentryId reportedBefore) {
         BatchRun.Result result = new BatchRun.Result(0, 0, true);
         try {
-            result = BatchRun.run(AppMetrics.CONVERT, "convert_multiple", items, 0, MediaItem::isVideo,
+            result = BatchRun.run(AppMetrics.CONVERT, items, 0, MediaItem::isVideo,
                     () -> convertStopped(runGeneration),
                     (item, i) -> convertOne(item, i + 1, total, formatIndex, imageFormatIndex, runGeneration),
                     new BatchRun.Hooks<>() {

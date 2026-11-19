@@ -187,6 +187,14 @@ final class CleanVerifier {
     void requireVideoMetadataClean(
             @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot, boolean keepLocation)
             throws IOException {
+        SentryManager.runInSpan("verify.video",
+                () -> requireVideoMetadataCleanUntraced(videoFile, sourceSnapshot, keepLocation));
+    }
+
+    /** The work of {@link #requireVideoMetadataClean}, outside its verify.video span. */
+    private void requireVideoMetadataCleanUntraced(
+            @NonNull File videoFile, @NonNull VideoPrivacySnapshot sourceSnapshot, boolean keepLocation)
+            throws IOException {
         if (AppPreferences.isRemoveAudio(context) && hasAudioTrack(videoFile)) {
             SentryManager.logEvent("verify", "The video still has a sound track although Remove Audio is on.");
             countVerificationFailure("video", "audio_left");
@@ -392,6 +400,12 @@ final class CleanVerifier {
      * @return true if no identifying metadata was found, false if metadata remains
      */
     boolean verifyMetadataRemoval(@NonNull File imageFile, boolean forSharing) {
+        return SentryManager.inSpan("verify.image",
+                () -> verifyMetadataRemovalUntraced(imageFile, forSharing));
+    }
+
+    /** The work of {@link #verifyMetadataRemoval}, outside its verify.image span. */
+    private boolean verifyMetadataRemovalUntraced(@NonNull File imageFile, boolean forSharing) {
         try {
             Set<String> allowedTags = new HashSet<>(host.getTagsToPreserve(forSharing));
             ExifInterface exif = new ExifInterface(imageFile.getAbsolutePath());
@@ -521,6 +535,12 @@ final class CleanVerifier {
      * it is read, so no second copy of the image is written to check it.
      */
     void requireSameContent(@NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
+        SentryManager.runInSpan("verify.output", () -> requireSameContentUntraced(output, expectedSha256));
+    }
+
+    /** The work of {@link #requireSameContent}, outside its verify.output span. */
+    private void requireSameContentUntraced(
+            @NonNull Uri output, @NonNull byte[] expectedSha256) throws IOException {
         OutputDestination.requireSameContent(contentResolver, output, expectedSha256);
     }
 }

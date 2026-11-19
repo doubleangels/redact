@@ -11,6 +11,8 @@ import com.doubleangels.redact.BuildConfig;
 import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import io.sentry.SpanStatus;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,7 +95,13 @@ public final class UpdateChecker {
     @NonNull
     public Result checkNow() {
         long startedAt = SystemClock.elapsedRealtime();
-        Result result = check();
+        Result result = SentryManager.inTransaction("update.check", () -> {
+            Result checked = check();
+            if (checked.status == Result.Status.FAILED) {
+                SentryManager.setCurrentSpanStatus(SpanStatus.UNAVAILABLE);
+            }
+            return checked;
+        });
         AppMetrics.updateCheck(result.status.name().toLowerCase(Locale.ROOT),
                 SystemClock.elapsedRealtime() - startedAt);
         return result;

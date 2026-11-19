@@ -184,7 +184,7 @@
             <tr><td>Trail of app events</td><td>The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal</td><td>With each error</td></tr>
             <tr><td>Diagnostic tags</td><td>Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none)</td><td>With each error</td></tr>
             <tr><td>Sessions</td><td>Start, end, duration, whether it crashed, and the error count</td><td>Every app session</td></tr>
-            <tr><td>Performance</td><td>App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took</td><td>Every app session</td></tr>
+            <tr><td>Performance</td><td>App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took, and how long each step of a file took (such as copying, transcoding, checking and saving it), plus the update check and background cleanups. Every step has a fixed name from <a href="#sentry-names">Names in Sentry</a>, never anything about the file.</td><td>Every app session</td></tr>
             <tr><td>Code profiles</td><td>Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory</td><td>About 1 in 4 app sessions</td></tr>
             <tr><td>Logs</td><td>The app's own log messages, scrubbed</td><td>While the app runs</td></tr>
             <tr><td>Counters and timings</td><td>Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as <code>IOException</code>, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held</td><td>While the app runs</td></tr>
@@ -215,7 +215,7 @@
     </div>
 
     <h3 id="sentry-names">Names in Sentry</h3>
-    <p>Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means.</p>
+    <p>Every tag, counter, breadcrumb, transaction and span the app sends follows one scheme, so a search in Sentry finds what it means.</p>
     <div class="table-wrap">
     <table>
         <thead>
@@ -227,6 +227,7 @@
             <tr><td>Counters</td><td><code>area.event</code>, with what came of it in <code>outcome</code> and why in <code>reason</code></td></tr>
             <tr><td>Timings and sizes</td><td><code>area.event.measure</code>, with the unit (milliseconds, megabytes) sent alongside, never in the name</td></tr>
             <tr><td>Breadcrumb categories</td><td>a lower-case area, like the SDK's own <code>ui.click</code> and <code>navigation</code></td></tr>
+            <tr><td>Transactions and spans</td><td><code>area.event</code>, a fixed name for a piece of work (a transaction) or a step inside it (a span), with its status (<code>ok</code>, <code>cancelled</code> or <code>internal_error</code>). The SDK adds its own for app start, screens and taps.</td></tr>
         </tbody>
     </table>
     </div>
@@ -257,6 +258,20 @@
             <tr><td>Converting and video</td><td><code>convert.output</code>, <code>convert.codec_fallback</code>, <code>video.downscale</code>, <code>video.retry</code>, <code>video.transcode_failure</code></td></tr>
             <tr><td>Censor and sharing</td><td><code>censor.load</code>, <code>censor.save</code>, <code>censor.save.regions</code>, <code>share.snapshot_failure</code>, <code>output.folder_fallback</code></td></tr>
             <tr><td>App</td><td><code>app.exit</code>, <code>app.exit.memory</code>, <code>memory.shortage</code>, <code>cache.orphan</code>, <code>secure_delete.overwrite.duration</code>, <code>secure_delete.fallback</code>, <code>service.failure</code>, <code>notification.failure</code>, <code>permission.result</code>, <code>update.check</code>, <code>update.check.duration</code>, <code>onboarding.end</code></td></tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Transactions and spans</th><th>When</th><th>Names</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Jobs</td><td>Clean, Convert and Share, with a span for each file</td><td><code>clean.batch</code>, <code>clean.item</code>, <code>convert.batch</code>, <code>convert.item</code>, <code>share.batch</code>, <code>share.item</code></td></tr>
+            <tr><td>Before a job</td><td>The checks before a Clean and the copy of shared items</td><td><code>clean.check</code>, <code>storage.check</code>, <code>already_clean.check</code>, <code>share.prepare</code>, <code>share.snapshot</code></td></tr>
+            <tr><td>Steps in a file</td><td>Copying the source, rebuilding or re-encoding a photo, remuxing or transcoding a video, converting, the checks that the output is clean, saving it and the secure delete of working copies</td><td><code>media.copy</code>, <code>image.decode</code>, <code>image.rebuild</code>, <code>image.reencode</code>, <code>video.remux</code>, <code>video.transcode</code>, <code>convert.image</code>, <code>verify.image</code>, <code>verify.video</code>, <code>verify.output</code>, <code>output.write</code>, <code>secure_delete.overwrite</code></td></tr>
+            <tr><td>Scan and Censor</td><td>Reading a file's metadata, the summary of several files, and opening and saving a photo in Censor</td><td><code>scan.extract</code>, <code>scan.read_image</code>, <code>scan.read_video</code>, <code>scan.location</code>, <code>scan.summary</code>, <code>scan.survey</code>, <code>censor.load</code>, <code>censor.save</code></td></tr>
+            <tr><td>App</td><td>The update check and the background cleanups of working files</td><td><code>update.check</code>, <code>cache.cleanup</code>, <code>cache.orphan_sweep</code>, <code>output.sweep</code></td></tr>
         </tbody>
     </table>
     </div>

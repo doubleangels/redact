@@ -383,7 +383,7 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | Trail of app events | The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
 | Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none) | With each error |
 | Sessions | Start, end, duration, whether it crashed, and the error count | Every app session |
-| Performance | App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took | Every app session |
+| Performance | App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took, and how long each step of a file took (such as copying, transcoding, checking and saving it), plus the update check and background cleanups. Every step has a fixed name from [Names in Sentry](#names-in-sentry), never anything about the file. | Every app session |
 | Code profiles | Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory | About 1 in 4 app sessions |
 | Logs | The app's own log messages, scrubbed | While the app runs |
 | Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held | While the app runs |
@@ -406,7 +406,7 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 
 #### Names in Sentry
 
-Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from this list.
+Every tag, counter, breadcrumb, transaction and span the app sends follows one scheme, so a search in Sentry finds what it means. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from this list.
 
 | Kind | Scheme |
 |---|---|
@@ -415,6 +415,7 @@ Every tag, counter and breadcrumb the app sends follows one scheme, so a search 
 | Counters | `area.event`, with what came of it in `outcome` and why in `reason` |
 | Timings and sizes | `area.event.measure`, with the unit (milliseconds, megabytes) sent alongside, never in the name |
 | Breadcrumb categories | a lower-case area, like the SDK's own `ui.click` and `navigation` |
+| Transactions and spans | `area.event`, a fixed name for a piece of work (a transaction) or a step inside it (a span), with its status (`ok`, `cancelled` or `internal_error`). The SDK adds its own for app start, screens and taps. |
 
 | Tags | When | Names |
 |---|---|---|
@@ -433,6 +434,14 @@ Every tag, counter and breadcrumb the app sends follows one scheme, so a search 
 | Converting and video | `convert.output`, `convert.codec_fallback`, `video.downscale`, `video.retry`, `video.transcode_failure` |
 | Censor and sharing | `censor.load`, `censor.save`, `censor.save.regions`, `share.snapshot_failure`, `output.folder_fallback` |
 | App | `app.exit`, `app.exit.memory`, `memory.shortage`, `cache.orphan`, `secure_delete.overwrite.duration`, `secure_delete.fallback`, `service.failure`, `notification.failure`, `permission.result`, `update.check`, `update.check.duration`, `onboarding.end` |
+
+| Transactions and spans | When | Names |
+|---|---|---|
+| Jobs | Clean, Convert and Share, with a span for each file | `clean.batch`, `clean.item`, `convert.batch`, `convert.item`, `share.batch`, `share.item` |
+| Before a job | The checks before a Clean and the copy of shared items | `clean.check`, `storage.check`, `already_clean.check`, `share.prepare`, `share.snapshot` |
+| Steps in a file | Copying the source, rebuilding or re-encoding a photo, remuxing or transcoding a video, converting, the checks that the output is clean, saving it and the secure delete of working copies | `media.copy`, `image.decode`, `image.rebuild`, `image.reencode`, `video.remux`, `video.transcode`, `convert.image`, `verify.image`, `verify.video`, `verify.output`, `output.write`, `secure_delete.overwrite` |
+| Scan and Censor | Reading a file's metadata, the summary of several files, and opening and saving a photo in Censor | `scan.extract`, `scan.read_image`, `scan.read_video`, `scan.location`, `scan.summary`, `scan.survey`, `censor.load`, `censor.save` |
+| App | The update check and the background cleanups of working files | `update.check`, `cache.cleanup`, `cache.orphan_sweep`, `output.sweep` |
 
 Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
 
