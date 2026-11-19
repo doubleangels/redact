@@ -238,6 +238,9 @@ public final class SentryInitializer {
             // Activity (cold/warm start, TTID) and fragment (the four tab screens) lifecycle spans.
             options.setEnableAutoActivityLifecycleTracing(true);
             options.setEnableActivityLifecycleTracingAutoFinish(true);
+            // Time to full display: each screen's load ends when its content has drawn
+            // (SentryManager.reportFullyDisplayedOnDraw), not just its first frame.
+            options.setEnableTimeToFullDisplayTracing(true);
             // Fragment breadcrumbs and spans for the four tab screens.
             options.addIntegration(new FragmentLifecycleIntegration(
                     (Application) context.getApplicationContext(), true, true));

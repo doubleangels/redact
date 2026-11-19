@@ -283,6 +283,25 @@ public class SentryManagerEnabledTest {
     }
 
     @Test
+    public void reportFullyDisplayedOnDraw_stopsListeningAfterTheFirstDraw() {
+        android.app.Activity activity = org.robolectric.Robolectric.buildActivity(android.app.Activity.class)
+                .setup().get();
+        android.view.View decor = activity.getWindow().getDecorView();
+        SentryManager.reportFullyDisplayedOnDraw(decor);
+        decor.getViewTreeObserver().dispatchOnDraw();
+        decor.getViewTreeObserver().dispatchOnDraw();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        // Further frames find no listener left and report nothing more.
+        decor.getViewTreeObserver().dispatchOnDraw();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+
+        AppPreferences.setCrashReportingEnabled(app, false);
+        SentryManager.reportFullyDisplayedOnDraw(decor);
+        decor.getViewTreeObserver().dispatchOnDraw();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+    }
+
+    @Test
     public void inSpan_outsideTracedWork_onlyRunsTheWork() throws Exception {
         assertEquals("done", SentryManager.inSpan("verify.image_metadata_check", () -> "done"));
         SentryManager.Span span = SentryManager.span("video.transcode");

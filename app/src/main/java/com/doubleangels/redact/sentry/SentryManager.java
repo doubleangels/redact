@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.OperationCanceledException;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -670,6 +672,32 @@ public final class SentryManager {
      * from a batch's file lands under that file, and the same step reached outside any traced
      * work records nothing.
      */
+
+    /**
+     * Ends the screen's time-to-full-display span once {@code view} has drawn. Every screen builds
+     * its content without waiting on anything, so the first frame that shows {@code view} is the
+     * screen fully displayed. Call it from the main thread once {@code view} holds the content.
+     */
+    public static void reportFullyDisplayedOnDraw(@NonNull View view) {
+        if (!isEnabled()) {
+            return;
+        }
+        boolean[] reported = {false};
+        ViewTreeObserver.OnDrawListener[] listener = new ViewTreeObserver.OnDrawListener[1];
+        // A draw listener can't remove itself while the tree is drawing, so it posts the rest.
+        listener[0] = () -> view.post(() -> {
+            if (reported[0]) {
+                return;
+            }
+            reported[0] = true;
+            ViewTreeObserver observer = view.getViewTreeObserver();
+            if (observer.isAlive()) {
+                observer.removeOnDrawListener(listener[0]);
+            }
+            Sentry.reportFullyDisplayed();
+        });
+        view.getViewTreeObserver().addOnDrawListener(listener[0]);
+    }
 
     /** The operation every app transaction uses, so they can be told from the SDK's own. */
     static final String TASK_OPERATION = "task";

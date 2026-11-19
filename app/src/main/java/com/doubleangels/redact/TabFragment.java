@@ -38,6 +38,8 @@ public abstract class TabFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // The tab's view is the main screen's content: its first frame is the screen loaded.
+        SentryManager.reportFullyDisplayedOnDraw(view);
         MainViewModel viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         viewModel.getFoldPosture().observe(getViewLifecycleOwner(), posture -> fitToPane(view, posture));
         view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {

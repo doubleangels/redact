@@ -46,6 +46,7 @@ public class LicensesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
         setContentView(R.layout.activity_licenses);
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         MaterialToolbar toolbar = findViewById(R.id.licensesToolbar);
         toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());

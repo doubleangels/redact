@@ -214,6 +214,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
+        // A see-through screen whose content is its dialogs: its first frame is all there is to load.
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         try {
             mediaSelector = new MediaSelector(this);
