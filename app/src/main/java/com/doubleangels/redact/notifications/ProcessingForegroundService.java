@@ -178,6 +178,10 @@ public class ProcessingForegroundService extends Service {
             int fileCount = intent.getIntExtra(EXTRA_FILE_COUNT, 0);
             builder.setRequestPromotedOngoing(true)
                     .setShortCriticalText(statusChipText(percent, fileNumber, fileCount));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                // Android 16's progress-centric template: one segment per file in a batch.
+                builder.setStyle(progressStyle(percent, fileCount));
+            }
         }
 
         if (!isStart) {
@@ -270,6 +274,21 @@ public class ProcessingForegroundService extends Service {
             return String.format(locale, "%d/%d", Math.min(fileNumber, fileCount), fileCount);
         }
         return NumberFormat.getPercentInstance(locale).format(percent / 100.0);
+    }
+
+    /**
+     * The Android 16 progress template for {@code percent} of the whole job: a segment of 100 per
+     * file (one segment when the count is unknown or one), filled up to where the job is.
+     */
+    @NonNull
+    static NotificationCompat.ProgressStyle progressStyle(int percent, int fileCount) {
+        int segments = Math.max(1, fileCount);
+        NotificationCompat.ProgressStyle style = new NotificationCompat.ProgressStyle()
+                .setStyledByProgress(true);
+        for (int i = 0; i < segments; i++) {
+            style.addProgressSegment(new NotificationCompat.ProgressStyle.Segment(100));
+        }
+        return style.setProgress(percent * segments);
     }
 
     @Nullable

@@ -319,6 +319,49 @@ public class ProcessingForegroundServiceTest {
     }
 
     @Test
+    public void progressStyle_hasASegmentPerFile_filledToTheJobsProgress() {
+        NotificationCompat.ProgressStyle batch = ProcessingForegroundService.progressStyle(50, 4);
+        assertEquals(4, batch.getProgressSegments().size());
+        assertEquals(400, batch.getProgressMax());
+        assertEquals(200, batch.getProgress());
+
+        NotificationCompat.ProgressStyle single = ProcessingForegroundService.progressStyle(42, 0);
+        assertEquals(1, single.getProgressSegments().size());
+        assertEquals(42, single.getProgress());
+    }
+
+    @Test
+    @Config(sdk = 36)
+    public void update_onAndroid16_usesTheProgressTemplate() {
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, 2);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, 3);
+        runAfterStart(intent);
+
+        Notification n = postedProgressNotification();
+        assertEquals(Notification.ProgressStyle.class.getName(),
+                n.extras.getString(Notification.EXTRA_TEMPLATE));
+        assertEquals(90, n.extras.getInt(Notification.EXTRA_PROGRESS));
+        assertEquals(300, n.extras.getInt(Notification.EXTRA_PROGRESS_MAX));
+    }
+
+    @Test
+    @Config(sdk = 35)
+    public void update_beforeAndroid16_keepsThePlainProgressBar() {
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, 3);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, 1);
+        runAfterStart(intent);
+
+        Notification n = postedProgressNotification();
+        assertNull(n.extras.getString(Notification.EXTRA_TEMPLATE));
+        assertEquals(30, n.extras.getInt(Notification.EXTRA_PROGRESS));
+        assertEquals(100, n.extras.getInt(Notification.EXTRA_PROGRESS_MAX));
+    }
+
+    @Test
     @Config(sdk = 36)
     public void update_withProgressUpdatesOff_isNotALiveUpdate() {
         AppPreferences.setProgressNotificationsEnabled(app, false);
