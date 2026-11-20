@@ -9,6 +9,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.sentry.AppMetrics;
+import com.doubleangels.redact.sentry.SentryManager;
 
 /**
  * Opens the share sheet with a short message about Redact and its Play link. Only text is handed
@@ -20,10 +21,12 @@ public final class TellAFriend {
     }
 
     public static void share(@NonNull Context context) {
+        SentryManager.logEvent("ui", "Tell a Friend is opening the share sheet.");
         try {
             context.startActivity(Intent.createChooser(
                     buildIntent(context), context.getString(R.string.tell_friend_chooser_title)));
         } catch (ActivityNotFoundException none) {
+            SentryManager.logEvent("ui", "No share sheet could take Tell a Friend's message.");
             AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SHARE_SHEET);
             Notice.show(context, R.string.settings_link_unavailable, false);
         }

@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.doubleangels.redact.sentry.SentryManager;
+
 /**
  * Reads and applies {@link CleanPreset}s. No preset is saved: {@link #current} works it out from
  * the options every time, so Reset All Settings and a removed setting need nothing special.
@@ -72,6 +74,8 @@ public final class CleanPresets {
         AppPreferences.setCleanOptions(context, preset.strictClean, preset.keepLocation,
                 preset.approximateLocation, preset.keepDateTaken, preset.dateOnly,
                 preset.keepCameraSettings, preset.keepMotionPhotos);
+        // Several options change at once: say so, as the setting tags alone show only the result.
+        SentryManager.logEvent("clean", "The clean preset " + preset.tagValue + " was applied.");
         return true;
     }
 }
