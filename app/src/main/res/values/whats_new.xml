@@ -3,7 +3,7 @@
      into every locale. WhatsNewContentTest holds them to the rules. -->
 <resources>
     <!-- The versionCode these notes are for. The screen never shows notes for another version. -->
-    <integer name="whats_new_version_code">45</integer>
+    <integer name="whats_new_version_code">46</integer>
     <!-- true for a minor or major release (opens by itself once), false for fixes only. -->
     <bool name="whats_new_announce">true</bool>
     <!-- new, improved or fixed, one per item. -->
