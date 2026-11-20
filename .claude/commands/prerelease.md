@@ -1,5 +1,5 @@
 ---
-description: Before a release, run /translate (strings and store listing), upgrade every dependency, fix open Sentry issues (/sentry), check that new code reports to Sentry (/sentrycoverage), run /cleanup and /lint, make sure the version is bumped (/bump), preview the release notes CI will write (/releasenotes), run the unit tests (with /coverage if it is under the gate), run /test on the Pixel 10 Pro test emulator while the profiles generate on their own emulator, regenerate the screenshots if Clean, Scan or Convert look different (/generatescreenshots ifchanged), and show one summary
+description: Before a release, run /translate (strings and store listing), upgrade every dependency, fix open Sentry issues (/sentry), check that new code reports to Sentry (/sentrycoverage), run /cleanup and /lint, make sure the version is bumped (/bump), write the in-app What's New notes (/whatsnew), preview the release notes CI will write (/releasenotes), run the unit tests (with /coverage if it is under the gate), run /test on the Pixel 10 Pro test emulator while the profiles generate on their own emulator, regenerate the screenshots if Clean, Scan or Convert look different (/generatescreenshots ifchanged), and show one summary
 allowed-tools: Bash, PowerShell, Read, Edit, Write, Grep, Glob, WebFetch
 ---
 
@@ -77,6 +77,16 @@ Make sure this release has its own version, so CI's `check-version` job and `/re
 2. If `versionCode` is higher than that release's (`git show <ref>:app/build.gradle`) and the tag `v<versionName>` does not exist yet, the version is already bumped: say so and go on.
 3. Otherwise follow `.claude/commands/bump.md` with no level, so it picks one from the commits. It never picks major on its own; if it proposes major, ask me and carry on with the other steps while waiting. Skip its step 4 checks: step 1 already checked the translations and step 4 runs the unit tests. Commit as `bump.md` describes.
 
+## 2e'. What's New
+
+Follow `.claude/commands/whatsnew.md` to write the in-app notes for the `versionCode` from step 2e, with these changes:
+
+- If `whats_new_version_code` already equals `versionCode` and I approved those notes earlier, keep them and go on.
+- Wait for my approval of the English draft before going on, as it ships in the app.
+- Keep its verify step (two test classes, seconds), then commit as it describes. Steps 2f and 4 then build and test the real notes.
+
+The release is not ready while the notes are missing or for another version.
+
 ## 2f. Release build
 
 Run `./gradlew :app:bundleRelease exportReleaseManifest -q` once, if any of steps 1 to 2e changed code, resources, Gradle files or dependencies, then `python3 .github/scripts/check_release_manifest.py`. Note the size of `base/dex/*.dex`, `base/lib/<abi>/*` and `base/resources.pb` from `unzip -l app/build/outputs/bundle/release/app-release.aab`, and of the same files in the last release's bundle if one is at hand, for the summary; check with `grep io.sentry.android.replay app/build/outputs/mapping/release/mapping.txt` that the replay module is still left out (no match). R8 can fail, or strip something reached by reflection, in a way the debug unit tests never see. If it fails, find the step that broke it from that step's commit (each step committed its own changes, so build the commits in between as needed), then fix or revert just that change and build again.
@@ -114,10 +124,11 @@ Finish with one report:
 7. **Cleanup:** the findings by group with what was applied, `git diff --stat` for its commit, how many imports and dependencies were removed (and any library whose version changed), anything skipped or reverted and why, and its questions for me.
 8. **Lint:** how many issues there were and that none remain, the fixes by issue id, and any suppression with its reason.
 9. **Version:** the old and new `versionName`/`versionCode` and the bump level with its reason, or that it was already bumped.
-10. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
-11. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
-12. **Size:** the dex, native library (arm64) and resources sizes from step 2f, and what changed since the last release when known.
-13. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
-14. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
+10. **What's New:** the approved English items, the announce value, and the version they are for.
+11. **Profiles:** rule counts before and after, and whether the change is meaningful or noise.
+12. **Screenshots:** regenerated or skipped, the reason (the files that count as a visual change, or the baseline commit), and the review of the new images.
+13. **Size:** the dex, native library (arm64) and resources sizes from step 2f, and what changed since the last release when known.
+14. **Release notes:** the previewed English text with its character count, and whether CI will generate it or keep a hand-written one.
+15. **Commits:** each commit this run made (short sha and subject), anything left uncommitted and why, and where the screenshots are (`build/screenshots/` and `build/store/`).
 
 Offer to copy every locale's store images into fastlane (as step 4 of `generatescreenshots.md` describes), and to fix any failures, but do none of these without being asked.

@@ -35,9 +35,13 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 - The managed emulators stay on 37.0: AGP 9.5's managed devices take only whole API levels, and no stripped-down image exists for 37.2. While running, `adb` shows them under a generated AVD name such as `dev37_google_apis_x86_64_Pixel_10_Pro`, so pick the test emulator by its exact AVD name, `Pixel_10_Pro`.
 - Keep the profile generator class name (`Profiles`) and the managed device names short: they go into the paths of the profile files copied back from the emulator, and `adb` on Windows fails on paths over 260 characters. When every copy fails, the run finds no rules and deletes the committed profiles; restore them with `git checkout`.
 
+## What's New
+
+The What's New screen shows the notes in `app/src/main/res/values*/whats_new.xml`, which ship inside the app. `/whatsnew` writes them during `/prerelease`, after `/bump`, and they must be for the current `versionCode`: `WhatsNewContentTest` fails otherwise, and the screen never shows notes for another version. They are separate from the Play "What's new" text, which CI keeps writing from the commits. Nothing is fetched to show them.
+
 ## Commands
 
-`/prerelease` runs the whole release check and calls the others: `/translate`, `/dependencies`, `/sentry`, `/sentrycoverage`, `/cleanup`, `/lint`, `/bump`, `/releasenotes`, `/test`, `/coverage`, `/generateprofiles`, `/generatescreenshots`. Also `/verifyclean` (quick emulator check after touching cleaning code), `/benchmark` (startup with and without the profile), `/generateall` and `/release`. Each one's file in `.claude/commands/` is the source of truth for how it works.
+`/prerelease` runs the whole release check and calls the others: `/translate`, `/dependencies`, `/sentry`, `/sentrycoverage`, `/cleanup`, `/lint`, `/bump`, `/whatsnew`, `/releasenotes`, `/test`, `/coverage`, `/generateprofiles`, `/generatescreenshots`. Also `/verifyclean` (quick emulator check after touching cleaning code), `/benchmark` (startup with and without the profile), `/generateall` and `/release`. Each one's file in `.claude/commands/` is the source of truth for how it works.
 
 ## Git
 

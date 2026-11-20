@@ -4,7 +4,7 @@ An in-app screen that explains each release in plain English, written and transl
 
 | | |
 |---|---|
-| **Status** | Planned |
+| **Status** | Done |
 | **Branch** | `dev` |
 | **Target** | The first minor release after the work lands |
 | **Phases** | 5, each one a commit that passes the tests on its own |

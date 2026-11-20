@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>Escolha uma predefinição de limpeza</item>
+        <item>Indique o Redact a um amigo</item>
+        <item>Veja as novidades a cada atualização</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Diga ao Redact para que servem as fotos, como enviar para conhecidos ou guardar para você, e ele ajusta as opções para você. A Predefinição fica no topo de Configurações › Limpeza de Metadados ou no primeiro chip da aba Limpar.</item>
+        <item>Configurações › Sobre › Indicar o Redact a um Amigo abre o menu de compartilhamento com uma mensagem curta e o link do Google Play. Você pode editá-la antes de enviar, e nenhuma foto ou arquivo é anexado.</item>
+        <item>Depois de uma atualização, esta tela explica uma vez o que mudou. Você pode abri-la de novo quando quiser em Configurações › Sobre › Novidades.</item>
+    </string-array>
+</resources>

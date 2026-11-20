@@ -26,6 +26,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.doubleangels.redact.whatsnew.WhatsNew;
+import com.doubleangels.redact.whatsnew.WhatsNewActivity;
+import com.doubleangels.redact.whatsnew.WhatsNewGate;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.color.DynamicColors;
 import com.doubleangels.redact.media.InboundUriPolicy;
@@ -67,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
      * first-launch permission prompts as done, so a cleared install opens straight to the tabs.
      */
     static final String EXTRA_SKIP_INTRO = "skip_intro";
+    /**
+     * Debug builds only: launching with {@code --ez show_whats_new true} opens What's New
+     * whatever the rules say, for testing the screen.
+     */
+    static final String EXTRA_SHOW_WHATS_NEW = "show_whats_new";
     /** Manifest alias that receives Redact › Convert shares. */
     private static final String CONVERT_SHARE_TARGET = ".ConvertShareTarget";
     /** Manifest alias that receives Redact › Censor shares. */
@@ -128,6 +136,8 @@ public class MainActivity extends AppCompatActivity {
                 && getIntent().getBooleanExtra(EXTRA_SKIP_INTRO, false)) {
             AppPreferences.setOnboardingSeen(this);
             AppPreferences.setInitialPermissionsPromptCompleted(this);
+            // Screenshots, profiles and benchmarks go straight to the tabs.
+            AppPreferences.setWhatsNewSeenVersion(this, BuildConfig.VERSION_CODE);
         }
         if (savedInstanceState == null
                 && PermissionManager.shouldPromptInitialPermissions(this)) {
@@ -225,7 +235,40 @@ public class MainActivity extends AppCompatActivity {
             onboardingLauncher.launch(new Intent(this, OnboardingActivity.class));
         } else if (PermissionManager.isInitialPermissionFlowInProgress()) {
             PermissionManager.startInitialPermissionFlow(this);
+        } else if (shouldShowWhatsNew(savedInstanceState)) {
+            startActivity(new Intent(this, WhatsNewActivity.class));
         }
+    }
+
+    /** What's New opens by itself once per announced update, only on a plain launcher start. */
+    private boolean shouldShowWhatsNew(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState == null && BuildConfig.DEBUG
+                && getIntent().getBooleanExtra(EXTRA_SHOW_WHATS_NEW, false)) {
+            return true;
+        }
+        return WhatsNewGate.shouldShow(
+                AppPreferences.hasSeenOnboarding(this),
+                AppPreferences.getWhatsNewSeenVersion(this),
+                BuildConfig.VERSION_CODE,
+                WhatsNew.announces(this),
+                WhatsNew.isForThisVersion(this),
+                isPlainLaunch(getIntent()),
+                savedInstanceState != null,
+                PermissionManager.isInitialPermissionFlowInProgress()
+                        || PermissionManager.shouldPromptInitialPermissions(this));
+    }
+
+    /**
+     * A start from the launcher icon: not a share, view, tile or shortcut, which each mean a task
+     * is underway. Shares arrive through the aliases, tiles and shortcuts carry a tab.
+     */
+    static boolean isPlainLaunch(@Nullable Intent intent) {
+        return intent != null
+                && Intent.ACTION_MAIN.equals(intent.getAction())
+                && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
+                && !intent.hasExtra(EXTRA_TAB)
+                && (intent.getComponent() == null
+                        || MainActivity.class.getName().equals(intent.getComponent().getClassName()));
     }
 
     @Override

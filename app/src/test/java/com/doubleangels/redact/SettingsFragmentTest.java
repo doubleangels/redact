@@ -543,6 +543,12 @@ public class SettingsFragmentTest {
             settings.findViewById(row).performClick();
             assertNotNull(nextIntentWithAction(Intent.ACTION_VIEW));
         }
+        settings.findViewById(R.id.rowAboutWhatsNew).performClick();
+        Intent whatsNew = shadowOf(activity).getNextStartedActivity();
+        assertEquals(com.doubleangels.redact.whatsnew.WhatsNewActivity.class.getName(),
+                whatsNew.getComponent().getClassName());
+        assertTrue(whatsNew.getBooleanExtra(
+                com.doubleangels.redact.whatsnew.WhatsNewActivity.EXTRA_FROM_SETTINGS, false));
         settings.findViewById(R.id.rowAboutTellFriend).performClick();
         Intent chooser = nextIntentWithAction(Intent.ACTION_CHOOSER);
         assertNotNull(chooser);

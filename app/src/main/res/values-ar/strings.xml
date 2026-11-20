@@ -583,6 +583,13 @@
     </plurals>
     <string name="settings_about_intro">عرض المقدمة</string>
     <string name="settings_about_licenses">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="settings_about_whats_new">ما الجديد</string>
+    <string name="whats_new_title">ما الجديد</string>
+    <string name="whats_new_version">الإصدار %1$s</string>
+    <string name="whats_new_section_new">جديد</string>
+    <string name="whats_new_section_improved">تحسينات</string>
+    <string name="whats_new_section_fixed">إصلاحات</string>
+    <string name="whats_new_done">حسنًا</string>
     <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
     <string name="licenses_intro">Redact مبني باستخدام هذه المكتبات مفتوحة المصدر. انقر على أي منها لقراءة ترخيصها.</string>
     <string name="licenses_project_page">صفحة المشروع</string>

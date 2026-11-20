@@ -4,9 +4,9 @@ Plans for features that aren't built yet. Each one lists its phases, what's done
 
 | Roadmap | What it adds | Size | Status |
 |---|---|---|---|
-| [What's New](whats-new.md) | A plain-English screen after each update, written before release | Medium | Planned |
-| [Tell a Friend](tell-a-friend.md) | A Settings row that shares a short message and the Play link | Small | Planned |
-| [Clean Presets](clean-presets.md) | One choice that sets Clean's keep options for a purpose | Small to medium | Planned |
+| [What's New](whats-new.md) | A plain-English screen after each update, written before release | Medium | Done |
+| [Tell a Friend](tell-a-friend.md) | A Settings row that shares a short message and the Play link | Small | Done |
+| [Clean Presets](clean-presets.md) | One choice that sets Clean's keep options for a purpose | Small to medium | Done |
 | [Video Censor](video-censor.md) | Black, Pixelate and Blur for fixed areas of a video | Large | Planned |
 | [Audio Cleaning](audio-cleaning.md) | Clean and Scan voice memos and music files | Medium | Planned |
 | [PDF Cleaning](pdf-cleaning.md) | Clean or Flatten PDFs, removing names, revisions and image data | Large | Planned |

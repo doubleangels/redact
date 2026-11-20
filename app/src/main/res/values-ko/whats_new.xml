@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>용도에 맞는 프리셋을 고르세요</item>
+        <item>친구에게 Redact를 알려 주세요</item>
+        <item>업데이트할 때마다 새로운 기능 확인</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>사진을 어디에 쓸지(아는 사람에게 보내기, 나만 보관하기 등) 알려 주면 Redact가 옵션을 대신 설정합니다. 프리셋은 설정 › 메타데이터 정리 맨 위나 정리 탭의 첫 번째 칩에 있습니다.</item>
+        <item>설정 › 정보 › 친구에게 Redact 알려 주기를 누르면 짧은 메시지와 Google Play 링크가 담긴 공유 시트가 열립니다. 보내기 전에 수정할 수 있고, 사진이나 파일은 절대 첨부되지 않습니다.</item>
+        <item>업데이트 후 이 화면에서 바뀐 점을 한 번 알려 드립니다. 설정 › 정보 › 새로운 기능에서 언제든 다시 열 수 있습니다.</item>
+    </string-array>
+</resources>

@@ -43,7 +43,8 @@ On Windows use `gradlew.bat`, or Git Bash. You do not need a Sentry DSN to build
    The coverage check fails when unit tests cover less than 90% of the app's lines, so new code needs tests of its own.
 
 5. **Localize any user-visible text** (see below).
-6. **Open a pull request against `dev`.** Describe what changed and why, and include screenshots for UI changes. CI runs the tests, the coverage check and Android Lint on every pull request.
+6. **Leave the What's New notes alone.** `app/src/main/res/values*/whats_new.xml` is written by the maintainer just before each release; a pull request doesn't need to add to it.
+7. **Open a pull request against `dev`.** Describe what changed and why, and include screenshots for UI changes. CI runs the tests, the coverage check and Android Lint on every pull request.
 
 ### Commit messages
 

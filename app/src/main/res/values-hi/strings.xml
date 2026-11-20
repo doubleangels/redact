@@ -523,6 +523,13 @@
     </plurals>
     <string name="settings_about_intro">परिचय दिखाएं</string>
     <string name="settings_about_licenses">ओपन सोर्स लाइसेंस</string>
+    <string name="settings_about_whats_new">नया क्या है</string>
+    <string name="whats_new_title">नया क्या है</string>
+    <string name="whats_new_version">वर्शन %1$s</string>
+    <string name="whats_new_section_new">नया</string>
+    <string name="whats_new_section_improved">बेहतर</string>
+    <string name="whats_new_section_fixed">ठीक किया गया</string>
+    <string name="whats_new_done">ठीक है</string>
     <string name="licenses_title">ओपन सोर्स लाइसेंस</string>
     <string name="licenses_intro">Redact इन ओपन सोर्स लाइब्रेरी से बना है। किसी एक पर टैप करके उसका लाइसेंस पढ़ें।</string>
     <string name="licenses_project_page">प्रोजेक्ट पेज</string>

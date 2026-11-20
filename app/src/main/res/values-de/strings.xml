@@ -522,6 +522,13 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     </plurals>
     <string name="settings_about_intro">Einführung Anzeigen</string>
     <string name="settings_about_licenses">Open-Source-Lizenzen</string>
+    <string name="settings_about_whats_new">Neuigkeiten</string>
+    <string name="whats_new_title">Neuigkeiten</string>
+    <string name="whats_new_version">Version %1$s</string>
+    <string name="whats_new_section_new">Neu</string>
+    <string name="whats_new_section_improved">Verbessert</string>
+    <string name="whats_new_section_fixed">Behoben</string>
+    <string name="whats_new_done">Verstanden</string>
     <string name="licenses_title">Open-Source-Lizenzen</string>
     <string name="licenses_intro">Redact basiert auf diesen Open-Source-Bibliotheken. Tippe auf eine, um ihre Lizenz zu lesen.</string>
     <string name="licenses_project_page">Projektseite</string>

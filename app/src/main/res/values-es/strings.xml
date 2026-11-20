@@ -538,6 +538,13 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     </plurals>
     <string name="settings_about_intro">Mostrar Introducción</string>
     <string name="settings_about_licenses">Licencias de Código Abierto</string>
+    <string name="settings_about_whats_new">Novedades</string>
+    <string name="whats_new_title">Novedades</string>
+    <string name="whats_new_version">Versión %1$s</string>
+    <string name="whats_new_section_new">Nuevo</string>
+    <string name="whats_new_section_improved">Mejorado</string>
+    <string name="whats_new_section_fixed">Corregido</string>
+    <string name="whats_new_done">Entendido</string>
     <string name="licenses_title">Licencias de Código Abierto</string>
     <string name="licenses_intro">Redact está hecho con estas bibliotecas de código abierto. Toca una para leer su licencia.</string>
     <string name="licenses_project_page">Página del Proyecto</string>

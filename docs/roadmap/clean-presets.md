@@ -4,7 +4,7 @@ One choice that sets all of Clean's keep options for a purpose, like **Posting O
 
 | | |
 |---|---|
-| **Status** | Planned |
+| **Status** | Done, with three presets (see [As built](#as-built)) |
 | **Branch** | `dev` |
 | **Size** | Small to medium. 4 phases, about one week |
 | **Depends on** | Nothing |
@@ -185,6 +185,22 @@ Metadata Cleaning
 | **Keeping for Myself** sounds safe but keeps location | Its description says the location is rounded to the town, and it asks first like Keep Location |
 | Preset names don't translate well | Translators get context comments in `values/strings.xml`, and `/translate` reviews them |
 | A future option is added and presets forget it | `CleanPresetsTest` lists every Clean option and fails if one has no value in each preset or isn't marked "unchanged" |
+
+## As built
+
+Strict Clean is on by default (`AppPreferences.isStrictClean` defaults to `true`), so the table above was wrong to call **Standard** with Strict Clean off "today's defaults": today's defaults match **Posting Online**, and the two would have been the same on a new install. It shipped with three presets instead:
+
+| Option | Standard (default) | Sending to People I Know | Keeping for Myself |
+|---|---|---|---|
+| Strict Clean | **On** | Off | Off |
+| Keep Location | Off | Off | **On** |
+| Approximate Location | (unchanged) | (unchanged) | **On** |
+| Keep Date Taken | Off | **On** | **On** |
+| Date Only | (unchanged) | **On** | Off |
+| Keep Camera Settings | Off | Off | **On** |
+| Keep Motion Photos | Off | Off | **On** |
+
+**Standard** takes Posting Online's description ("best for social media, marketplaces and anywhere strangers can see it"). With Strict Clean on, only Strict Clean is compared, since it ignores every keep option. The `setting.clean_preset` values are `standard`, `sending_to_people`, `keeping_for_myself` and `custom`.
 
 ## Open decisions
 

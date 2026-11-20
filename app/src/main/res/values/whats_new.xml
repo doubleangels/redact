@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The in-app What's New notes, written by /whatsnew before each release and translated
+     into every locale. WhatsNewContentTest holds them to the rules. -->
+<resources>
+    <!-- The versionCode these notes are for. The screen never shows notes for another version. -->
+    <integer name="whats_new_version_code">45</integer>
+    <!-- true for a minor or major release (opens by itself once), false for fixes only. -->
+    <bool name="whats_new_announce">true</bool>
+    <!-- new, improved or fixed, one per item. -->
+    <string-array name="whats_new_kinds" translatable="false">
+        <item>new</item>
+        <item>new</item>
+        <item>new</item>
+    </string-array>
+    <!-- clean, scan, convert, censor, settings, stats or fixes, one per item. -->
+    <string-array name="whats_new_icons" translatable="false">
+        <item>clean</item>
+        <item>settings</item>
+        <item>settings</item>
+    </string-array>
+    <string-array name="whats_new_titles">
+        <item>Pick a preset for how you clean</item>
+        <item>Tell a friend about Redact</item>
+        <item>See what\'s new after each update</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Tell Redact what the photos are for, like sending them to people you know or keeping them for yourself, and it sets the options for you. Find Preset at the top of Settings › Metadata Cleaning, or tap the first chip on the Clean tab.</item>
+        <item>Settings › About › Tell a Friend About Redact opens your share sheet with a short message and the Google Play link. You can edit it before sending, and no photo or file is ever attached.</item>
+        <item>After an update, this screen explains what changed, once. You can open it again any time from Settings › About › What\'s New.</item>
+    </string-array>
+</resources>

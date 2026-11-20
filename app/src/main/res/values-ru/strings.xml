@@ -553,6 +553,13 @@
     </plurals>
     <string name="settings_about_intro">Показать Введение</string>
     <string name="settings_about_licenses">Лицензии Открытого ПО</string>
+    <string name="settings_about_whats_new">Что нового</string>
+    <string name="whats_new_title">Что нового</string>
+    <string name="whats_new_version">Версия %1$s</string>
+    <string name="whats_new_section_new">Новое</string>
+    <string name="whats_new_section_improved">Улучшено</string>
+    <string name="whats_new_section_fixed">Исправлено</string>
+    <string name="whats_new_done">Понятно</string>
     <string name="licenses_title">Лицензии Открытого ПО</string>
     <string name="licenses_intro">Redact создан с использованием этих библиотек с открытым исходным кодом. Нажмите на любую, чтобы прочитать её лицензию.</string>
     <string name="licenses_project_page">Страница Проекта</string>

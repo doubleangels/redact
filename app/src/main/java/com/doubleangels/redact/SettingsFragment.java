@@ -47,6 +47,8 @@ import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.update.UpdateChecker;
+import com.doubleangels.redact.whatsnew.WhatsNew;
+import com.doubleangels.redact.whatsnew.WhatsNewActivity;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.SwitchRows;
@@ -970,6 +972,12 @@ public class SettingsFragment extends TabFragment {
                 openUrl(getString(R.string.url_privacy_policy)));
         view.findViewById(R.id.rowAboutTerms).setOnClickListener(v ->
                 openUrl(getString(R.string.url_terms_of_use)));
+        // Only while the shipped notes are for this version; others are never shown.
+        boolean notes = WhatsNew.isForThisVersion(requireContext());
+        view.findViewById(R.id.rowAboutWhatsNew).setVisibility(notes ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.dividerAboutWhatsNew).setVisibility(notes ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.rowAboutWhatsNew).setOnClickListener(v ->
+                startActivity(WhatsNewActivity.fromSettings(requireContext())));
         view.findViewById(R.id.rowAboutLicenses).setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), LicensesActivity.class)));
         view.findViewById(R.id.rowAboutIntro).setOnClickListener(v ->

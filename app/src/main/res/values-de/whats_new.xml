@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>Wähle eine Voreinstellung fürs Bereinigen</item>
+        <item>Empfiehl Redact weiter</item>
+        <item>Sieh nach jedem Update, was neu ist</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Sag Redact, wofür die Fotos sind, etwa zum Senden an Bekannte oder um sie für dich zu behalten, und es stellt die Optionen für dich ein. Du findest Voreinstellung oben unter Einstellungen › Metadaten-Bereinigung oder als ersten Chip im Tab Bereinigen.</item>
+        <item>Einstellungen › Über › Redact Weiterempfehlen öffnet das Teilen-Menü mit einer kurzen Nachricht und dem Google-Play-Link. Du kannst sie vor dem Senden ändern, und es wird nie ein Foto oder eine Datei angehängt.</item>
+        <item>Nach einem Update erklärt dieser Bildschirm einmal, was sich geändert hat. Du kannst ihn jederzeit unter Einstellungen › Über › Neuigkeiten wieder öffnen.</item>
+    </string-array>
+</resources>

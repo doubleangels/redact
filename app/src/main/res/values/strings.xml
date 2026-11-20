@@ -613,6 +613,13 @@
 
     <!-- Settings › Open-Source Licenses -->
     <string name="settings_about_licenses">Open-Source Licenses</string>
+    <string name="settings_about_whats_new">What\'s New</string>
+    <string name="whats_new_title">What\'s New</string>
+    <string name="whats_new_version">Version %1$s</string>
+    <string name="whats_new_section_new">New</string>
+    <string name="whats_new_section_improved">Improved</string>
+    <string name="whats_new_section_fixed">Fixed</string>
+    <string name="whats_new_done">Got It</string>
     <string name="licenses_title">Open-Source Licenses</string>
     <string name="licenses_intro">Redact is built with these open-source libraries. Tap one to read its license.</string>
     <string name="licenses_project_page">Project Page</string>

@@ -509,6 +509,13 @@
     </plurals>
     <string name="settings_about_intro">紹介を表示</string>
     <string name="settings_about_licenses">オープンソースライセンス</string>
+    <string name="settings_about_whats_new">新機能</string>
+    <string name="whats_new_title">新機能</string>
+    <string name="whats_new_version">バージョン %1$s</string>
+    <string name="whats_new_section_new">新機能</string>
+    <string name="whats_new_section_improved">改善</string>
+    <string name="whats_new_section_fixed">修正</string>
+    <string name="whats_new_done">OK</string>
     <string name="licenses_title">オープンソースライセンス</string>
     <string name="licenses_intro">Redactは以下のオープンソースライブラリを使用しています。タップするとライセンスを表示します。</string>
     <string name="licenses_project_page">プロジェクトページ</string>

@@ -508,6 +508,13 @@
     </plurals>
     <string name="settings_about_intro">再次查看介绍</string>
     <string name="settings_about_licenses">开源许可</string>
+    <string name="settings_about_whats_new">新功能</string>
+    <string name="whats_new_title">新功能</string>
+    <string name="whats_new_version">版本 %1$s</string>
+    <string name="whats_new_section_new">新增</string>
+    <string name="whats_new_section_improved">改进</string>
+    <string name="whats_new_section_fixed">修复</string>
+    <string name="whats_new_done">知道了</string>
     <string name="licenses_title">开源许可</string>
     <string name="licenses_intro">Redact 使用了以下开源库。点按任意一项即可查看其许可。</string>
     <string name="licenses_project_page">项目主页</string>

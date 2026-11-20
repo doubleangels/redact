@@ -538,6 +538,13 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     </plurals>
     <string name="settings_about_intro">Mostra Introduzione</string>
     <string name="settings_about_licenses">Licenze Open Source</string>
+    <string name="settings_about_whats_new">Novità</string>
+    <string name="whats_new_title">Novità</string>
+    <string name="whats_new_version">Versione %1$s</string>
+    <string name="whats_new_section_new">Nuovo</string>
+    <string name="whats_new_section_improved">Migliorato</string>
+    <string name="whats_new_section_fixed">Corretto</string>
+    <string name="whats_new_done">Ho Capito</string>
     <string name="licenses_title">Licenze Open Source</string>
     <string name="licenses_intro">Redact è realizzato con queste librerie open source. Toccane una per leggerne la licenza.</string>
     <string name="licenses_project_page">Pagina del Progetto</string>

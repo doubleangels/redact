@@ -35,6 +35,52 @@ public class StringTranslationsTest {
         assertTrue(String.join("\n", problems), problems.isEmpty());
     }
 
+    /**
+     * Every translatable string array in values/ (in any file, such as whats_new.xml) is in every
+     * locale with the same number of items: a missing item would pair a title with the wrong body.
+     */
+    @Test
+    public void everyLocaleTranslatesEveryStringArray() throws Exception {
+        java.util.Map<String, Integer> base = arrays(new File(RES, "values"), true);
+        assertTrue("expected the What's New arrays", base.containsKey("whats_new_titles"));
+        File[] dirs = RES.listFiles((d, n) -> n.startsWith("values-") && new File(d, n + "/strings.xml").exists());
+        List<String> problems = new ArrayList<>();
+        for (File dir : dirs) {
+            java.util.Map<String, Integer> loc = arrays(dir, false);
+            for (java.util.Map.Entry<String, Integer> e : base.entrySet()) {
+                Integer got = loc.get(e.getKey());
+                if (got == null) problems.add(dir.getName() + " missing array " + e.getKey());
+                else if (!got.equals(e.getValue()))
+                    problems.add(dir.getName() + " " + e.getKey() + " has " + got + " items, needs " + e.getValue());
+            }
+        }
+        assertTrue(String.join("\n", problems), problems.isEmpty());
+    }
+
+    /** Item counts of the string arrays in every XML file of a values folder. */
+    private static java.util.Map<String, Integer> arrays(File dir, boolean translatableOnly) throws Exception {
+        java.util.Map<String, Integer> out = new java.util.HashMap<>();
+        File[] files = dir.listFiles((d, n) -> n.endsWith(".xml"));
+        for (File f : files == null ? new File[0] : files) {
+            NodeList nl = strings(f);
+            for (int i = 0; i < nl.getLength(); i++) {
+                if (!(nl.item(i) instanceof Element)) continue;
+                Element e = (Element) nl.item(i);
+                if (!"string-array".equals(e.getTagName())) continue;
+                if (translatableOnly && "false".equals(e.getAttribute("translatable"))) continue;
+                NodeList items = e.getElementsByTagName("item");
+                // An array of @string references is translated through those strings.
+                boolean onlyReferences = items.getLength() > 0;
+                for (int j = 0; j < items.getLength(); j++) {
+                    onlyReferences &= items.item(j).getTextContent().trim().startsWith("@string/");
+                }
+                if (translatableOnly && onlyReferences) continue;
+                out.put(e.getAttribute("name"), items.getLength());
+            }
+        }
+        return out;
+    }
+
     @Test
     public void formatPlaceholdersMatchDefaultLocale() throws Exception {
         List<String> problems = new ArrayList<>();

@@ -516,7 +516,7 @@ Every tag, counter, timing, breadcrumb, transaction and span the app sends follo
 | `cache.leftover_file_sweep` | Deleting working files an earlier run left behind |
 | `output.unfinished_file_sweep` | Deleting unfinished copies an earlier run left in a chosen folder |
 
-Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
+Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `whatsnew`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
 
 | Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
 

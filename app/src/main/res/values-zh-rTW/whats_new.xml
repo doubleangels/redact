@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>依用途選擇清理預設組合</item>
+        <item>向朋友推薦 Redact</item>
+        <item>每次更新後了解新功能</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>告訴 Redact 這些相片的用途，例如傳給認識的人或留給自己，它就會幫你設定好選項。預設組合位於「設定 › 中繼資料清理」頂端，也可以輕觸「清理」分頁的第一個標籤。</item>
+        <item>「設定 › 關於 › 推薦 Redact 給朋友」會開啟分享選單，附上一段簡短訊息和 Google Play 連結。傳送前可以編輯，絕不會附加任何相片或檔案。</item>
+        <item>更新後，這個畫面會說明一次有哪些變更。你可以隨時從「設定 › 關於 › 新功能」再次開啟。</item>
+    </string-array>
+</resources>

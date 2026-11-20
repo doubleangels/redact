@@ -4,7 +4,7 @@ A row in Settings › About that opens the Android share sheet with a short mess
 
 | | |
 |---|---|
-| **Status** | Planned |
+| **Status** | Done |
 | **Branch** | `dev` |
 | **Size** | Small. One commit, about 1 class, 1 layout row, 3 strings in 13 files, tests and docs |
 | **Target** | The next release after it lands |
@@ -63,12 +63,13 @@ Add to `values/strings.xml` and all 12 locales (`ar de es fr hi it ja ko pt ru z
 |---|---|
 | `settings_about_tell_friend` | Tell a Friend About Redact |
 | `tell_friend_chooser_title` | Share Redact |
-| `tell_friend_message` | I use Redact to remove hidden details like location and camera model from my photos and videos before I share them. It\'s free, has no ads and works right on your phone. %1$s |
+| `tell_friend_message` | I use Redact to remove hidden details like location and camera model from my photos and videos before I share them. It has no ads or subscriptions and works right on your phone. %1$s |
 
 Writing rules for the message and its translations:
 
 - First person, because the user is the one sending it.
 - No jargon. No "metadata" or "EXIF".
+- Never "free": Redact is a paid app ("Pay once, keep it" on Play).
 - At most 250 characters before the link, so it fits in one text message in most languages.
 - Exactly one `%1$s`, at the end, which becomes the link.
 

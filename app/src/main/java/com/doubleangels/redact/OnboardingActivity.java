@@ -202,6 +202,8 @@ public class OnboardingActivity extends AppCompatActivity {
         AppMetrics.onboardingFinished(resultCode == RESULT_OK);
         if (resultCode == RESULT_OK) {
             SentryManager.logEvent("app.lifecycle", "The introduction finished.");
+            // A new install has nothing to catch up on: What's New waits for the next update.
+            AppPreferences.setWhatsNewSeenVersion(this, BuildConfig.VERSION_CODE);
         }
         setResult(resultCode);
         finish();

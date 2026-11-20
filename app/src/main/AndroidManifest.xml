@@ -137,6 +137,12 @@
         <activity
             android:name=".OnboardingActivity"
             android:exported="false" />
+        <!-- What's New after an update, and Settings › About › What's New. -->
+        <activity
+            android:name=".whatsnew.WhatsNewActivity"
+            android:exported="false"
+            android:label="@string/whats_new_title"
+            android:parentActivityName=".MainActivity" />
         <!-- Settings › Open-Source Licenses. -->
         <activity
             android:name=".LicensesActivity"

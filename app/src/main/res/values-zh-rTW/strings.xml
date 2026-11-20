@@ -508,6 +508,13 @@
     </plurals>
     <string name="settings_about_intro">再次查看介紹</string>
     <string name="settings_about_licenses">開放原始碼授權</string>
+    <string name="settings_about_whats_new">新功能</string>
+    <string name="whats_new_title">新功能</string>
+    <string name="whats_new_version">版本 %1$s</string>
+    <string name="whats_new_section_new">新增</string>
+    <string name="whats_new_section_improved">改進</string>
+    <string name="whats_new_section_fixed">修正</string>
+    <string name="whats_new_done">知道了</string>
     <string name="licenses_title">開放原始碼授權</string>
     <string name="licenses_intro">Redact 使用了以下開放原始碼程式庫。輕觸任一項目即可查看授權。</string>
     <string name="licenses_project_page">專案網頁</string>

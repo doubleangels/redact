@@ -14,13 +14,14 @@ Make sure every user-visible string, and the Play store listing text, is transla
    - the strings added or changed in `values/` since the tag.
    It exits 1 when there is any ERROR.
 3. Also look for user-visible text that is not a resource at all: string literals passed to `setText`, `Toast.makeText`, `Snackbar.make`, `setTitle`, `setMessage`, `setContentTitle`/`setContentText` or `setContentDescription` in `app/src/main/java`. Log tags, intent extras, preference keys and exception messages that are never shown are fine.
-4. Compare the letter case of every translation in `de es fr it pt ru` with its English original (see **Case** under Fix). The checker does not flag this, so read the files side by side.
-5. Check the store listing in `fastlane/metadata/android/`. The release pushes it to Play, so a stale translation goes live. The English is in `en-US/`; the other folders are the store locales (`ar de-DE es-ES fr-FR hi-IN it-IT ja-JP ko-KR pt-BR ru-RU zh-CN zh-TW`). For each locale and each of `title.txt`, `short_description.txt` and `full_description.txt`:
+4. Check the What's New notes: every `values-<locale>/whats_new.xml` has `whats_new_titles` and `whats_new_bodies` with as many items as `values/whats_new.xml`, translated (not left in English), using that locale's labels from its `strings.xml`, and within 50 characters per title and 300 per body. The checker above does not read these files; `WhatsNewContentTest` and `StringTranslationsTest` do. If the English notes changed since a locale's (compare `git log -1 --format=%ct`), translate what changed. Never change `whats_new_version_code`, `whats_new_announce` or the untranslated arrays here; `/whatsnew` owns them.
+5. Compare the letter case of every translation in `de es fr it pt ru` with its English original (see **Case** under Fix). The checker does not flag this, so read the files side by side.
+6. Check the store listing in `fastlane/metadata/android/`. The release pushes it to Play, so a stale translation goes live. The English is in `en-US/`; the other folders are the store locales (`ar de-DE es-ES fr-FR hi-IN it-IT ja-JP ko-KR pt-BR ru-RU zh-CN zh-TW`). For each locale and each of `title.txt`, `short_description.txt` and `full_description.txt`:
    - **Missing**: the file does not exist.
    - **Too long**: Play's limits are 30 characters for the title, 80 for the short description and 4000 for the full description (count characters, not bytes).
    - **Out of date**: `en-US`'s copy changed in a later commit than the locale's (compare `git log -1 --format=%ct -- <file>` for both, and also count uncommitted changes to `en-US`). Read `git diff <locale file's last commit> -- fastlane/metadata/android/en-US/<file>` to see what changed in the English since.
    - **Untranslated**: lines still in English that are not brand, format or codec names.
-6. If there are no ERRORs, no CHECKs, no hardcoded text, no case mismatches and no store listing problems, skip to step 3 (Verify).
+7. If there are no ERRORs, no CHECKs, no hardcoded text, no case mismatches and no store listing problems, skip to step 3 (Verify).
 
 ## 2. Fix
 
@@ -43,7 +44,7 @@ Make sure every user-visible string, and the Play store listing text, is transla
 ## 3. Verify
 
 1. Re-run the checker. The goal is `Total: 0 problems, 0 same-as-English values to review`. Re-check the store listing: every locale has all three files, within the limits.
-2. Run `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest -q` (use `gradlew.bat` from PowerShell) and confirm it passes.
+2. Run `./gradlew :app:testDebugUnitTest --tests com.doubleangels.redact.StringTranslationsTest --tests com.doubleangels.redact.whatsnew.WhatsNewContentTest -q` (use `gradlew.bat` from PowerShell) and confirm it passes.
 3. If any string used in a layout got noticeably longer (for example in German or Russian), say which screen may need a visual check.
 
 ## 4. Summary

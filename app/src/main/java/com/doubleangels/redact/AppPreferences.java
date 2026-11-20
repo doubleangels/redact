@@ -45,6 +45,7 @@ public final class AppPreferences {
     private static final String KEY_VIDEO_FALLBACK_COPY = "video_fallback_copy";
     private static final String KEY_INITIAL_PERMISSIONS_PROMPTED = "initial_permissions_prompted";
     private static final String KEY_ONBOARDING_SEEN = "onboarding_seen";
+    private static final String KEY_WHATS_NEW_SEEN_VERSION = "whats_new_seen_version";
     private static final String KEY_MAPS_LOCATION_CONSENT_GIVEN = "maps_location_consent_given";
     private static final String KEY_SHARE_REPORT_CONSENT_GIVEN = "share_report_consent_given";
     private static final String KEY_OUTPUT_TREE_IMAGES = "output_tree_images";
@@ -481,6 +482,18 @@ public final class AppPreferences {
     }
 
     /**
+     * The versionCode whose What's New notes were last opened, or 0 when none were (a new install,
+     * or an update from a version before the screen existed).
+     */
+    public static int getWhatsNewSeenVersion(@NonNull Context context) {
+        return prefs(context).getInt(KEY_WHATS_NEW_SEEN_VERSION, 0);
+    }
+
+    public static void setWhatsNewSeenVersion(@NonNull Context context, int versionCode) {
+        prefs(context).edit().putInt(KEY_WHATS_NEW_SEEN_VERSION, versionCode).apply();
+    }
+
+    /**
      * Whether the user has already agreed, once, that opening a Scan coordinate in the device's
      * maps app is okay. That action hands the GPS coordinates to a third-party app, which may
      * in turn send them off-device (tile/geocoding requests), unlike every other Scan action,
@@ -509,7 +522,8 @@ public final class AppPreferences {
     /**
      * Puts every setting back to its default. The first-launch permission prompt is not shown
      * again, since resetting settings does not change what Android has already granted, nor is the
-     * introduction, and the rating prompt's progress is kept, so it is never asked again.
+     * introduction or the last What's New, and the rating prompt's progress is kept, so it is never
+     * asked again.
      */
     public static void resetAll(@NonNull Context context) {
         SharedPreferences p = prefs(context);
@@ -517,10 +531,14 @@ public final class AppPreferences {
         int reviewCount = p.getInt(ReviewPrompt.KEY_SUCCESS_COUNT, 0);
         int reviewState = p.getInt(ReviewPrompt.KEY_STATE, 0);
         boolean onboardingSeen = hasSeenOnboarding(context);
+        int whatsNewSeen = getWhatsNewSeenVersion(context);
         SharedPreferences.Editor e = p.edit().clear()
                 .putBoolean(KEY_INITIAL_PERMISSIONS_PROMPTED, prompted);
         if (onboardingSeen) {
             e.putBoolean(KEY_ONBOARDING_SEEN, true);
+        }
+        if (whatsNewSeen > 0) {
+            e.putInt(KEY_WHATS_NEW_SEEN_VERSION, whatsNewSeen);
         }
         if (reviewCount > 0) {
             e.putInt(ReviewPrompt.KEY_SUCCESS_COUNT, reviewCount);

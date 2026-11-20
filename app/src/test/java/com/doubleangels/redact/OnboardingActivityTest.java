@@ -221,6 +221,8 @@ public class OnboardingActivityTest {
         tap(first, R.id.onboardingPrimary);
         assertTrue(first.isFinishing());
         assertEquals(Activity.RESULT_OK, shadowOf(first).getResultCode());
+        assertEquals("a new install waits for the next update's What's New",
+                BuildConfig.VERSION_CODE, AppPreferences.getWhatsNewSeenVersion(first));
         controller.destroy();
 
         OnboardingActivity replay = launch(true);

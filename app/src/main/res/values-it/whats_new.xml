@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>Scegli una preimpostazione per la pulizia</item>
+        <item>Consiglia Redact a un amico</item>
+        <item>Scopri le novità dopo ogni aggiornamento</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Di\' a Redact a cosa servono le foto, ad esempio inviarle a persone che conosci o tenerle per te, e imposterà le opzioni per te. Trovi Preimpostazione in cima a Impostazioni › Pulizia Metadati, oppure nel primo chip della scheda Pulisci.</item>
+        <item>Impostazioni › Informazioni › Consiglia Redact a un Amico apre il menu di condivisione con un breve messaggio e il link di Google Play. Puoi modificarlo prima di inviarlo e non viene mai allegata nessuna foto o file.</item>
+        <item>Dopo un aggiornamento, questa schermata spiega una volta cosa è cambiato. Puoi riaprirla quando vuoi da Impostazioni › Informazioni › Novità.</item>
+    </string-array>
+</resources>
