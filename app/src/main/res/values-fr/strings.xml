@@ -130,6 +130,17 @@
     
     <string name="settings_section_advanced_privacy">Nettoyage des Métadonnées</string>
     <string name="settings_advanced_privacy_subtitle">Comment Redact supprime les informations cachées, comme la localisation et les infos de l\'appareil photo (EXIF), dans l\'onglet Nettoyer. Les fichiers partagés depuis d\'autres apps en sont toujours débarrassés avant le transfert.</string>
+    <string name="settings_clean_preset">Préréglage</string>
+    <string name="settings_clean_preset_subtitle">Règle les options ci-dessous selon ce que vous allez faire des fichiers. Vous pouvez toujours modifier chacune d\'elles.</string>
+    <string name="clean_preset_chip_description">Préréglage : %1$s. Appuyez pour le changer.</string>
+    <string name="clean_preset_standard">Standard</string>
+    <string name="clean_preset_standard_description">Retire tout ce dont une photo n\'a pas besoin pour s\'afficher correctement, y compris le lieu, les dates et les détails de l\'appareil. Idéal pour les réseaux sociaux, les sites de petites annonces et partout où des inconnus la verront. Le réglage par défaut.</string>
+    <string name="clean_preset_sending">Envoyer à des Proches</string>
+    <string name="clean_preset_sending_description">Retire le lieu et les détails de l\'appareil, mais garde le jour de chaque photo pour qu\'elle se range au bon endroit dans leur galerie.</string>
+    <string name="clean_preset_keeping">Garder pour Moi</string>
+    <string name="clean_preset_keeping_description">Garde la date, les détails de l\'appareil photo et les photos animées, et arrondit le lieu à la ville. Pratique pour les sauvegardes et un stockage en ligne auquel vous ne faites pas entièrement confiance.</string>
+    <string name="clean_preset_custom">Personnalisé</string>
+    <string name="clean_preset_custom_description">Affiché lorsque vos options ne correspondent à aucun préréglage.</string>
     <string name="settings_auto_clear_temp">Vider le Cache au Démarrage</string>
     <string name="settings_auto_clear_temp_subtitle">Supprime les fichiers cache de traitement de plus de 24 heures à l\'ouverture de l\'app.</string>
     <string name="settings_preserve_camera">Conserver les Réglages Photo</string>

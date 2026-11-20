@@ -47,6 +47,7 @@ Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 • Vignette Réglages rapides et raccourcis sur l'écran d'accueil
 • Vos propres dossiers de sortie et Conserver les Noms de Fichiers
 • Nettoyage Strict
+• Préréglages de nettoyage : pour publier, envoyer à des proches ou garder pour vous
 • Masquer Redact dans les captures et les apps récentes
 • Effacement automatique des métadonnées copiées
 • Statistiques comptées uniquement sur votre téléphone

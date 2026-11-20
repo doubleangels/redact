@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.CleanPresets;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -45,6 +46,7 @@ public final class AppStateTags {
     private static void putSettings(@NonNull Context context, @NonNull Map<String, String> tags) {
         try {
             tags.put("setting.strict_clean", bool(AppPreferences.isStrictClean(context)));
+            tags.put("setting.clean_preset", CleanPresets.current(context).tagValue);
             tags.put("setting.keep_camera_settings", bool(AppPreferences.isPreserveCameraSettings(context)));
             tags.put("setting.keep_date_taken", dateTaken(context));
             tags.put("setting.keep_motion_photos", bool(AppPreferences.isPreserveMotionPhoto(context)));

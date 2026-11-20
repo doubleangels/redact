@@ -142,6 +142,17 @@
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
     <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية، مثل الموقع وتفاصيل الكاميرا (EXIF)، في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
+    <string name="settings_clean_preset">الإعداد المسبق</string>
+    <string name="settings_clean_preset_subtitle">يضبط الخيارات أدناه حسب ما ستفعله بالملفات. لا يزال بإمكانك تغيير أي منها.</string>
+    <string name="clean_preset_chip_description">الإعداد المسبق: %1$s. انقر للتغيير.</string>
+    <string name="clean_preset_standard">قياسي</string>
+    <string name="clean_preset_standard_description">يزيل كل ما لا تحتاجه الصورة لتظهر بشكل صحيح، بما في ذلك الموقع والتواريخ وتفاصيل الجهاز. الأفضل لوسائل التواصل الاجتماعي والأسواق وأي مكان يراه الغرباء. الإعداد الافتراضي.</string>
+    <string name="clean_preset_sending">الإرسال إلى أشخاص أعرفهم</string>
+    <string name="clean_preset_sending_description">يزيل الموقع وتفاصيل الجهاز لكنه يحتفظ بيوم التقاط كل صورة، لتظهر في مكانها الصحيح في معرض صورهم.</string>
+    <string name="clean_preset_keeping">الاحتفاظ بها لنفسي</string>
+    <string name="clean_preset_keeping_description">يحتفظ بالتاريخ وتفاصيل الكاميرا والصور المتحركة، ويقرّب الموقع إلى مستوى المدينة. مناسب للنسخ الاحتياطية والتخزين السحابي الذي لا تثق به تمامًا.</string>
+    <string name="clean_preset_custom">مخصص</string>
+    <string name="clean_preset_custom_description">يظهر عندما لا تطابق خياراتك أي إعداد مسبق.</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>

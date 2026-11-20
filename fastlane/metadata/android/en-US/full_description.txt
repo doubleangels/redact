@@ -47,6 +47,7 @@ Or share it to Scan with Redact to check it first.
 • Quick Settings tile and home screen shortcuts
 • Your own output folders and Keep Original File Names
 • Strict Clean
+• Clean presets for posting, sending to people you know or keeping for yourself
 • Hide Redact from screenshots and recents
 • Automatic clearing of copied metadata
 • Statistics counted only on your phone

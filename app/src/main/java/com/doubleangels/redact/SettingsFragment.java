@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.icu.text.CompactDecimalFormat;
@@ -20,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +42,7 @@ import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.CleanPresetLabels;
 import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Notice;
@@ -111,6 +114,13 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownClipboardClear;
+    @Nullable
+    private RadioGroup radioCleanPreset;
+    /** Set while the preset list is set from the preferences, so that isn't taken for a pick. */
+    private boolean syncingPreset;
+    /** Moves the preset to Custom or a match whenever any option changes, here or elsewhere. */
+    @Nullable
+    private SharedPreferences.OnSharedPreferenceChangeListener presetListener;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
@@ -148,6 +158,7 @@ public class SettingsFragment extends TabFragment {
             bindStorage(view);
             bindPrivacy(view);
             bindAdvancedSettings();
+            bindCleanPreset(view);
             bindAbout(view);
             SwitchRows.wire(view);
         } catch (Exception e) {
@@ -192,15 +203,113 @@ public class SettingsFragment extends TabFragment {
             switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(context));
             switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(context));
             switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(context));
+            switchApproximateLocation.setChecked(AppPreferences.isApproximateLocation(context));
+            switchDateOnly.setChecked(AppPreferences.isDateOnly(context));
+            switchPreserveMotion.setChecked(AppPreferences.isPreserveMotionPhoto(context));
             switchRemoveAudio.setChecked(AppPreferences.isRemoveAudio(context));
         } finally {
             suppressPreserveLocationToggleCallback = false;
         }
         updatePreservationTogglesState(AppPreferences.isStrictClean(context));
+        refreshCleanPreset();
+    }
+
+    private static final int[] PRESET_RADIO_IDS = {
+            R.id.radioPresetStandard, R.id.radioPresetSending, R.id.radioPresetKeeping};
+
+    /**
+     * The preset list above the cleaning switches. Picking one writes its options and flips the
+     * switches; a preset that keeps a location asks first, as Keep Location does, and declining
+     * leaves everything as it was.
+     */
+    private void bindCleanPreset(@NonNull View view) {
+        radioCleanPreset = view.findViewById(R.id.radioCleanPreset);
+        if (radioCleanPreset == null) {
+            return;
+        }
+        Context context = requireContext();
+        CleanPreset[] choices = CleanPreset.choices();
+        for (int i = 0; i < choices.length; i++) {
+            ((TextView) view.findViewById(PRESET_RADIO_IDS[i]))
+                    .setText(CleanPresetLabels.twoLine(context, choices[i]));
+        }
+        ((TextView) view.findViewById(R.id.radioPresetCustom))
+                .setText(CleanPresetLabels.twoLine(context, CleanPreset.CUSTOM));
+        // The selection comes from the preferences; a restored one could be stale and be taken
+        // for a pick.
+        for (int i = 0; i < radioCleanPreset.getChildCount(); i++) {
+            radioCleanPreset.getChildAt(i).setSaveEnabled(false);
+        }
+        refreshCleanPreset();
+        radioCleanPreset.setOnCheckedChangeListener((group, checkedId) -> {
+            if (syncingPreset) {
+                return;
+            }
+            for (int i = 0; i < PRESET_RADIO_IDS.length; i++) {
+                if (PRESET_RADIO_IDS[i] == checkedId) {
+                    pickCleanPreset(choices[i]);
+                }
+            }
+        });
+        presetListener = (prefs, key) -> refreshCleanPreset();
+        context.getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+                .registerOnSharedPreferenceChangeListener(presetListener);
+    }
+
+    private void pickCleanPreset(@NonNull CleanPreset preset) {
+        Context context = requireContext();
+        if (preset == CleanPresets.current(context)) {
+            return;
+        }
+        if (!preset.keepsLocation()) {
+            CleanPresets.apply(context, preset, false);
+            refreshCleaningSwitches();
+            return;
+        }
+        // Shows the previous choice until the user says yes.
+        refreshCleanPreset();
+        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.settings_preserve_location_confirm_title)
+                .setMessage(R.string.settings_preserve_location_confirm_message)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    CleanPresets.apply(requireContext(), preset, true);
+                    refreshCleaningSwitches();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+    }
+
+    /** Selects the preset the saved options match, or Custom. */
+    private void refreshCleanPreset() {
+        if (radioCleanPreset == null || getContext() == null) {
+            return;
+        }
+        CleanPreset current = CleanPresets.current(requireContext());
+        CleanPreset[] choices = CleanPreset.choices();
+        int id = R.id.radioPresetCustom;
+        for (int i = 0; i < choices.length; i++) {
+            if (choices[i] == current) {
+                id = PRESET_RADIO_IDS[i];
+            }
+        }
+        if (radioCleanPreset.getCheckedRadioButtonId() == id) {
+            return;
+        }
+        syncingPreset = true;
+        try {
+            radioCleanPreset.check(id);
+        } finally {
+            syncingPreset = false;
+        }
     }
 
     @Override
     public void onDestroyView() {
+        if (presetListener != null) {
+            requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+                    .unregisterOnSharedPreferenceChangeListener(presetListener);
+            presetListener = null;
+        }
         if (backgroundExecutor != null) {
             backgroundExecutor.shutdown();
             backgroundExecutor = null;

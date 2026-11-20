@@ -18,6 +18,8 @@ import android.view.View;
 import androidx.appcompat.app.AlertDialog;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.CleanPreset;
+import com.doubleangels.redact.CleanPresets;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.media.MediaProcessor;
@@ -267,6 +269,57 @@ public class NewCleanAndScanFeaturesTest {
         AppPreferences.setRemoveAudio(app, false);
         toggles.sync();
         assertFalse(audio.isChecked());
+    }
+
+    @Test
+    public void presetChip_showsAndPicksThePreset_andLocksWithTheOthers() {
+        View root = LayoutInflater.from(themed).inflate(R.layout.fragment_clean, null);
+        AppPreferences.resetAll(app);
+        CleanQuickToggles toggles = new CleanQuickToggles(root);
+        Chip preset = root.findViewById(R.id.chipCleanPreset);
+        Chip strict = root.findViewById(R.id.chipStrictClean);
+        Chip date = root.findViewById(R.id.chipKeepDate);
+        assertEquals(app.getString(R.string.clean_preset_standard), preset.getText().toString());
+        assertEquals(app.getString(R.string.clean_preset_chip_description,
+                app.getString(R.string.clean_preset_standard)), preset.getContentDescription().toString());
+
+        // Another chip changes the options: the preset follows.
+        strict.setChecked(false);
+        assertEquals(app.getString(R.string.clean_preset_custom), preset.getText().toString());
+
+        // Picking from the menu sets the options and the other chips.
+        preset.performClick();
+        AlertDialog menu = (AlertDialog) ShadowDialog.getLatestDialog();
+        menu.getListView().performItemClick(null, 1, 1);
+        ShadowLooper.idleMainLooper();
+        assertEquals(CleanPreset.SENDING_TO_PEOPLE, CleanPresets.current(app));
+        assertEquals(app.getString(R.string.clean_preset_sending), preset.getText().toString());
+        assertTrue(date.isChecked());
+
+        // Keeping for Myself asks first; declining changes nothing.
+        preset.performClick();
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getListView().performItemClick(null, 2, 2);
+        ShadowLooper.idleMainLooper();
+        AlertDialog confirm = (AlertDialog) ShadowDialog.getLatestDialog();
+        confirm.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(CleanPreset.SENDING_TO_PEOPLE, CleanPresets.current(app));
+        preset.performClick();
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getListView().performItemClick(null, 2, 2);
+        ShadowLooper.idleMainLooper();
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        ShadowLooper.idleMainLooper();
+        assertEquals(CleanPreset.KEEPING_FOR_MYSELF, CleanPresets.current(app));
+        assertTrue(((Chip) root.findViewById(R.id.chipKeepLocation)).isChecked());
+
+        toggles.setLocked(true);
+        assertFalse(preset.isEnabled());
+        int dialogs = ShadowDialog.getShownDialogs().size();
+        preset.performClick();
+        assertEquals("a locked chip opens nothing", dialogs, ShadowDialog.getShownDialogs().size());
+        toggles.setLocked(false);
+        assertTrue(preset.isEnabled());
+        AppPreferences.resetAll(app);
     }
 
     @Test

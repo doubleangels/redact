@@ -234,6 +234,58 @@ public class SettingsFragmentTest {
     }
 
     @Test
+    public void cleanPreset_andSwitches_stayInSyncBothWays() {
+        android.widget.RadioGroup group = settings.findViewById(R.id.radioCleanPreset);
+        assertEquals("a fresh install is Standard", R.id.radioPresetStandard, group.getCheckedRadioButtonId());
+        TextView standard = settings.findViewById(R.id.radioPresetStandard);
+        assertTrue(standard.getText().toString().startsWith(activity.getString(R.string.clean_preset_standard)));
+        assertFalse(settings.findViewById(R.id.radioPresetCustom).isEnabled());
+
+        // Picking a preset flips the switches.
+        ((android.widget.RadioButton) settings.findViewById(R.id.radioPresetSending)).performClick();
+        idle();
+        assertFalse(sw(R.id.switchStrictClean).isChecked());
+        assertTrue(sw(R.id.switchPreserveDate).isChecked());
+        assertTrue(sw(R.id.switchDateOnly).isChecked());
+        assertEquals(CleanPreset.SENDING_TO_PEOPLE, CleanPresets.current(activity));
+
+        // Flipping a switch moves the selection to Custom, and back to a match.
+        sw(R.id.switchPreserveCamera).setChecked(true);
+        idle();
+        assertEquals(R.id.radioPresetCustom, group.getCheckedRadioButtonId());
+        sw(R.id.switchPreserveCamera).setChecked(false);
+        idle();
+        assertEquals(R.id.radioPresetSending, group.getCheckedRadioButtonId());
+        sw(R.id.switchStrictClean).setChecked(true);
+        idle();
+        assertEquals(R.id.radioPresetStandard, group.getCheckedRadioButtonId());
+    }
+
+    @Test
+    public void cleanPreset_keepingLocation_asksFirst() {
+        android.widget.RadioGroup group = settings.findViewById(R.id.radioCleanPreset);
+        ((android.widget.RadioButton) settings.findViewById(R.id.radioPresetKeeping)).performClick();
+        idle();
+        assertEquals("the old choice shows until the user says yes",
+                R.id.radioPresetStandard, group.getCheckedRadioButtonId());
+        latestDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+        assertFalse(AppPreferences.isPreserveLocation(activity));
+        assertTrue(AppPreferences.isStrictClean(activity));
+        assertEquals(R.id.radioPresetStandard, group.getCheckedRadioButtonId());
+
+        ((android.widget.RadioButton) settings.findViewById(R.id.radioPresetKeeping)).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue(AppPreferences.isPreserveLocation(activity));
+        assertTrue(sw(R.id.switchPreserveLocation).isChecked());
+        assertTrue(sw(R.id.switchPreserveMotion).isChecked());
+        assertTrue(sw(R.id.switchApproximateLocation).isChecked());
+        assertEquals(R.id.radioPresetKeeping, group.getCheckedRadioButtonId());
+    }
+
+    @Test
     public void preserveLocation_requiresConfirmation() {
         sw(R.id.switchStrictClean).setChecked(false);
         idle();

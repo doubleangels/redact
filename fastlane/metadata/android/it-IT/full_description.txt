@@ -47,6 +47,7 @@ Oppure condividilo con Scansiona con Redact per controllarlo prima.
 • Riquadro nelle Impostazioni rapide e scorciatoie nella schermata Home
 • Cartelle di destinazione personalizzate e Mantieni i Nomi Originali
 • Pulizia Rigorosa
+• Preimpostazioni di pulizia: per pubblicare, inviare a chi conosci o tenere per te
 • Nascondi Redact da screenshot e app recenti
 • Cancellazione automatica dei metadati copiati
 • Statistiche conteggiate solo sul tuo telefono

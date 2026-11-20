@@ -320,6 +320,29 @@ public final class AppPreferences {
         prefs(context).edit().putBoolean(KEY_STRICT_CLEAN, enabled).apply();
     }
 
+    /**
+     * Writes Clean's keep options in one edit, for a {@link CleanPreset}. A null sub-option is
+     * left as it is. With Strict Clean on the keep options are written off, as its switch does.
+     */
+    static void setCleanOptions(@NonNull Context context, boolean strictClean, boolean keepLocation,
+                                @Nullable Boolean approximateLocation, boolean keepDateTaken,
+                                @Nullable Boolean dateOnly, boolean keepCameraSettings,
+                                boolean keepMotionPhotos) {
+        SharedPreferences.Editor e = prefs(context).edit()
+                .putBoolean(KEY_STRICT_CLEAN, strictClean)
+                .putBoolean(KEY_PRESERVE_LOCATION, !strictClean && keepLocation)
+                .putBoolean(KEY_PRESERVE_DATE_TAKEN, !strictClean && keepDateTaken)
+                .putBoolean(KEY_PRESERVE_CAMERA_SETTINGS, !strictClean && keepCameraSettings)
+                .putBoolean(KEY_PRESERVE_MOTION_PHOTO, !strictClean && keepMotionPhotos);
+        if (approximateLocation != null) {
+            e.putBoolean(KEY_APPROXIMATE_LOCATION, approximateLocation);
+        }
+        if (dateOnly != null) {
+            e.putBoolean(KEY_DATE_ONLY, dateOnly);
+        }
+        e.apply();
+    }
+
     /** Whether Clean should warn before processing files that look clean already (on by default). */
     public static boolean isWarnAlreadyClean(@NonNull Context context) {
         return prefs(context).getBoolean(KEY_WARN_ALREADY_CLEAN, true);

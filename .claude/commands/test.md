@@ -57,6 +57,8 @@ Test each item, note PASS or FAIL with a one-line reason, and keep the evidence 
 
 **Keep Original File Names off.** Turn it off and clean `IMG_20260117_093012.jpg`: the output gets a random 12-character name.
 
+**Clean presets.** In Settings › Metadata Cleaning, Preset shows Standard selected (Custom greyed out). Pick Sending to People I Know: Strict Clean goes off and Keep Date Taken with Date Only goes on. Pick Keeping for Myself: the Keep Location confirmation appears; Cancel leaves Sending to People I Know selected, OK turns on Keep Location with Approximate Location, Keep Date Taken, Keep Camera Settings and Keep Motion Photos. Turn Keep Camera Settings off: Preset moves to Custom. On Clean, the first chip reads "Custom"; tap it, pick Standard, and the Strict Clean chip turns on and the chip reads "Standard". Clean `IMG_20260117_093012.jpg` under Sending to People I Know: `check_media.py` passes and the output keeps only the date (midnight) and no GPS. Pick Standard again before going on.
+
 **Video paths.** Clean `VID_vp9.webm` with Strict Clean on (full re-encode), then with Strict Clean off and Faster Video Cleaning on (quick transmux). Both outputs pass `check_media.py`, play to their full length (`ffprobe` duration), and have an extension and MediaStore `mime_type` that match the container.
 
 **Scan.** On Scan, select `IMG_20260117_093012.jpg` from DCIM/Camera: Location badge, GPS, Make, Model and Software fields shown. Search filters the fields. Copy puts a value on the clipboard.

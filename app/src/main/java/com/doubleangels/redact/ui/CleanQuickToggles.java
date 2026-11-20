@@ -8,19 +8,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.doubleangels.redact.AppPreferences;
+import com.doubleangels.redact.CleanPreset;
+import com.doubleangels.redact.CleanPresets;
 import com.doubleangels.redact.R;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * The chips above the Clean tab's files: Strict Clean, Keep Location, Keep Date Taken, Keep
+ * The chips above the Clean tab's files: the preset, Strict Clean, Keep Location, Keep Date Taken, Keep
  * Camera Settings and Remove Audio. They change the same preferences Settings does, so a choice
  * made here stays for the next batch too, and they follow the same rules: Strict Clean turns the
- * Keep options off and greys them out, and Keep Location asks first.
+ * Keep options off and greys them out, and Keep Location asks first. The preset chip shows which
+ * {@link CleanPreset} the options match and opens a menu to pick another; one that keeps a location
+ * asks first too.
  */
 public final class CleanQuickToggles {
 
     private final Context context;
+    @Nullable private final Chip preset;
     @Nullable private final Chip strict;
     @Nullable private final Chip location;
     @Nullable private final Chip date;
@@ -32,6 +37,11 @@ public final class CleanQuickToggles {
 
     public CleanQuickToggles(@NonNull View root) {
         this.context = root.getContext();
+        preset = root.findViewById(R.id.chipCleanPreset);
+        if (preset != null) {
+            preset.setOnClickListener(v -> showPresetMenu());
+            preset.setOnCloseIconClickListener(v -> showPresetMenu());
+        }
         strict = root.findViewById(R.id.chipStrictClean);
         location = root.findViewById(R.id.chipKeepLocation);
         date = root.findViewById(R.id.chipKeepDate);
@@ -54,6 +64,7 @@ public final class CleanQuickToggles {
             chip.setOnCheckedChangeListener((button, on) -> {
                 if (!syncing) {
                     listener.onCheckedChanged(button, on);
+                    showPreset();
                 }
             });
         }
@@ -69,9 +80,69 @@ public final class CleanQuickToggles {
             set(date, !strictClean && AppPreferences.isPreserveDateTaken(context), !locked && !strictClean);
             set(camera, !strictClean && AppPreferences.isPreserveCameraSettings(context), !locked && !strictClean);
             set(audio, AppPreferences.isRemoveAudio(context), !locked);
+            showPreset();
         } finally {
             syncing = false;
         }
+    }
+
+    /** Labels the preset chip with the preset the options match, or Custom. */
+    private void showPreset() {
+        if (preset == null) {
+            return;
+        }
+        String name = context.getString(CleanPresets.current(context).nameRes);
+        String description = context.getString(R.string.clean_preset_chip_description, name);
+        preset.setText(name);
+        preset.setContentDescription(description);
+        preset.setCloseIconContentDescription(description);
+        preset.setEnabled(!locked);
+    }
+
+    /** The presets with their descriptions; picking one affects the next batch, not a running one. */
+    private void showPresetMenu() {
+        if (locked) {
+            return;
+        }
+        CleanPreset[] choices = CleanPreset.choices();
+        CharSequence[] labels = new CharSequence[choices.length];
+        int checked = -1;
+        CleanPreset current = CleanPresets.current(context);
+        for (int i = 0; i < choices.length; i++) {
+            labels[i] = CleanPresetLabels.twoLine(context, choices[i]);
+            if (choices[i] == current) {
+                checked = i;
+            }
+        }
+        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.settings_clean_preset)
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    pickPreset(choices[which]);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+    }
+
+    private void pickPreset(@NonNull CleanPreset chosen) {
+        if (chosen == CleanPresets.current(context)) {
+            return;
+        }
+        if (!chosen.keepsLocation()) {
+            CleanPresets.apply(context, chosen, false);
+            sync();
+            return;
+        }
+        // Not applied until confirmed, the same question Keep Location asks.
+        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.settings_preserve_location_confirm_title)
+                .setMessage(R.string.settings_preserve_location_confirm_message)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    CleanPresets.apply(context, chosen, true);
+                    sync();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
     }
 
     /** Locks the chips while a clean runs: it has already read the settings it uses. */

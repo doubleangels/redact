@@ -47,6 +47,7 @@ O compártelo con Escanear con Redact para revisarlo primero.
 • Icono en Ajustes rápidos y accesos directos en la pantalla de inicio
 • Carpetas de salida propias y Conservar Nombres Originales
 • Limpieza Estricta
+• Ajustes predefinidos de limpieza: para publicar, enviar a conocidos o guardar para ti
 • Ocultar Redact en capturas y recientes
 • Borrado automático de los metadatos copiados
 • Estadísticas contadas solo en tu teléfono

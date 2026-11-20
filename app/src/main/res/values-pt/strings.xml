@@ -130,6 +130,17 @@
     
     <string name="settings_section_advanced_privacy">Limpeza de Metadados</string>
     <string name="settings_advanced_privacy_subtitle">Como o Redact remove informações ocultas, como localização e detalhes da câmera (EXIF), na aba Limpar. Arquivos compartilhados de outros apps sempre têm essas informações removidas antes de serem encaminhados.</string>
+    <string name="settings_clean_preset">Predefinição</string>
+    <string name="settings_clean_preset_subtitle">Ajusta as opções abaixo de acordo com o que você vai fazer com os arquivos. Você ainda pode mudar qualquer uma delas.</string>
+    <string name="clean_preset_chip_description">Predefinição: %1$s. Toque para mudar.</string>
+    <string name="clean_preset_standard">Padrão</string>
+    <string name="clean_preset_standard_description">Remove tudo de que uma foto não precisa para aparecer corretamente, incluindo localização, datas e detalhes do aparelho. Ideal para redes sociais, sites de vendas e qualquer lugar onde desconhecidos possam vê-la. A opção padrão.</string>
+    <string name="clean_preset_sending">Enviar para Conhecidos</string>
+    <string name="clean_preset_sending_description">Remove a localização e os detalhes do aparelho, mas mantém o dia em que cada foto foi tirada, para ela aparecer no lugar certo na galeria da pessoa.</string>
+    <string name="clean_preset_keeping">Guardar para Mim</string>
+    <string name="clean_preset_keeping_description">Mantém a data, os detalhes da câmera e as fotos com movimento, e arredonda a localização para a cidade. Bom para backups e armazenamento em nuvem em que você não confia totalmente.</string>
+    <string name="clean_preset_custom">Personalizado</string>
+    <string name="clean_preset_custom_description">Aparece quando suas opções não correspondem a nenhuma predefinição.</string>
     <string name="settings_auto_clear_temp">Limpar Cache ao Iniciar</string>
     <string name="settings_auto_clear_temp_subtitle">Remove arquivos de cache de processamento com mais de 24 horas ao abrir o app.</string>
     <string name="settings_preserve_camera">Manter Configurações da Câmera</string>
