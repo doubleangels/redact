@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -181,6 +182,7 @@ public final class ReviewPrompt {
                 context.startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse("https://play.google.com/store/apps/details?id=" + pkg)));
             } catch (ActivityNotFoundException noBrowser) {
+                AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_STORE);
                 Notice.show(context, R.string.settings_link_unavailable, false);
             }
         }

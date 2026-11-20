@@ -262,7 +262,8 @@ public final class OutputDestination {
      */
     public static void scheduleAbandonedDocumentSweep(@NonNull Context context) {
         Context app = context.getApplicationContext();
-        new Thread(() -> sweepAbandonedDocuments(app), "redact-output-sweep").start();
+        new Thread(() -> SentryManager.runHousekeeping("output.unfinished_file_sweep", () -> sweepAbandonedDocuments(app)),
+                "redact-output-sweep").start();
     }
 
     @VisibleForTesting
@@ -287,8 +288,10 @@ public final class OutputDestination {
         for (Uri doc : abandoned) {
             try {
                 DocumentsContract.deleteDocument(app.getContentResolver(), doc);
+                AppMetrics.unfinishedOutputRemoval(null);
             } catch (Exception e) {
                 // Already gone, or the folder's permission was revoked: nothing left to do.
+                AppMetrics.unfinishedOutputRemoval(e);
                 SentryManager.logEvent("output", "An abandoned output could not be removed: " + e.getClass().getSimpleName() + ".");
             }
         }

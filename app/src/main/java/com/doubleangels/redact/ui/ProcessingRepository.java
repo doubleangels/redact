@@ -483,12 +483,12 @@ public final class ProcessingRepository {
             }
 
             @Override
-            public void onProgress(int overallPercent, String message) {
+            public void onProgress(int overallPercent, int fileNumber, int fileCount, String message) {
                 if (!current()) {
                     return;
                 }
                 updateCleanProgressPercent(overallPercent, message);
-                LocalNotifications.updateCleanProgress(app, overallPercent, message);
+                LocalNotifications.updateCleanProgress(app, overallPercent, message, fileNumber, fileCount);
             }
 
             @Override
@@ -599,7 +599,7 @@ public final class ProcessingRepository {
                                int runGeneration, @Nullable SentryId reportedBefore) {
         BatchRun.Result result = new BatchRun.Result(0, 0, true);
         try {
-            result = BatchRun.run(AppMetrics.CONVERT, "convert_multiple", items, 0, MediaItem::isVideo,
+            result = BatchRun.run(AppMetrics.CONVERT, items, 0, MediaItem::isVideo,
                     () -> convertStopped(runGeneration),
                     (item, i) -> convertOne(item, i + 1, total, formatIndex, imageFormatIndex, runGeneration),
                     new BatchRun.Hooks<>() {
@@ -615,7 +615,7 @@ public final class ProcessingRepository {
                             int overallDone = total > 0 ? (index * 100) / total : 0;
                             String doneLine = app.getString(R.string.convert_progress_item, index, total);
                             updateConvertProgressPercent(overallDone, doneLine);
-                            LocalNotifications.updateConversionProgress(app, overallDone, doneLine);
+                            LocalNotifications.updateConversionProgress(app, overallDone, doneLine, index, total);
                         }
                     });
         } finally {
@@ -679,7 +679,7 @@ public final class ProcessingRepository {
         int overallStart = total > 0 ? ((index - 1) * 100) / total : 0;
         String itemLine = app.getString(R.string.convert_progress_item, index, total);
         updateConvertProgressPercent(overallStart, itemLine);
-        LocalNotifications.updateConversionProgress(app, overallStart, itemLine);
+        LocalNotifications.updateConversionProgress(app, overallStart, itemLine, index, total);
         if (mediaItem.isVideo()) {
             FormatConverter.VideoConversion converted = FormatConverter.convertVideoToMovies(
                     app,
@@ -695,7 +695,7 @@ public final class ProcessingRepository {
                                 name,
                                 app.getString(R.string.convert_transcoding_percent, p));
                         updateConvertProgressPercent(overall, detail);
-                        LocalNotifications.updateConversionProgress(app, overall, detail);
+                        LocalNotifications.updateConversionProgress(app, overall, detail, index, total);
                     },
                     VideoMedia3Converter.convertOwner(runGeneration),
                     () -> convertStopped(runGeneration));
@@ -720,7 +720,7 @@ public final class ProcessingRepository {
                     name,
                     app.getString(R.string.convert_encoding_image));
             updateConvertProgressPercent(overallImage, detail);
-            LocalNotifications.updateConversionProgress(app, overallImage, detail);
+            LocalNotifications.updateConversionProgress(app, overallImage, detail, index, total);
             Uri convertedImage = FormatConverter.convertImageToPictures(
                     app, uri, FormatConverter.formatAtIndex(imageFormatIndex), outputName);
             if (runGeneration == scope.convertGeneration().get()) {

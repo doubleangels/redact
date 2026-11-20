@@ -8,15 +8,20 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * Keeps long-running clean/convert/share work alive when the app is backgrounded.
@@ -29,6 +34,8 @@ public class ProcessingForegroundService extends Service {
     public static final String EXTRA_TITLE = "extra_title";
     public static final String EXTRA_PERCENT = "extra_percent";
     public static final String EXTRA_MESSAGE = "extra_message";
+    public static final String EXTRA_FILE_NUMBER = "extra_file_number";
+    public static final String EXTRA_FILE_COUNT = "extra_file_count";
 
     static final int NOTIFICATION_ID = 7103;
 
@@ -60,6 +67,16 @@ public class ProcessingForegroundService extends Service {
 
     public static void updateProgress(
             @Nullable Context context, int percent, @Nullable String title, @Nullable String message) {
+        updateProgress(context, percent, title, message, 0, 0);
+    }
+
+    /**
+     * Updates the progress notification. {@code fileNumber} of {@code fileCount} is the file the
+     * job is on (0 and 0 when unknown); with several files the status bar chip shows the count.
+     */
+    public static void updateProgress(
+            @Nullable Context context, int percent, @Nullable String title, @Nullable String message,
+            int fileNumber, int fileCount) {
         if (context == null) {
             return;
         }
@@ -75,6 +92,10 @@ public class ProcessingForegroundService extends Service {
         }
         if (message != null && !message.isEmpty()) {
             intent.putExtra(EXTRA_MESSAGE, message);
+        }
+        if (fileCount > 0) {
+            intent.putExtra(EXTRA_FILE_NUMBER, fileNumber);
+            intent.putExtra(EXTRA_FILE_COUNT, fileCount);
         }
         try {
             app.startService(intent);
@@ -148,6 +169,20 @@ public class ProcessingForegroundService extends Service {
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
+
+        if (!isStart && AppPreferences.areProgressNotificationsEnabled(this)) {
+            // A Live Update (Android 16+): the status bar shows a chip with the file count or
+            // percent. Only while progress updates are on, or it would sit at 0%. Older versions
+            // ignore both calls.
+            int fileNumber = intent.getIntExtra(EXTRA_FILE_NUMBER, 0);
+            int fileCount = intent.getIntExtra(EXTRA_FILE_COUNT, 0);
+            builder.setRequestPromotedOngoing(true)
+                    .setShortCriticalText(statusChipText(percent, fileNumber, fileCount));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                // Android 16's progress-centric template: one segment per file in a batch.
+                builder.setStyle(progressStyle(percent, fileCount));
+            }
+        }
 
         if (!isStart) {
             // Already foreground: refresh the existing notification instead of re-entering
@@ -226,6 +261,34 @@ public class ProcessingForegroundService extends Service {
         stopForeground(STOP_FOREGROUND_REMOVE);
         inForeground = false;
         stopSelf();
+    }
+
+    /**
+     * The status bar chip's text: "2/4" while working through several files, otherwise the
+     * percent ("42%"), with the phone's own digits. Never a file name.
+     */
+    @NonNull
+    static String statusChipText(int percent, int fileNumber, int fileCount) {
+        Locale locale = Locale.getDefault();
+        if (fileCount > 1 && fileNumber > 0) {
+            return String.format(locale, "%d/%d", Math.min(fileNumber, fileCount), fileCount);
+        }
+        return NumberFormat.getPercentInstance(locale).format(percent / 100.0);
+    }
+
+    /**
+     * The Android 16 progress template for {@code percent} of the whole job: a segment of 100 per
+     * file (one segment when the count is unknown or one), filled up to where the job is.
+     */
+    @NonNull
+    static NotificationCompat.ProgressStyle progressStyle(int percent, int fileCount) {
+        int segments = Math.max(1, fileCount);
+        NotificationCompat.ProgressStyle style = new NotificationCompat.ProgressStyle()
+                .setStyledByProgress(true);
+        for (int i = 0; i < segments; i++) {
+            style.addProgressSegment(new NotificationCompat.ProgressStyle.Segment(100));
+        }
+        return style.setProgress(percent * segments);
     }
 
     @Nullable

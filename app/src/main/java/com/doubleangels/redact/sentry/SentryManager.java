@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.OperationCanceledException;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +19,7 @@ import com.doubleangels.redact.media.ProcessingCancelledException;
 import com.doubleangels.redact.media.UnsupportedMediaException;
 
 import io.sentry.Breadcrumb;
+import io.sentry.ISpan;
 import io.sentry.ITransaction;
 import io.sentry.NoOpTransaction;
 import io.sentry.Sentry;
@@ -24,6 +27,7 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryAttribute;
 import io.sentry.SentryAttributes;
 import io.sentry.SentryLevel;
+import io.sentry.SpanStatus;
 import io.sentry.metrics.MetricsUnit;
 import io.sentry.metrics.SentryMetricsParameters;
 import io.sentry.protocol.Feedback;
@@ -71,7 +75,7 @@ public final class SentryManager {
      *   - A key that describes state is "<group>.<field>": job.type, file.mime_type,
      *     video.codec, permission.images, setting.strict_clean, device.low_ram. The group is one
      *     of SentryNamingTest.GROUPS; the field is lower snake_case. A boolean field is named for
-     *     what is true (images, has_audio, needed, rationale_shown); a banded value ends in
+     *     what is true (images, has_audio, request_needed, battery_saver_on); a banded value ends in
      *     _class, a count in _count. At most 32 characters, Sentry's limit for a tag key.
      *   - A key that describes what happened is one of three bare words, the same in every tag
      *     and metric: outcome (success, failed, ...), reason (why, in a fixed word) and error_type
@@ -79,9 +83,13 @@ public final class SentryManager {
      *   - No key mentions a path, URI, file name or location: the scrubber blanks such keys, so
      *     GPS is "gps".
      *   - A metric is "<area>.<event>" when it counts and "<area>.<event>.<measure>" when it is a
-     *     distribution (job.item, job.item.duration). The event is a singular noun; what came of
-     *     it goes in outcome, never in the name; a unit goes in the metric's unit, never in the
-     *     name.
+     *     distribution. The name says exactly what one count or one value is, so it reads without
+     *     the code: job.file_outcome is one file a job finished, job.batch_start one job starting,
+     *     job.file.duration how long one file took, job.batch.file_count how many files one job
+     *     was given. What came of it goes in outcome; a unit goes in the metric's unit, never in
+     *     the name.
+     *   - A transaction or span is "<area>.<event>" naming the work it times, as a plain phrase:
+     *     verify.image_metadata_check, video.fast_remux, share.inbound_copy.
      *   - A breadcrumb category is a lower-case area, optionally ".<sub>" (clean, app.lifecycle),
      *     like the SDK's own (ui.click, navigation).
      */
@@ -93,6 +101,7 @@ public final class SentryManager {
      */
     private static final Set<String> OPERATION_TAG_KEYS = new HashSet<>(Arrays.asList(
             "job.type",
+            "job.operation",
             "outcome",
             "error_type",
             "file.media_type",
@@ -112,7 +121,7 @@ public final class SentryManager {
             "verify.video_passed",
             "verify.failed_check",
             "device.thermal_status",
-            "device.power_save"));
+            "device.battery_saver_on"));
 
     /**
      * Per-item measurements. They have too many distinct values to be useful as indexed tags, so
@@ -122,20 +131,20 @@ public final class SentryManager {
             "scan.section_count",
             "clean.kept_exif_count",
             "clean.removed_exif_count",
-            "image.sample_size"));
+            "image.decode_sample_size"));
 
     /** Keys that describe the app as a whole, set on the shared scope, and metric-only keys. */
     private static final Set<String> SCOPE_TAG_KEYS = new HashSet<>(Arrays.asList(
             "permission.type",
             "permission.request_code",
-            "permission.needed",
+            "permission.request_needed",
             "permission.all_granted",
             "permission.images",
             "permission.videos",
             "permission.selected_media",
             "permission.storage",
             "permission.media_gps",
-            "permission.partial_access",
+            "permission.partial_media_access",
             "permission.persisted_grant",
             "permission.rationale_shown",
             "permission.gps_rationale_shown",
@@ -145,20 +154,20 @@ public final class SentryManager {
             "permission.videos_can_ask",
             "permission.storage_can_ask",
             "permission.gps_can_ask",
-            "notification.enabled",
-            "notification.clean_enabled",
-            "notification.convert_enabled",
+            "setting.notifications",
+            "setting.clean_notifications",
+            "setting.convert_notifications",
             "intent.action",
-            "intent.type",
-            "intent.unsupported_type",
+            "intent.mime_type",
+            "intent.unsupported_mime_type",
             "intent.unsupported_action",
             "ui.theme",
             "clean.selected_count",
             "clean.processing_count",
             "clean.processed_count",
-            "clean.state",
-            "share.media_count",
-            "app.process_state",
+            "clean.screen_state",
+            "share.file_count",
+            "app.process_importance",
             "reason"));
 
     /** Every key a tag or metric attribute may use; any other is dropped. */
@@ -483,11 +492,13 @@ public final class SentryManager {
      */
     public static void beginOperation(String operationType) {
         OPERATION_DATA.get().clear();
-        setCustomKey("job.type", operationType);
+        // The step a job is in (image_to_mediastore, video_for_sharing, censor_export...). Metrics
+        // use job.type for the job itself (clean, share, convert, scan, censor).
+        setCustomKey("job.operation", operationType);
         // A hot or battery-saving phone throttles the CPU and codecs: it explains slow or failed
         // video work without saying anything about the person.
         setCustomKey("device.thermal_status", thermalStatus());
-        setCustomKey("device.power_save", isPowerSaveMode());
+        setCustomKey("device.battery_saver_on", isPowerSaveMode());
     }
 
     /**
@@ -649,10 +660,262 @@ public final class SentryManager {
         return scrubbed != null ? scrubbed : "";
     }
 
-    public static ITransaction startTransaction(String name, String operation) {
+    /*
+     * Tracing. A transaction is one piece of work someone waits for or the app does on its own
+     * (a batch, a scan, a censor save, an update check, a cache sweep); a span is one step inside
+     * it (copying the source, a transcode, a check that the output is clean). Both are named
+     * "<area>.<event>" with an area from the naming scheme above, and the names are fixed strings:
+     * a span never carries a file's name, path or anything read from it. SentryNamingTest checks
+     * the shape and that README.md and site/index.html list every one.
+     *
+     * The span work nests under is kept per thread, like the operation data, so a step reached
+     * from a batch's file lands under that file, and the same step reached outside any traced
+     * work records nothing.
+     */
+
+    /**
+     * Ends the screen's time-to-full-display span once {@code view} has drawn. Every screen builds
+     * its content without waiting on anything, so the first frame that shows {@code view} is the
+     * screen fully displayed. Call it from the main thread once {@code view} holds the content.
+     */
+    public static void reportFullyDisplayedOnDraw(@NonNull View view) {
+        if (!isEnabled()) {
+            return;
+        }
+        boolean[] reported = {false};
+        ViewTreeObserver.OnDrawListener[] listener = new ViewTreeObserver.OnDrawListener[1];
+        // A draw listener can't remove itself while the tree is drawing, so it posts the rest.
+        listener[0] = () -> view.post(() -> {
+            if (reported[0]) {
+                return;
+            }
+            reported[0] = true;
+            ViewTreeObserver observer = view.getViewTreeObserver();
+            if (observer.isAlive()) {
+                observer.removeOnDrawListener(listener[0]);
+            }
+            Sentry.reportFullyDisplayed();
+        });
+        view.getViewTreeObserver().addOnDrawListener(listener[0]);
+    }
+
+    /** The operation every app transaction uses, so they can be told from the SDK's own. */
+    static final String TASK_OPERATION = "task";
+
+    /** The span work on this thread nests under: a transaction, or a batch's file. */
+    private static final ThreadLocal<ISpan> CURRENT_SPAN = new ThreadLocal<>();
+
+    /** Work that returns a value, run inside a span. */
+    public interface TracedWork<T, E extends Throwable> {
+        T run() throws E;
+    }
+
+    /** Work that returns nothing, run inside a span. */
+    public interface TracedTask<E extends Throwable> {
+        void run() throws E;
+    }
+
+    /**
+     * Starts a transaction that the caller finishes, for work that starts on one thread and ends
+     * in a callback on another. Not bound to any thread: pass it to {@link #runUnder} on the
+     * thread that does the work so its steps nest under it. A no-op while reporting is off.
+     */
+    @NonNull
+    public static ITransaction startTransaction(@NonNull String name) {
         if (!isEnabled()) {
             return NoOpTransaction.getInstance();
         }
-        return Sentry.startTransaction(name, operation);
+        return Sentry.startTransaction(name, TASK_OPERATION);
+    }
+
+    /**
+     * Runs {@code work} as the transaction {@code name}, or as a span of that name when this thread
+     * is already inside traced work, so a job started from inside another doesn't split the trace.
+     * The status is ok when it returns, cancelled when it is stopped and an internal error when it
+     * throws anything else, which is rethrown unchanged.
+     */
+    public static <T, E extends Throwable> T inTransaction(@NonNull String name, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent != null) {
+            return inSpan(name, work);
+        }
+        return traced(startTransaction(name), work);
+    }
+
+    /** {@link #inTransaction(String, TracedWork)} for work that returns nothing. */
+    public static <E extends Throwable> void runInTransaction(@NonNull String name, @NonNull TracedTask<E> task)
+            throws E {
+        inTransaction(name, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs {@code work} as a span named {@code operation} under the traced work on this thread,
+     * with the status set as in {@link #inTransaction(String, TracedWork)}. Outside traced work, or
+     * while reporting is off, it only runs {@code work}.
+     */
+    public static <T, E extends Throwable> T inSpan(@NonNull String operation, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent == null || parent.isFinished() || !isEnabled()) {
+            return work.run();
+        }
+        return traced(parent.startChild(operation, operation), work);
+    }
+
+    /** {@link #inSpan(String, TracedWork)} for work that returns nothing. */
+    public static <E extends Throwable> void runInSpan(@NonNull String operation, @NonNull TracedTask<E> task)
+            throws E {
+        inSpan(operation, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs background housekeeping (a sweep of leftover files) as the transaction {@code name}. A
+     * {@code RuntimeException} is reported and ends only this sweep, which the next start runs
+     * again, instead of ending the app at launch with nothing on screen to explain it.
+     */
+    public static void runHousekeeping(@NonNull String name, @NonNull Runnable work) {
+        runInTransaction(name, () -> {
+            try {
+                work.run();
+            } catch (RuntimeException e) {
+                recordException(e);
+                failCurrentSpan(e);
+            }
+        });
+    }
+
+    /**
+     * Runs {@code task} with {@code parent} as the span this thread's steps nest under, for a
+     * transaction started on another thread ({@link #startTransaction(String)}). It neither
+     * finishes {@code parent} nor sets its status; a null {@code parent} only runs {@code task}.
+     */
+    public static <E extends Throwable> void runUnder(@Nullable ISpan parent, @NonNull TracedTask<E> task)
+            throws E {
+        ISpan previous = CURRENT_SPAN.get();
+        CURRENT_SPAN.set(parent);
+        try {
+            task.run();
+        } finally {
+            restoreCurrentSpan(previous);
+        }
+    }
+
+    /**
+     * Makes {@code span} the one this thread's steps nest under and returns the one it replaces,
+     * for a caller that manages a span itself ({@code BatchRun}'s span per file). Hand the
+     * returned span to {@link #restoreCurrentSpan} when it finishes.
+     */
+    @Nullable
+    public static ISpan bindCurrentSpan(@Nullable ISpan span) {
+        ISpan previous = CURRENT_SPAN.get();
+        CURRENT_SPAN.set(span);
+        return previous;
+    }
+
+    /** Puts back the span {@link #bindCurrentSpan} returned. */
+    public static void restoreCurrentSpan(@Nullable ISpan previous) {
+        if (previous == null) {
+            CURRENT_SPAN.remove();
+        } else {
+            CURRENT_SPAN.set(previous);
+        }
+    }
+
+    /**
+     * Marks the traced work on this thread as failed by {@code error}, for work that catches its
+     * own exceptions instead of letting them reach {@link #inTransaction} or {@link #inSpan}.
+     */
+    public static void failCurrentSpan(@NonNull Throwable error) {
+        setCurrentSpanStatus(statusFor(error));
+    }
+
+    /** Sets the status of the traced work on this thread, which otherwise ends ok. */
+    public static void setCurrentSpanStatus(@NonNull SpanStatus status) {
+        ISpan span = CURRENT_SPAN.get();
+        if (span != null && !span.isFinished()) {
+            span.setStatus(status);
+        }
+    }
+
+    /** The status a span gets for work that threw {@code error}. */
+    @NonNull
+    public static SpanStatus statusFor(@NonNull Throwable error) {
+        return isUserCancellation(error) ? SpanStatus.CANCELLED : SpanStatus.INTERNAL_ERROR;
+    }
+
+    /**
+     * Opens a span named {@code operation} under the traced work on this thread, for work a lambda
+     * can't wrap without losing its exception types (it throws two kinds of checked exception).
+     * Call {@link Span#failed} from a catch and {@link Span#close} from a finally. Outside traced
+     * work, or while reporting is off, the span does nothing.
+     */
+    @NonNull
+    public static Span span(@NonNull String operation) {
+        ISpan parent = CURRENT_SPAN.get();
+        if (parent == null || parent.isFinished() || !isEnabled()) {
+            return Span.NONE;
+        }
+        return new Span(parent.startChild(operation, operation));
+    }
+
+    /** A span that is this thread's current one until it is closed. */
+    public static final class Span implements AutoCloseable {
+
+        static final Span NONE = new Span(null);
+
+        @Nullable
+        private final ISpan span;
+        @Nullable
+        private final ISpan previous;
+
+        private Span(@Nullable ISpan span) {
+            this.span = span;
+            this.previous = span != null ? bindCurrentSpan(span) : null;
+        }
+
+        /** The work threw {@code error}: cancelled when it was stopped, else an internal error. */
+        public void failed(@NonNull Throwable error) {
+            if (span != null) {
+                span.setStatus(statusFor(error));
+            }
+        }
+
+        /** Finishes the span, ok unless {@link #failed} said otherwise, and puts back its parent. */
+        @Override
+        public void close() {
+            if (span == null) {
+                return;
+            }
+            restoreCurrentSpan(previous);
+            if (span.getStatus() == null) {
+                span.setStatus(SpanStatus.OK);
+            }
+            span.finish();
+        }
+    }
+
+    private static <T, E extends Throwable> T traced(@NonNull ISpan span, @NonNull TracedWork<T, E> work)
+            throws E {
+        ISpan previous = bindCurrentSpan(span);
+        try {
+            T result = work.run();
+            if (span.getStatus() == null) {
+                span.setStatus(SpanStatus.OK);
+            }
+            return result;
+        } catch (Throwable t) {
+            span.setStatus(statusFor(t));
+            throw t;
+        } finally {
+            restoreCurrentSpan(previous);
+            span.finish();
+        }
     }
 }

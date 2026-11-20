@@ -14,6 +14,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.Notice;
@@ -63,6 +64,7 @@ public class StatisticsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
         setContentView(R.layout.activity_statistics);
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         MaterialToolbar toolbar = findViewById(R.id.statsToolbar);
         toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());

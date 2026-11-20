@@ -38,7 +38,7 @@ public class MediaProcessorFlowTest {
         volatile int totalCount = -1;
 
         @Override
-        public void onProgress(int overallPercent, String message) {
+        public void onProgress(int overallPercent, int fileNumber, int fileCount, String message) {
             percents.add(overallPercent);
         }
 

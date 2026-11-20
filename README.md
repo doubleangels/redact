@@ -380,13 +380,13 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | Crash, error and freeze reports | Exception type, the stack trace of every thread (class, method, line), and the app's own error messages with paths and names removed. Messages from libraries are replaced. | After a crash, error or app freeze, including native crashes and Android stopping the app for using too much memory |
 | Device and app details | Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version | With each report |
 | Screen layout | Each view's type, internal ID, position, size and visibility. Never any text or picture in it. | With each error |
-| Trail of app events | The app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
+| Trail of app events | The last 200 of: the app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
 | Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none) | With each error |
 | Sessions | Start, end, duration, whether it crashed, and the error count | Every app session |
-| Performance | App start, screen and tab load times, slow and frozen frames, how long each tap, job and file took | Every app session |
+| Performance | App start, screen and tab load times (first frame, and when the content is fully shown), slow and frozen frames, how long each tap, job and file took, and how long each step of a file took (such as copying, transcoding, checking and saving it), plus the update check and background cleanups. Every step has a fixed name from [Names in Sentry](#names-in-sentry), never anything about the file. | Every app session |
 | Code profiles | Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory | About 1 in 4 app sessions |
 | Logs | The app's own log messages, scrubbed | While the app runs |
-| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, and why Android ended the app's process and how much memory it held | While the app runs |
+| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, buttons that found no other app to hand off to (no maps app, browser, Play Store, share target, file picker, file manager or system settings), Android refusing to keep access to a chosen output folder, video details or encoder limits that couldn't be read, how many old working files and unfinished copies the background cleanups removed, and why Android ended the app's process and how much memory it held | While the app runs |
 | File facts | Format (such as `image/heic`) and the format it was written in, video codec (such as `video/hevc`) and the codec chosen for the output, size class (such as `4k`), length class, frame rate class (such as `up_to_60`), whether a video has sound, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as `GPSLatitude`), never their values | With jobs and errors |
 | A note you write | What you type after **Add Details**, with paths, file names and GPS coordinates removed, up to 1,000 characters | Only if you send one |
 
@@ -400,39 +400,113 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | File names, paths and URIs | Scrubbed from every message, breadcrumb, tag and stack trace |
 | Metadata values (GPS coordinates, dates, camera serial numbers and the like) | Never recorded, only tag names and counts |
 | Text you type | Except a note you choose to send |
-| Extras of system broadcasts, advertising ID, logcat, source code, network request contents, native crash memory maps | Turned off or never collected |
+| Extras of system broadcasts, advertising ID, logcat, network request contents, native crash memory maps | Turned off or never collected. Redact's own open-source code goes to Sentry from the release build, so stack traces show each line, but never anything from your phone. |
 | Anything from before you turned reporting on | Freezes, crashes and process exits Android recorded earlier are dropped |
 | Anything while reporting is off | Sentry isn't started |
 
 #### Names in Sentry
 
-Every tag, counter and breadcrumb the app sends follows one scheme, so a search in Sentry finds what it means. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from this list.
+Every tag, counter, timing, breadcrumb, transaction and span the app sends follows one scheme, and each name says what it measures, so a search in Sentry finds what it means without reading the code. `SentryNamingTest` fails the build on a name that breaks it, and on a name missing from these lists.
 
 | Kind | Scheme |
 |---|---|
-| State tags | `group.field`, lower case, at most 32 characters: what was true when the report was made |
+| State tags | `group.field`, lower case, at most 32 characters, naming what was true when the report was made (`device.battery_saver_on`, `share.file_count`) |
 | Result tags | `outcome`, `reason` and `error_type`, the same in every tag and counter |
-| Counters | `area.event`, with what came of it in `outcome` and why in `reason` |
-| Timings and sizes | `area.event.measure`, with the unit (milliseconds, megabytes) sent alongside, never in the name |
+| Counters | `area.event`, where the event says exactly what one count is (`job.file_outcome` is one file a job finished), with what came of it in `outcome` and why in `reason` |
+| Timings and sizes | `area.event.measure`, where the measure says exactly what the number is (`job.file.duration`, `job.batch.file_count`), with the unit (milliseconds, megabytes) sent alongside, never in the name |
 | Breadcrumb categories | a lower-case area, like the SDK's own `ui.click` and `navigation` |
+| Transactions and spans | `area.event`, naming the work it times as a plain phrase (`verify.image_metadata_check`, `share.inbound_copy`), with its status (`ok`, `cancelled` or `internal_error`). The SDK adds its own for app start, screens and taps. |
 
 | Tags | When | Names |
 |---|---|---|
-| Job | With errors from a Clean, Share, Convert, Scan or Censor job | `job.type`, `outcome`, `error_type`, `reason` |
-| File | The file being processed, never its name or contents | `file.media_type`, `file.mime_type`, `file.output_mime_type`, `file.has_gps`, `image.resolution_class`, `image.sample_size`, `video.codec`, `video.output_codec`, `video.resolution_class`, `video.duration_class`, `video.frame_rate_class`, `video.rotation`, `video.has_audio` |
+| Job | With errors from a Clean, Share, Convert, Scan or Censor job. `job.type` is the job (clean, share, convert, scan, censor), `job.operation` the step it was in (such as image_to_mediastore) | `job.type`, `job.operation`, `outcome`, `error_type`, `reason` |
+| File | The file being processed, never its name or contents | `file.media_type`, `file.mime_type`, `file.output_mime_type`, `file.has_gps`, `image.resolution_class`, `image.decode_sample_size`, `video.codec`, `video.output_codec`, `video.resolution_class`, `video.duration_class`, `video.frame_rate_class`, `video.rotation`, `video.has_audio` |
 | Checks | What the clean and its checks found | `verify.image_passed`, `verify.video_passed`, `verify.failed_check`, `scan.extraction_failed`, `scan.section_count`, `clean.kept_exif_count`, `clean.removed_exif_count` |
-| Permissions | Whether each permission is granted and whether Android will still ask; `permission.<type>` is one of images, videos, selected_media, media_gps, notifications, storage or other | `permission.type`, `permission.request_code`, `permission.needed`, `permission.all_granted`, `permission.images`, `permission.videos`, `permission.selected_media`, `permission.storage`, `permission.media_gps`, `permission.partial_access`, `permission.persisted_grant`, `permission.rationale_shown`, `permission.gps_rationale_shown`, `permission.settings_needed`, `permission.gps_settings_needed`, `permission.images_can_ask`, `permission.videos_can_ask`, `permission.storage_can_ask`, `permission.gps_can_ask` |
-| App | How the app was opened and what it was doing | `intent.action`, `intent.type`, `intent.unsupported_type`, `intent.unsupported_action`, `ui.theme`, `notification.enabled`, `notification.clean_enabled`, `notification.convert_enabled`, `clean.state`, `clean.selected_count`, `clean.processing_count`, `clean.processed_count`, `share.media_count`, `app.process_state`, `app.background_restricted`, `app.standby_bucket`, `app.installer` |
-| Settings | The settings that change how files are processed, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality` |
-| Phone | What the phone offers for media work, and its state | `device.media_performance_class`, `device.low_ram`, `device.heap_mb`, `device.large_heap_mb`, `device.thermal_status`, `device.power_save` |
+| Permissions | Whether each permission is granted and whether Android will still ask; `permission.<type>` is one of images, videos, selected_media, media_gps, notifications, storage or other, and is true when granted | `permission.type`, `permission.request_code`, `permission.request_needed`, `permission.all_granted`, `permission.images`, `permission.videos`, `permission.selected_media`, `permission.storage`, `permission.media_gps`, `permission.partial_media_access`, `permission.persisted_grant`, `permission.rationale_shown`, `permission.gps_rationale_shown`, `permission.settings_needed`, `permission.gps_settings_needed`, `permission.images_can_ask`, `permission.videos_can_ask`, `permission.storage_can_ask`, `permission.gps_can_ask` |
+| App | How the app was opened and what it was doing | `intent.action`, `intent.mime_type`, `intent.unsupported_mime_type`, `intent.unsupported_action`, `ui.theme`, `clean.screen_state`, `clean.selected_count`, `clean.processing_count`, `clean.processed_count`, `share.file_count`, `app.process_importance`, `app.background_restricted`, `app.standby_bucket`, `app.installer` |
+| Settings | The settings that change how files are processed or what the app shows, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality`, `setting.notifications`, `setting.clean_notifications`, `setting.convert_notifications` |
+| Phone | What the phone offers for media work, and its state | `device.media_performance_class`, `device.low_ram`, `device.heap_mb`, `device.large_heap_mb`, `device.thermal_status`, `device.battery_saver_on` |
 
-| Counters and timings | Names |
+| Counter or timing | What it measures | Broken down by |
+|---|---|---|
+| `job.batch_start` | One Clean, Share, Convert job starting | `job.type`, `device.thermal_status` |
+| `job.batch_outcome` | One job ending: every file done, some, none, or cancelled | `job.type`, `outcome` |
+| `job.batch.file_count` | How many files one job was given | `job.type` |
+| `job.batch.duration` | How long one whole job took | `job.type` |
+| `job.file_outcome` | One file a job finished, and how it came out | `job.type`, `file.media_type`, `outcome`, `error_type` |
+| `job.file.duration` | How long one successful file took | `job.type`, `file.media_type` |
+| `job.resource_warning` | A large-job or low-storage warning shown before a job | `reason` |
+| `clean.method_used` | Which way a file was cleaned: rebuilt, copied as it is, or re-encoded | `file.media_type`, `outcome` |
+| `clean.discarded_part` | A part a clean had to leave out of a file, such as a Motion Photo's video or a depth map | `file.media_type`, `reason` |
+| `verify.clean_check_outcome` | A cleaned file passing or failing the check that nothing identifying is left | `file.media_type`, `outcome`, `reason` |
+| `already_clean.file_status` | What the check before a Clean found for one file: already clean, needs cleaning, unreadable or out of time | `outcome`, `error_type` |
+| `already_clean.selection_check.duration` | How long that check took for a whole selection | `job.type` |
+| `media.unsupported_shared_type` | A shared item in a format the app doesn't take | `file.mime_type` |
+| `convert.output_format` | A file converted, by the format it was converted to | `file.output_mime_type`, `outcome` |
+| `convert.video_codec_fallback` | A video conversion that had to use a different codec than asked for | `video.output_codec` |
+| `video.output_downscale` | A video written smaller than its source, by the new short side | `outcome` |
+| `video.smaller_size_retry` | A transcode tried again at a smaller size | `file.media_type`, `outcome` |
+| `video.transcode_attempt_failure` | One transcode attempt failing | `video.output_codec`, `reason` |
+| `video.source_probe_failure` | Facts about a source video or the phone's encoders that couldn't be read, so a transcode used safe defaults | `reason`, `error_type` |
+| `censor.photo_open` | A photo opened in Censor: loaded, unsupported or failed | `outcome` |
+| `censor.copy_save.region_count` | How many areas a saved censored copy covers | nothing |
+| `censor.downscaled_save` | A censored copy that had to be saved smaller than the photo | `outcome`, `reason` |
+| `share.inbound_copy_failure` | A shared item that couldn't be copied in | `error_type` |
+| `output.custom_folder_fallback` | The chosen output folder failing, so the default folder was used | `file.media_type`, `error_type` |
+| `output.folder_grant_failure` | Android refusing to keep access to a folder chosen for output | `file.media_type` |
+| `output.unfinished_file_removal` | An unfinished copy an earlier run left in a chosen folder, removed or not | `outcome`, `error_type` |
+| `cache.leftover_file` | Working files an earlier run left behind, found at start-up | nothing |
+| `cache.stale_file_removal` | Working files older than a day that the automatic cleanup removed | nothing |
+| `secure_delete.overwrite.duration` | How long overwriting one working copy before deleting it took | `outcome` |
+| `secure_delete.failure` | A working copy that couldn't be overwritten, or couldn't even be deleted | `reason`, `error_type` |
+| `memory.decode_shortage` | A picture that had to be decoded smaller for lack of memory, or couldn't be | `outcome` |
+| `app.process_exit` | Android ending the app's process, and why | `reason`, `app.process_importance` |
+| `app.process_exit.memory_used` | How much memory the app held when Android ended it | `reason` |
+| `service.foreground_start_failure` | The progress service failing to start | `outcome`, `reason`, `error_type` |
+| `notification.post_failure` | A notification Android refused to show | `error_type` |
+| `permission.request_answer` | The answer to a permission request | `permission.type`, `outcome` |
+| `update.release_check` | A Check for Updates result: newer, up to date or failed | `outcome` |
+| `update.release_check.duration` | How long a Check for Updates took | `outcome` |
+| `onboarding.intro_exit` | How the introduction ended: finished, or left with Back | `outcome` |
+| `ui.external_app_missing` | A button that hands off to another app finding none (no maps app, browser, Play Store, share target, file picker, file manager or system settings) | `reason` |
+
+| Transaction or span | What it times |
 |---|---|
-| Jobs | `job.start`, `job.batch`, `job.batch.size`, `job.batch.duration`, `job.item`, `job.item.duration`, `job.warning` |
-| Cleaning | `clean.method`, `clean.dropped_part`, `verify.result`, `already_clean.check`, `already_clean.check.duration`, `media.unsupported_type` |
-| Converting and video | `convert.output`, `convert.codec_fallback`, `video.downscale`, `video.retry`, `video.transcode_failure` |
-| Censor and sharing | `censor.load`, `censor.save`, `censor.save.regions`, `share.snapshot_failure`, `output.folder_fallback` |
-| App | `app.exit`, `app.exit.memory`, `memory.shortage`, `cache.orphan`, `secure_delete.overwrite.duration`, `secure_delete.fallback`, `service.failure`, `notification.failure`, `permission.result`, `update.check`, `update.check.duration`, `onboarding.end` |
+| `clean.batch` | A whole Clean job |
+| `clean.file` | One file in a Clean job |
+| `convert.batch` | A whole Convert job |
+| `convert.file` | One file in a Convert job |
+| `share.batch` | Cleaning everything shared to Redact |
+| `share.file` | One shared file |
+| `clean.pre_clean_checks` | The checks between tapping Clean and the job starting |
+| `storage.free_space_check` | Checking there is room for the job |
+| `already_clean.selection_check` | Checking which selected files are already clean |
+| `share.inbound_check` | Checking what was shared to Redact before copying it |
+| `share.inbound_copy` | Copying shared items into the app's private storage |
+| `media.source_copy` | Copying one source file into a private working copy |
+| `image.upright_decode` | Decoding a photo with its rotation applied |
+| `image.metadata_free_rebuild` | Rebuilding a photo from its picture data, leaving the metadata behind |
+| `image.pixel_reencode` | Encoding a photo again from its pixels |
+| `video.fast_remux` | Copying a video's streams into a new file without its metadata |
+| `video.transcode` | Re-encoding a video |
+| `convert.image_encode` | Converting one photo to another format |
+| `verify.image_metadata_check` | Checking a cleaned photo has no identifying metadata left |
+| `verify.video_metadata_check` | Checking a cleaned video has no identifying metadata left |
+| `verify.saved_bytes_check` | Checking the saved file holds exactly the bytes that were checked |
+| `output.file_save` | Writing a finished file to the output folder |
+| `secure_delete.overwrite` | Overwriting and deleting one working copy |
+| `scan.metadata_read` | A Scan of one file, from start to the result on screen |
+| `scan.image_metadata_read` | Reading a photo's metadata in a Scan |
+| `scan.video_metadata_read` | Reading a video's metadata in a Scan |
+| `scan.location_reread` | Reading a file's location again after location access is allowed |
+| `scan.multi_file_summary` | Scanning several files for the summary |
+| `scan.file_survey` | Surveying one file in that summary |
+| `censor.photo_open` | Opening a photo in Censor |
+| `censor.copy_save` | Saving a censored copy |
+| `update.release_check` | Check for Updates asking GitHub for the newest release |
+| `cache.stale_file_cleanup` | The automatic cleanup of working files older than a day |
+| `cache.leftover_file_sweep` | Deleting working files an earlier run left behind |
+| `output.unfinished_file_sweep` | Deleting unfinished copies an earlier run left in a chosen folder |
 
 Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
 
@@ -447,6 +521,7 @@ Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, 
 | `READ_EXTERNAL_STORAGE` | Gallery access on Android 12 and earlier | Where applicable |
 | `ACCESS_MEDIA_LOCATION` | Lets Scan read GPS coordinates embedded in your media | Optional |
 | `POST_NOTIFICATIONS` | Progress and completion notifications | Optional, off until you enable it |
+| `POST_PROMOTED_NOTIFICATIONS` | On Android 16 and newer, shows a job's file count or percent as a chip in the status bar while Ongoing Task Progress is on | Granted at install; you can turn Live Updates off in Android's settings |
 | `FOREGROUND_SERVICE` | Keeps long clean or convert jobs running with a progress notification | Used during jobs |
 
 - **Open source.** Anyone can read the code and check these promises for themselves.

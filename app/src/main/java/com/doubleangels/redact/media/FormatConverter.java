@@ -792,6 +792,17 @@ public final class FormatConverter {
             @NonNull Uri sourceUri,
             @NonNull Bitmap.CompressFormat format,
             @NonNull String baseDisplayName) throws IOException {
+        return SentryManager.inSpan("convert.image_encode",
+                () -> convertImageToPicturesUntraced(context, sourceUri, format, baseDisplayName));
+    }
+
+    /** The work of {@link #convertImageToPictures}, outside its convert.image span. */
+    @NonNull
+    private static Uri convertImageToPicturesUntraced(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull Bitmap.CompressFormat format,
+            @NonNull String baseDisplayName) throws IOException {
 
         ContentResolver resolver = context.getContentResolver();
         String mimeIn = resolver.getType(sourceUri);
@@ -886,6 +897,14 @@ public final class FormatConverter {
     @NonNull
     public static Bitmap decodeUpright(
             @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
+        return SentryManager.inSpan("image.upright_decode",
+                () -> decodeUprightUntraced(context, sourceUri, maxDimension));
+    }
+
+    /** The work of {@link #decodeUpright}, outside its image.decode span. */
+    @NonNull
+    private static Bitmap decodeUprightUntraced(
+            @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
         ContentResolver resolver = context.getContentResolver();
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
@@ -939,7 +958,8 @@ public final class FormatConverter {
     private static Bitmap decodeBitmapFromUri(
             @NonNull Context context, @NonNull Uri sourceUri, int maxDimension) throws IOException {
         try {
-            return decodeWithImageDecoder(context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
+            return decodeWithImageDecoder(
+                    context, sourceUri, maxDimension, fullResolutionPixelBudget(context));
         } catch (OutOfMemoryError e) {
             // Already scaled to the max bitmap size; fail this file rather than the app.
             AppMetrics.lowMemory("decode_failed");

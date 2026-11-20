@@ -16,8 +16,8 @@ android {
         applicationId "com.doubleangels.redact"
         minSdk 31
         targetSdk 37
-        versionCode 44
-        versionName "1.13.1"
+        versionCode 45
+        versionName "1.14.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         def sentryRelease = "${applicationId}@${versionName}+${versionCode}"
@@ -186,6 +186,11 @@ sentry {
     authToken = sentryAuthToken
     includeProguardMapping = true
     autoUploadProguardMapping = sentryAuthToken != null
+    // Redact is open source, so its own code goes to Sentry too and each stack frame shows its
+    // line. Uploaded by the release build in CI, never from a phone. Only with the token: the
+    // plugin uploads the bundle whenever it is made, so without one the build would fail.
+    includeSourceContext = sentryAuthToken != null
+    autoUploadSourceContext = sentryAuthToken != null
     telemetry = false
     // Uploads the release bundle to Sentry Size Analysis after bundleRelease. Only deploy.yml turns
     // it on, so only releases are measured. The bundle holds the app's code and resources, never

@@ -27,21 +27,28 @@ public class MetricsAreDocumentedTest {
 
     /** Each described in the "Counters and timings" row of the crash-report tables. */
     private static final Set<String> DOCUMENTED = new TreeSet<>(List.of(
-            "already_clean.check", "already_clean.check.duration",
-            "app.exit", "app.exit.memory",
-            "cache.orphan",
-            "censor.load", "censor.save", "censor.save.regions",
-            "clean.dropped_part", "clean.method",
-            "convert.codec_fallback", "convert.output",
-            "job.batch", "job.batch.duration", "job.batch.size",
-            "job.item", "job.item.duration", "job.start", "job.warning",
-            "media.unsupported_type", "memory.shortage",
-            "notification.failure", "onboarding.end", "output.folder_fallback", "permission.result",
-            "secure_delete.fallback", "secure_delete.overwrite.duration",
-            "service.failure", "share.snapshot_failure",
-            "update.check", "update.check.duration",
-            "verify.result",
-            "video.downscale", "video.retry", "video.transcode_failure"));
+            "already_clean.file_status", "already_clean.selection_check.duration",
+            "app.process_exit", "app.process_exit.memory_used",
+            "cache.leftover_file", "cache.stale_file_removal",
+            "censor.copy_save.region_count", "censor.downscaled_save", "censor.photo_open",
+            "clean.discarded_part", "clean.method_used",
+            "convert.output_format", "convert.video_codec_fallback",
+            "job.batch.duration", "job.batch.file_count", "job.batch_outcome", "job.batch_start",
+            "job.file.duration", "job.file_outcome", "job.resource_warning",
+            "media.unsupported_shared_type",
+            "memory.decode_shortage",
+            "notification.post_failure",
+            "onboarding.intro_exit",
+            "output.custom_folder_fallback", "output.folder_grant_failure", "output.unfinished_file_removal",
+            "permission.request_answer",
+            "secure_delete.failure", "secure_delete.overwrite.duration",
+            "service.foreground_start_failure",
+            "share.inbound_copy_failure",
+            "ui.external_app_missing",
+            "update.release_check", "update.release_check.duration",
+            "verify.clean_check_outcome",
+            "video.output_downscale", "video.smaller_size_retry", "video.source_probe_failure",
+            "video.transcode_attempt_failure"));
 
     private static final File APP_METRICS =
             new File("src/main/java/com/doubleangels/redact/sentry/AppMetrics.java");

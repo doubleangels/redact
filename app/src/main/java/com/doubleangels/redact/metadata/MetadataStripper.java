@@ -597,6 +597,12 @@ public class MetadataStripper {
 
     void copySourceToTempFile(@NonNull Uri sourceUri, @NonNull File tempFile)
             throws IOException {
+        SentryManager.runInSpan("media.source_copy", () -> copySourceToTempFileUntraced(sourceUri, tempFile));
+    }
+
+    /** The work of {@link #copySourceToTempFile}, outside its media.copy span. */
+    private void copySourceToTempFileUntraced(@NonNull Uri sourceUri, @NonNull File tempFile)
+            throws IOException {
         try (InputStream in = contentResolver.openInputStream(sourceUri);
                 FileOutputStream out = new FileOutputStream(tempFile)) {
             if (in == null) {

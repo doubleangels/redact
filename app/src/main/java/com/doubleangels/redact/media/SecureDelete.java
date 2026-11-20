@@ -34,6 +34,11 @@ public final class SecureDelete {
     }
 
     public static boolean secureDelete(@NonNull File file) {
+        return SentryManager.inSpan("secure_delete.overwrite", () -> secureDeleteUntraced(file));
+    }
+
+    /** The work of {@link #secureDelete}, outside its secure_delete.overwrite span. */
+    private static boolean secureDeleteUntraced(@NonNull File file) {
         if (!file.exists() || !file.isFile()) {
             return false;
         }

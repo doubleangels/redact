@@ -214,6 +214,8 @@ public class ShareHandlerActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
+        // A see-through screen whose content is its dialogs: its first frame is all there is to load.
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         try {
             mediaSelector = new MediaSelector(this);
@@ -334,7 +336,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
 
             SentryManager.setCustomKey("intent.action", action != null ? action : "null");
             // The sender writes the type, so only a plain MIME type is sent, never its own text.
-            SentryManager.setCustomKey("intent.type", mimeTypeTag(type));
+            SentryManager.setCustomKey("intent.mime_type", mimeTypeTag(type));
 
             if (Intent.ACTION_SEND.equals(action)) {
                 if (type == null || type.startsWith("image/") || type.startsWith("video/")
@@ -342,7 +344,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.logEvent("share", "The app is handling a single media item.");
                     handleSentMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_mime_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
@@ -351,7 +353,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
                     SentryManager.logEvent("share", "The app is handling multiple media items.");
                     handleMultipleMedia(intent);
                 } else {
-                    SentryManager.setCustomKey("intent.unsupported_type", mimeTypeTag(type));
+                    SentryManager.setCustomKey("intent.unsupported_mime_type", mimeTypeTag(type));
                     finishWithError(getString(R.string.share_error_unsupported_media));
                 }
             } else {
@@ -412,7 +414,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
         final ShareSession session = shareSession;
         // A recreated activity cannot resume this, so treat it like a running job (see onCreate).
         processingActive = true;
-        startShareThread("redact-share-check", session, () -> {
+        startShareThread("redact-share-check", session, () -> SentryManager.runInTransaction("share.inbound_check", () -> {
             List<Uri> accepted = filterSupportedUris(uris, session);
             List<ProcessingResourceWarnings.Warning> warnings = accepted.isEmpty()
                     ? new ArrayList<>()
@@ -428,21 +430,21 @@ public class ShareHandlerActivity extends AppCompatActivity {
                 ProcessingResourceWarnings.runWithWarnings(
                         this, warnings, () -> snapshotAndProcess(accepted, session));
             });
-        });
+        }));
     }
 
     private void snapshotAndProcess(@NonNull List<Uri> accepted, @NonNull ShareSession session) {
-        startShareThread("redact-share-snapshot", session, () -> {
+        startShareThread("redact-share-snapshot", session, () -> SentryManager.runInTransaction("share.inbound_copy", () -> {
             List<Uri> snapshotted = snapshotInboundUris(accepted, session);
             runOnUiThreadForSession(session, () -> {
                 if (snapshotted.isEmpty()) {
                     finishWithError(getString(R.string.share_error_failed_receive_media));
                     return;
                 }
-                SentryManager.setCustomKey("share.media_count", snapshotted.size());
+                SentryManager.setCustomKey("share.file_count", snapshotted.size());
                 maybeConfirmAndProcess(snapshotted, session);
             });
-        });
+        }));
     }
 
     /** Runs preparation work on its own thread; cancelling the share interrupts it. */
@@ -547,7 +549,7 @@ public class ShareHandlerActivity extends AppCompatActivity {
             boolean[] hasImage = {false};
             Map<Uri, SharedItem> described = new HashMap<>();
             try {
-                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, "share_cleanup", uris, alreadyFailed,
+                BatchRun.Result result = BatchRun.run(AppMetrics.SHARE, uris, alreadyFailed,
                         uri -> describe(described, uri).video,
                         () -> !isCurrentSession(session) || Thread.currentThread().isInterrupted(),
                         (uri, i) -> {

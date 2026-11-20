@@ -258,7 +258,7 @@ public class SettingsFragment extends TabFragment {
             try {
                 if (!isChecked) {
                     applyNotificationsEnabled(false);
-                    SentryManager.setCustomKey("notification.enabled", false);
+                    SentryManager.setCustomKey("setting.notifications", false);
                     return;
                 }
                 if (needsNotificationPermission() && !hasNotificationPermission()) {
@@ -266,7 +266,7 @@ public class SettingsFragment extends TabFragment {
                     return;
                 }
                 applyNotificationsEnabled(true);
-                SentryManager.setCustomKey("notification.enabled", true);
+                SentryManager.setCustomKey("setting.notifications", true);
             } catch (Exception e) {
                 SentryManager.recordException(e);
             }
@@ -274,12 +274,12 @@ public class SettingsFragment extends TabFragment {
 
         switchClean.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setCleanNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("notification.clean_enabled", isChecked);
+            SentryManager.setCustomKey("setting.clean_notifications", isChecked);
         });
 
         switchConvert.setOnCheckedChangeListener((btn, isChecked) -> {
             AppPreferences.setConvertNotificationsEnabled(requireContext(), isChecked);
-            SentryManager.setCustomKey("notification.convert_enabled", isChecked);
+            SentryManager.setCustomKey("setting.convert_notifications", isChecked);
         });
 
         switchProgress.setOnCheckedChangeListener((btn, isChecked) ->
@@ -531,7 +531,12 @@ public class SettingsFragment extends TabFragment {
         openSettings.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
-            startActivity(intent);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SYSTEM_SETTINGS);
+                Notice.show(requireContext(), R.string.settings_link_unavailable, false);
+            }
         });
         View rowPermissionLocation = view.findViewById(R.id.rowPermissionLocation);
         if (rowPermissionLocation != null) {
@@ -608,6 +613,7 @@ public class SettingsFragment extends TabFragment {
             context.getContentResolver().takePersistableUriPermission(tree,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         } catch (SecurityException e) {
+            AppMetrics.outputFolderGrantFailure(video);
             Notice.show(context, R.string.settings_output_error, true);
             return false;
         }
@@ -662,6 +668,7 @@ public class SettingsFragment extends TabFragment {
             try {
                 picker.launch(start);
             } catch (ActivityNotFoundException e) {
+                AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_FOLDER_PICKER);
                 Notice.show(requireContext(), R.string.settings_output_error, true);
             }
         });
@@ -680,6 +687,7 @@ public class SettingsFragment extends TabFragment {
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException | SecurityException e) {
+                AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_FILE_MANAGER);
                 Notice.show(requireContext(), R.string.settings_output_open_unavailable, false);
             }
         });
@@ -1105,6 +1113,7 @@ public class SettingsFragment extends TabFragment {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (ActivityNotFoundException e) {
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_BROWSER);
             Notice.show(requireContext(), R.string.settings_link_unavailable, false);
         }
     }
@@ -1165,7 +1174,7 @@ public class SettingsFragment extends TabFragment {
                         AppMetrics.permissionResult("android.permission.POST_NOTIFICATIONS", granted);
                         if (granted) {
                             applyNotificationsEnabled(true);
-                            SentryManager.setCustomKey("notification.enabled", true);
+                            SentryManager.setCustomKey("setting.notifications", true);
                             Notice.show(requireContext(),
                                     R.string.settings_notifications_permission_granted,
                                     false);

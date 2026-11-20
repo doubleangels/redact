@@ -387,7 +387,8 @@ final class VideoCleaner {
      * Keep Location is on and Strict Clean is off. Null otherwise, or when it has none.
      */
     @Nullable
-    private double[] keptVideoLocation(@NonNull CleanVerifier.VideoPrivacySnapshot source, @NonNull Uri sourceUri) {
+    private double[] keptVideoLocation(
+            @NonNull CleanVerifier.VideoPrivacySnapshot source, @NonNull Uri sourceUri) {
         if (AppPreferences.isStrictClean(context) || !AppPreferences.isPreserveLocation(context)) {
             return null;
         }
@@ -448,6 +449,14 @@ final class VideoCleaner {
      */
     @Nullable
     File fastStripVideoMetadata(Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
+        return SentryManager.inSpan("video.fast_remux",
+                () -> fastStripVideoMetadataUntraced(sourceUri, keepLocation, keepDate));
+    }
+
+    /** The work of {@link #fastStripVideoMetadata}, outside its video.remux span. */
+    @Nullable
+    private File fastStripVideoMetadataUntraced(
+            Uri sourceUri, @Nullable double[] keepLocation, boolean keepDate) {
         return transmuxer.transmux(sourceUri, keepLocation, keepDate);
     }
 
