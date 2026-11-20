@@ -231,7 +231,6 @@
                 <!-- Clean preset: sets the switches below for a purpose. Worked out from them,
                      so it shows Custom when they match none. -->
                 <TextView
-                    android:id="@+id/textCleanPresetTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_clean_preset"
@@ -564,7 +563,6 @@
 
                 <!-- Remove Audio Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowRemoveAudio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"

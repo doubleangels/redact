@@ -45,6 +45,7 @@ import com.doubleangels.redact.stats.StatsStore;
 import com.doubleangels.redact.ui.CleanPresetLabels;
 import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.FoldDialogs;
+import com.doubleangels.redact.ui.KeepLocationConfirm;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.update.UpdateChecker;
 import com.doubleangels.redact.whatsnew.WhatsNew;
@@ -270,15 +271,10 @@ public class SettingsFragment extends TabFragment {
         }
         // Shows the previous choice until the user says yes.
         refreshCleanPreset();
-        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.settings_preserve_location_confirm_title)
-                .setMessage(R.string.settings_preserve_location_confirm_message)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    CleanPresets.apply(requireContext(), preset, true);
-                    refreshCleaningSwitches();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show());
+        KeepLocationConfirm.ask(context, () -> {
+            CleanPresets.apply(requireContext(), preset, true);
+            refreshCleaningSwitches();
+        });
     }
 
     /** Selects the preset the saved options match, or Custom. */
@@ -522,18 +518,13 @@ public class SettingsFragment extends TabFragment {
                 suppressPreserveLocationToggleCallback = true;
                 switchPreserveLocation.setChecked(false);
                 suppressPreserveLocationToggleCallback = false;
-                FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.settings_preserve_location_confirm_title)
-                        .setMessage(R.string.settings_preserve_location_confirm_message)
-                        .setPositiveButton(android.R.string.ok, (d, w) -> {
-                            AppPreferences.setPreserveLocation(requireContext(), true);
-                            suppressPreserveLocationToggleCallback = true;
-                            switchPreserveLocation.setChecked(true);
-                            suppressPreserveLocationToggleCallback = false;
-                            updateKeepSubOptions();
-                        })
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show());
+                KeepLocationConfirm.ask(requireContext(), () -> {
+                    AppPreferences.setPreserveLocation(requireContext(), true);
+                    suppressPreserveLocationToggleCallback = true;
+                    switchPreserveLocation.setChecked(true);
+                    suppressPreserveLocationToggleCallback = false;
+                    updateKeepSubOptions();
+                });
             } else {
                 AppPreferences.setPreserveLocation(requireContext(), false);
                 updateKeepSubOptions();

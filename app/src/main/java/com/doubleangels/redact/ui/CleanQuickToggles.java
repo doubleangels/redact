@@ -134,15 +134,10 @@ public final class CleanQuickToggles {
             return;
         }
         // Not applied until confirmed, the same question Keep Location asks.
-        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.settings_preserve_location_confirm_title)
-                .setMessage(R.string.settings_preserve_location_confirm_message)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    CleanPresets.apply(context, chosen, true);
-                    sync();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show());
+        KeepLocationConfirm.ask(context, () -> {
+            CleanPresets.apply(context, chosen, true);
+            sync();
+        });
     }
 
     /** Locks the chips while a clean runs: it has already read the settings it uses. */
@@ -179,14 +174,9 @@ public final class CleanQuickToggles {
         syncing = true;
         chip.setChecked(false);
         syncing = false;
-        FoldDialogs.place(new MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.settings_preserve_location_confirm_title)
-                .setMessage(R.string.settings_preserve_location_confirm_message)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    AppPreferences.setPreserveLocation(context, true);
-                    sync();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show());
+        KeepLocationConfirm.ask(context, () -> {
+            AppPreferences.setPreserveLocation(context, true);
+            sync();
+        });
     }
 }
