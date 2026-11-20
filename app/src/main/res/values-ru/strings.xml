@@ -231,7 +231,7 @@
     <string name="settings_about_rate">Оценить Redact в Google Play</string>
     <string name="settings_about_tell_friend">Рассказать Другу о Redact</string>
     <string name="tell_friend_chooser_title">Поделиться Redact</string>
-    <string name="tell_friend_message">Я убираю скрытые данные вроде места съёмки и модели камеры из своих фото и видео с помощью Redact, прежде чем ими поделиться. Он бесплатный, без рекламы и работает прямо на телефоне. %1$s</string>
+    <string name="tell_friend_message">Я убираю скрытые данные вроде места съёмки и модели камеры из своих фото и видео с помощью Redact, прежде чем ими поделиться. Без рекламы и подписок, работает прямо на телефоне. %1$s</string>
     <string name="settings_link_unavailable">Не найдено приложение для открытия этой ссылки.</string>
     <string name="settings_progress_notifications_label">Прогресс Текущей Задачи</string>
     <string name="settings_progress_notifications_subtitle">Постоянное уведомление о прогрессе длительных задач. По умолчанию выкл., пока не включите уведомления.</string>

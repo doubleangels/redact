@@ -227,7 +227,7 @@
     <string name="settings_about_rate">Avaliar o Redact no Google Play</string>
     <string name="settings_about_tell_friend">Indicar o Redact a um Amigo</string>
     <string name="tell_friend_chooser_title">Compartilhar o Redact</string>
-    <string name="tell_friend_message">Uso o Redact para tirar detalhes ocultos, como localização e modelo da câmera, das minhas fotos e vídeos antes de compartilhar. É grátis, não tem anúncios e funciona direto no celular. %1$s</string>
+    <string name="tell_friend_message">Uso o Redact para tirar detalhes ocultos, como localização e modelo da câmera, das minhas fotos e vídeos antes de compartilhar. Não tem anúncios nem assinatura e funciona direto no celular. %1$s</string>
     <string name="settings_link_unavailable">Nenhum app encontrado para abrir este link.</string>
     <string name="settings_progress_notifications_label">Progresso da Tarefa em Andamento</string>
     <string name="settings_progress_notifications_subtitle">Notificação persistente com progresso em tarefas longas. Desativada por padrão até você ativar Permitir notificações.</string>

@@ -227,7 +227,7 @@
     <string name="settings_about_rate">Noter Redact sur Google Play</string>
     <string name="settings_about_tell_friend">Recommander Redact à un Ami</string>
     <string name="tell_friend_chooser_title">Partager Redact</string>
-    <string name="tell_friend_message">J\'utilise Redact pour retirer les détails cachés comme le lieu et le modèle d\'appareil de mes photos et vidéos avant de les partager. C\'est gratuit, sans pub et ça marche sur ton téléphone. %1$s</string>
+    <string name="tell_friend_message">J\'utilise Redact pour retirer les détails cachés comme le lieu et le modèle d\'appareil de mes photos et vidéos avant de les partager. Sans pub ni abonnement, et ça marche sur ton téléphone. %1$s</string>
     <string name="settings_link_unavailable">Aucune application trouvée pour ouvrir ce lien.</string>
     <string name="settings_progress_notifications_label">Progression de la Tâche en Cours</string>
     <string name="settings_progress_notifications_subtitle">Notification persistante avec progression pour les longues tâches. Désactivée par défaut jusqu\'à activation des notifications.</string>

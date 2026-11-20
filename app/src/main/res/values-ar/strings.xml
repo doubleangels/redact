@@ -239,7 +239,7 @@
     <string name="settings_about_rate">قيّم Redact على Google Play</string>
     <string name="settings_about_tell_friend">أخبر صديقًا عن Redact</string>
     <string name="tell_friend_chooser_title">مشاركة Redact</string>
-    <string name="tell_friend_message">أستخدم Redact لإزالة التفاصيل المخفية مثل الموقع وطراز الكاميرا من صوري وفيديوهاتي قبل مشاركتها. إنه مجاني وبلا إعلانات ويعمل على هاتفك مباشرةً. %1$s</string>
+    <string name="tell_friend_message">أستخدم Redact لإزالة التفاصيل المخفية مثل الموقع وطراز الكاميرا من صوري وفيديوهاتي قبل مشاركتها. بلا إعلانات ولا اشتراكات، ويعمل على هاتفك مباشرةً. %1$s</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
