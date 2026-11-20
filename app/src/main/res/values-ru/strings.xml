@@ -553,8 +553,8 @@
     </plurals>
     <string name="settings_about_intro">Показать Введение</string>
     <string name="settings_about_licenses">Лицензии Открытого ПО</string>
-    <string name="settings_about_whats_new">Что нового</string>
-    <string name="whats_new_title">Что нового</string>
+    <string name="settings_about_whats_new">Что Нового</string>
+    <string name="whats_new_title">Что Нового</string>
     <string name="whats_new_version">Версия %1$s</string>
     <string name="whats_new_section_new">Новое</string>
     <string name="whats_new_section_improved">Улучшено</string>
