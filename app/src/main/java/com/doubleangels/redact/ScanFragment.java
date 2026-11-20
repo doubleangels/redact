@@ -535,12 +535,13 @@ public class ScanFragment extends TabFragment {
             progressText.setText(isVideo ? R.string.status_extracting_media : R.string.status_extracting_image);
 
             finishActiveScanTransaction(SpanStatus.CANCELLED);
-            final ITransaction transaction = SentryManager.startTransaction("extract_metadata", "task");
+            final ITransaction transaction = SentryManager.startTransaction("scan.metadata_read");
             activeScanTransaction = transaction;
             final long scanStartMs = SystemClock.elapsedRealtime();
             final boolean scannedVideo = isVideo;
             MetadataDisplayer.extractSectionedMetadata(
-                    requireContext().getApplicationContext(), mediaUri, new MetadataDisplayer.SectionedMetadataCallback() {
+                    requireContext().getApplicationContext(), mediaUri, transaction,
+                    new MetadataDisplayer.SectionedMetadataCallback() {
                 // Both callbacks arrive on the main thread (MetadataDisplayer delivers them there).
                 @Override
                 public void onMetadataExtracted(Map<String, String> metadataSections, boolean isVideo) {
@@ -1084,6 +1085,7 @@ public class ScanFragment extends TabFragment {
             startActivity(Intent.createChooser(send, getString(R.string.scan_share_report)));
         } catch (ActivityNotFoundException e) {
             SentryManager.logEvent("scan", "No app can take a metadata report shared as text.");
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SHARE_SHEET);
             Notice.show(requireContext(), R.string.scan_share_report_unavailable, false);
         }
     }
@@ -1123,6 +1125,7 @@ public class ScanFragment extends TabFragment {
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_MAPS);
             Notice.show(requireContext(), R.string.scan_maps_not_available, false);
         }
     }

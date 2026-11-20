@@ -107,6 +107,7 @@ public class OnboardingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
         setContentView(R.layout.activity_onboarding);
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         replay = getIntent().getBooleanExtra(EXTRA_REPLAY, false);
         if (savedInstanceState != null) {

@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
@@ -404,8 +405,8 @@ public class CensorFragment extends TabFragment {
         try {
             photoPickerLauncher.launch(new String[] {"image/*"});
         } catch (ActivityNotFoundException e) {
-            SentryManager.recordException(e);
-            Notice.show(requireContext(), R.string.share_error_generic, false);
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_FILE_PICKER);
+            Notice.show(requireContext(), R.string.status_media_picker_fail, false);
         }
     }
 

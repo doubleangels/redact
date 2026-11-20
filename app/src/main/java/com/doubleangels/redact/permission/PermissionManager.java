@@ -147,7 +147,7 @@ public class PermissionManager {
         }
         try {
             List<String> missing = collectMissingRuntimePermissions(activity);
-            SentryManager.setCustomKey("permission.needed", !missing.isEmpty());
+            SentryManager.setCustomKey("permission.request_needed", !missing.isEmpty());
 
             if (missing.isEmpty()) {
                 SentryManager.logEvent("permission", "All permissions were already granted.");
@@ -501,7 +501,7 @@ public class PermissionManager {
 
                 SentryManager.setCustomKey("permission.images_can_ask", canAskImagesAgain);
                 SentryManager.setCustomKey("permission.videos_can_ask", canAskVideoAgain);
-                SentryManager.setCustomKey("permission.partial_access", hasPartialAccess);
+                SentryManager.setCustomKey("permission.partial_media_access", hasPartialAccess);
                 SentryManager.setCustomKey("permission.settings_needed",
                         hasShownRationale && !hasPartialAccess
                                 && (!canAskImagesAgain || !canAskVideoAgain));

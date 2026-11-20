@@ -9,6 +9,7 @@ import androidx.annotation.VisibleForTesting;
 import com.doubleangels.redact.media.AppProcessingScope;
 import com.doubleangels.redact.media.InboundSnapshots;
 import com.doubleangels.redact.media.SecureDelete;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -116,7 +117,7 @@ public final class CacheCleanup {
         Thread thread = new Thread(() -> {
             // After the orphan sweep, so the two never overwrite the same file at once.
             awaitQuietly(orphanSweep);
-            performAutoCleanup(appContext);
+            SentryManager.runHousekeeping("cache.stale_file_cleanup", () -> performAutoCleanup(appContext));
         }, "redact-auto-cleanup");
         autoCleanupThread = thread;
         thread.start();
@@ -167,7 +168,7 @@ public final class CacheCleanup {
         if (orphans.isEmpty() && sharedOutputs.isEmpty()) {
             return;
         }
-        Thread thread = new Thread(() -> {
+        Thread thread = new Thread(() -> SentryManager.runHousekeeping("cache.leftover_file_sweep", () -> {
             for (File orphan : orphans) {
                 if (orphan.exists() && !SecureDelete.secureDelete(orphan)) {
                     //noinspection ResultOfMethodCallIgnored
@@ -178,7 +179,7 @@ public final class CacheCleanup {
                 //noinspection ResultOfMethodCallIgnored
                 shared.delete();
             }
-        }, "redact-orphan-sweep");
+        }), "redact-orphan-sweep");
         orphanSweepThread = thread;
         thread.start();
     }
@@ -255,7 +256,7 @@ public final class CacheCleanup {
 
     @VisibleForTesting
     static void performAutoCleanup(@NonNull Context appContext) {
-        clearStaleTempFiles(appContext, DEFAULT_STALE_TEMP_MAX_AGE_MS);
+        AppMetrics.staleFilesRemoved(clearStaleTempFiles(appContext, DEFAULT_STALE_TEMP_MAX_AGE_MS));
     }
 
     @VisibleForTesting

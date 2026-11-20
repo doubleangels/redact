@@ -11,6 +11,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.stats.StatsStore;
 
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ public final class ShareResults {
                     Intent.createChooser(send, context.getString(R.string.share_results_chooser_title))));
             StatsStore.recordShare(context);
         } catch (ActivityNotFoundException e) {
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_SHARE_SHEET);
             Notice.show(context, R.string.share_error_generic, false);
         }
     }

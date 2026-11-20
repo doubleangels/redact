@@ -17,6 +17,8 @@ import com.doubleangels.redact.metadata.MetadataSurvey;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import io.sentry.SpanStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -113,18 +115,21 @@ public final class BatchScanSummary {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         Handler main = new Handler(Looper.getMainLooper());
         SentryManager.logEvent("scan", "A summary scan of several files is starting.");
-        Thread worker = new Thread(() -> {
+        Thread worker = new Thread(() -> SentryManager.runInTransaction("scan.multi_file_summary", () -> {
             Tally tally = new Tally();
             try {
                 for (MediaItem item : items) {
                     if (!dialog.isShowing()) {
+                        SentryManager.setCurrentSpanStatus(SpanStatus.CANCELLED);
                         return; // closed while reading: no need to finish
                     }
-                    tally.add(item.displayName(app), MetadataSurvey.survey(app, item));
+                    tally.add(item.displayName(app), SentryManager.inSpan("scan.file_survey",
+                            () -> MetadataSurvey.survey(app, item)));
                 }
             } catch (Exception | OutOfMemoryError e) {
                 // Recorded, and the dialog closed, rather than a crash or a summary left reading.
                 SentryManager.recordException(e);
+                SentryManager.failCurrentSpan(e);
                 main.post(() -> {
                     if (dialog.isShowing()) {
                         dialog.dismiss();
@@ -140,7 +145,7 @@ public final class BatchScanSummary {
                 dialog.setMessage(tally.describe(fragment.getResources()));
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(tally.files > tally.unreadable);
             });
-        }, "redact-batch-scan");
+        }), "redact-batch-scan");
         worker.start();
     }
 }

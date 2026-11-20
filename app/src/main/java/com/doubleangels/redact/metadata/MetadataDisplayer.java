@@ -26,6 +26,8 @@ import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.MediaUriResolver;
 import com.doubleangels.redact.sentry.SentryManager;
 
+import io.sentry.ISpan;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -149,11 +151,21 @@ public class MetadataDisplayer {
      * @param callback Callback to receive the sectioned extraction result
      */
     public static void extractSectionedMetadata(Context context, Uri mediaUri, SectionedMetadataCallback callback) {
+        extractSectionedMetadata(context, mediaUri, null, callback);
+    }
+
+    /**
+     * {@link #extractSectionedMetadata(Context, Uri, SectionedMetadataCallback)}, with the reading
+     * recorded as spans under {@code trace}, the scan's transaction, which the caller finishes.
+     */
+    public static void extractSectionedMetadata(Context context, Uri mediaUri, @Nullable ISpan trace,
+                                                SectionedMetadataCallback callback) {
         SentryManager.logEvent("scan", "The app is starting sectioned metadata extraction.");
 
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
+            SentryManager.runUnder(trace, () -> {
             try {
                 SentryManager.beginOperation("extract_sectioned_metadata");
                 ContentResolver contentResolver = context.getContentResolver();
@@ -176,10 +188,12 @@ public class MetadataDisplayer {
                 // Extract either video or image specific metadata
                 if (isVideo) {
                     SentryManager.logEvent("scan", "The app is extracting video metadata.");
-                    extractVideoMetadataToMap(context, mediaUri, allMetadata, embedded);
+                    SentryManager.runInSpan("scan.video_metadata_read",
+                            () -> extractVideoMetadataToMap(context, mediaUri, allMetadata, embedded));
                 } else {
                     SentryManager.logEvent("scan", "The app is extracting image metadata.");
-                    extractImageMetadataToMap(context, mediaUri, allMetadata, embedded);
+                    SentryManager.runInSpan("scan.image_metadata_read",
+                            () -> extractImageMetadataToMap(context, mediaUri, allMetadata, embedded));
                 }
 
                 List<String> locationKeys = new ArrayList<>();
@@ -248,6 +262,7 @@ public class MetadataDisplayer {
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
                 }
             }
+            });
             return null;
         });
         ACTIVE_SCAN.set(taskRef[0]);
@@ -262,6 +277,7 @@ public class MetadataDisplayer {
         cancelActiveScan();
         FutureTask<Void>[] taskRef = new FutureTask[1];
         taskRef[0] = new FutureTask<>(() -> {
+            SentryManager.runInTransaction("scan.location_reread", () -> {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 String mimeType = contentResolver.getType(mediaUri);
@@ -308,6 +324,7 @@ public class MetadataDisplayer {
                     deliverOnMain(() -> callback.onExtractionFailed(errorMessage));
                 }
             }
+            });
             return null;
         });
         ACTIVE_SCAN.set(taskRef[0]);

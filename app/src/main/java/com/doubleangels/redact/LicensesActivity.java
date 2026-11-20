@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.doubleangels.redact.media.MediaSizeLimits;
+import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.ui.OpenSourceLicenses;
@@ -45,6 +46,7 @@ public class LicensesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SecureWindow.apply(this);
         setContentView(R.layout.activity_licenses);
+        SentryManager.reportFullyDisplayedOnDraw(getWindow().getDecorView());
 
         MaterialToolbar toolbar = findViewById(R.id.licensesToolbar);
         toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
@@ -90,6 +92,7 @@ public class LicensesActivity extends AppCompatActivity {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (ActivityNotFoundException e) {
+            AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_BROWSER);
             Notice.show(this, R.string.settings_link_unavailable, false);
         }
     }

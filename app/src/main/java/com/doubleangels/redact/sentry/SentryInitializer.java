@@ -215,6 +215,9 @@ public final class SentryInitializer {
             // Screen changes, taps (by view resource ID), system events, network changes, low
             // memory and orientation. beforeBreadcrumb scrubs every one.
             options.enableAllAutoBreadcrumbs(true);
+            // Twice the SDK's default of 100: a long batch logs a few per file, so the steps that
+            // led to an error would otherwise have scrolled out. Every one is scrubbed the same.
+            options.setMaxBreadcrumbs(200);
             // Android killing the app for going over its memory limit (a large video job), as a
             // fatal event from the system's exit history. Only the latest, and isFromBeforeOptIn
             // drops one from before reporting was on. Native tombstones stay off: their memory
@@ -235,6 +238,9 @@ public final class SentryInitializer {
             // Activity (cold/warm start, TTID) and fragment (the four tab screens) lifecycle spans.
             options.setEnableAutoActivityLifecycleTracing(true);
             options.setEnableActivityLifecycleTracingAutoFinish(true);
+            // Time to full display: each screen's load ends when its content has drawn
+            // (SentryManager.reportFullyDisplayedOnDraw), not just its first frame.
+            options.setEnableTimeToFullDisplayTracing(true);
             // Fragment breadcrumbs and spans for the four tab screens.
             options.addIntegration(new FragmentLifecycleIntegration(
                     (Application) context.getApplicationContext(), true, true));

@@ -655,7 +655,7 @@ public class CensorFragmentTest {
     }
 
     @Test
-    public void selectPhoto_withoutAFilePicker_saysSomethingWentWrong() {
+    public void selectPhoto_withoutAFilePicker_saysThePickerCouldNotOpen() {
         View root = censorTab();
         com.doubleangels.redact.ui.Notice.resetForTests();
         shadowOf(activity.getApplication()).checkActivities(true);
@@ -663,7 +663,7 @@ public class CensorFragmentTest {
         root.findViewById(R.id.emptyStateSelectButton).performClick();
         idle();
 
-        assertEquals(activity.getString(R.string.share_error_generic),
+        assertEquals(activity.getString(R.string.status_media_picker_fail),
                 com.doubleangels.redact.ui.Notice.lastShownForTests());
     }
 

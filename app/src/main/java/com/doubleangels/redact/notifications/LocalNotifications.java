@@ -122,7 +122,7 @@ public final class LocalNotifications {
      * replaced by the result. Updates are throttled to avoid flooding the system.
      */
     public static void updateConversionProgress(
-            @NonNull Context context, int percent, @NonNull String message) {
+            @NonNull Context context, int percent, @NonNull String message, int fileNumber, int fileCount) {
         // Throttled first: the checks below cost a permission check, an IPC call and preference
         // reads, and progress arrives several times a second.
         if (shouldThrottleProgress(lastConvertProgressNotifyMs)) {
@@ -138,7 +138,7 @@ public final class LocalNotifications {
         String title = app.getString(R.string.notification_convert_progress_title);
         try {
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), title, null);
+                    app, clampPercent(percent), title, null, fileNumber, fileCount);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
             AppMetrics.notificationFailure(e);
@@ -149,7 +149,7 @@ public final class LocalNotifications {
      * Ongoing notification while cleaning metadata. Same ID as completion.
      */
     public static void updateCleanProgress(
-            @NonNull Context context, int percent, @NonNull String message) {
+            @NonNull Context context, int percent, @NonNull String message, int fileNumber, int fileCount) {
         // Throttled first: the checks below cost a permission check, an IPC call and preference
         // reads, and progress arrives several times a second.
         if (shouldThrottleProgress(lastCleanProgressNotifyMs)) {
@@ -165,7 +165,7 @@ public final class LocalNotifications {
         String title = app.getString(R.string.notification_clean_progress_title);
         try {
             ProcessingForegroundService.updateProgress(
-                    app, clampPercent(percent), title, null);
+                    app, clampPercent(percent), title, null, fileNumber, fileCount);
         } catch (SecurityException e) {
             SentryManager.recordException(e);
             AppMetrics.notificationFailure(e);

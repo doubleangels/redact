@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import io.sentry.SpanStatus;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -266,7 +268,7 @@ public class CensorViewModel extends AndroidViewModel {
         source = uri;
         state.setValue(State.LOADING);
         SentryManager.logEvent("censor", "A photo was opened for censoring.");
-        worker.execute(() -> {
+        worker.execute(() -> SentryManager.runInTransaction("censor.photo_open", () -> {
             try {
                 String name = OutputDestination.displayName(getApplication().getContentResolver(), uri);
                 Bitmap decoded = fitPreview(
@@ -283,6 +285,7 @@ public class CensorViewModel extends AndroidViewModel {
                 AppMetrics.censorLoad(AppMetrics.SUCCESS);
             } catch (UnsupportedMediaException e) {
                 SentryManager.logEvent("censor", "A photo could not be decoded for censoring.");
+                SentryManager.setCurrentSpanStatus(SpanStatus.UNIMPLEMENTED);
                 AppMetrics.censorLoad(AppMetrics.UNSUPPORTED);
                 if (generation == photoGeneration.get()) {
                     state.postValue(State.UNSUPPORTED);
@@ -293,8 +296,9 @@ public class CensorViewModel extends AndroidViewModel {
                 if (generation == photoGeneration.get()) {
                     state.postValue(State.LOAD_FAILED);
                 }
+                SentryManager.failCurrentSpan(e);
             }
-        });
+        }));
     }
 
     /**
@@ -547,7 +551,7 @@ public class CensorViewModel extends AndroidViewModel {
         state.setValue(State.SAVING);
         SentryManager.logEvent("censor", "The app is saving a censored copy.");
         long saveStartMs = SystemClock.elapsedRealtime();
-        worker.execute(() -> {
+        worker.execute(() -> SentryManager.runInTransaction("censor.copy_save", () -> {
             SentryManager.beginOperation("censor_export");
             try {
                 CensorExporter.Result result =
@@ -582,12 +586,13 @@ public class CensorViewModel extends AndroidViewModel {
                 AppMetrics.item(AppMetrics.CENSOR, false,
                         AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
                 SentryManager.recordException(e);
+                SentryManager.failCurrentSpan(e);
                 if (generation == photoGeneration.get()) {
                     lastSaveFailed = true;
                     state.postValue(State.SAVE_FAILED);
                 }
             }
-        });
+        }));
     }
 
     /** After the screen has reacted to a save (or its failure), editing continues. */
@@ -708,6 +713,14 @@ public class CensorViewModel extends AndroidViewModel {
             AppMetrics.lowMemory("censor_preview");
             // Like a finished render, only for the photo and edits still on screen: after Clear
             // or another photo, this one must not come back.
+            if (generation == renderGeneration.get()) {
+                preview.postValue(from);
+            }
+        } catch (RuntimeException e) {
+            // A region the effect can't draw leaves the last preview up, rather than ending the
+            // app mid-edit. The save covers the regions again from the photo, so this is only
+            // the preview.
+            SentryManager.recordException(e);
             if (generation == renderGeneration.get()) {
                 preview.postValue(from);
             }
