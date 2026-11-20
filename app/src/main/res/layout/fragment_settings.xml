@@ -244,46 +244,75 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <RadioGroup
-                    android:id="@+id/radioCleanPreset"
+                <!-- One button per preset, all in one row; tapping one asks before it applies. -->
+                <LinearLayout
+                    android:id="@+id/rowCleanPresets"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/radioPresetStandard"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetStandard"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:minHeight="@dimen/touch_target_min"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:paddingBottom="@dimen/spacing_small" />
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="72dp"
+                        android:text="@string/clean_preset_standard"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_shield"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp" />
 
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/radioPresetSending"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minHeight="@dimen/touch_target_min"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:paddingBottom="@dimen/spacing_small" />
+                    <Space
+                        android:layout_width="@dimen/spacing_small"
+                        android:layout_height="0dp" />
 
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/radioPresetKeeping"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetSending"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:minHeight="@dimen/touch_target_min"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:paddingBottom="@dimen/spacing_small" />
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="72dp"
+                        android:text="@string/clean_preset_sending"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_send"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp" />
 
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/radioPresetCustom"
-                        android:layout_width="match_parent"
+                    <Space
+                        android:layout_width="@dimen/spacing_small"
+                        android:layout_height="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetKeeping"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:enabled="false"
-                        android:minHeight="@dimen/touch_target_min"
-                        android:paddingTop="@dimen/spacing_small"
-                        android:paddingBottom="@dimen/spacing_small" />
-                </RadioGroup>
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="72dp"
+                        android:text="@string/clean_preset_keeping"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_lock"
+                        app:iconGravity="top"
+                        app:iconPadding="4dp" />
+                </LinearLayout>
+
+                <!-- Shown only while the options match no preset. -->
+                <TextView
+                    android:id="@+id/textPresetCustom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:text="@string/clean_preset_custom_description"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
 
                 <View
                     android:layout_width="match_parent"

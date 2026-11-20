@@ -271,13 +271,13 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Metadata Cleaning**: what the Clean tab removes.
 
-**Preset** sets the options below for what you'll do with the files, in one choice. It isn't a mode: it sets the same switches, they stay visible and changeable, and the preset shows **Custom** as soon as they match none. Remove Audio and Keep Original File Names are left as they are. A preset that keeps a location asks first, as Keep Location does.
+**Preset** sets the options below for what you'll do with the files, in one choice: three buttons side by side, **Public**, **Friends** and **Personal**. Tapping one shows what it does and asks before applying it; for **Personal**, which keeps a location, the same question carries the Keep Location warning. It isn't a mode: it sets the same switches, they stay visible and changeable, and when they match no preset none of the buttons is selected (the Clean tab's chip reads **Custom**). Remove Audio and Keep Original File Names are left as they are.
 
 | Preset | Sets |
 |---|---|
-| **Standard** (the default) | Strict Clean on, so every keep option is off. Best for social media, marketplaces and anywhere strangers can see the files |
-| **Sending to People I Know** | Strict Clean off, Keep Date Taken with Date Only on, everything else off, so photos land on the right day in someone's gallery |
-| **Keeping for Myself** | Strict Clean off, Keep Location with Approximate Location, Keep Date Taken (with the time), Keep Camera Settings and Keep Motion Photos on. For backups and cloud storage you don't fully trust |
+| **Public** (the default) | Strict Clean on, so every keep option is off. Best for social media, marketplaces and anywhere strangers can see the files |
+| **Friends** | Strict Clean off, Keep Date Taken with Date Only on, everything else off, so photos land on the right day in someone's gallery |
+| **Personal** | Strict Clean off, Keep Location with Approximate Location, Keep Date Taken (with the time), Keep Camera Settings and Keep Motion Photos on. For backups and cloud storage you don't fully trust |
 
 | Setting | What it does |
 |---|---|

@@ -202,6 +202,8 @@ Strict Clean is on by default (`AppPreferences.isStrictClean` defaults to `true`
 
 **Standard** takes Posting Online's description ("best for social media, marketplaces and anywhere strangers can see it"). With Strict Clean on, only Strict Clean is compared, since it ignores every keep option. The `setting.clean_preset` values are `standard`, `sending_to_people`, `keeping_for_myself` and `custom`.
 
+Settings then changed to one row of three buttons, each an icon and a one-word name: **Public** (Standard), **Friends** (Sending to People I Know) and **Personal** (Keeping for Myself). Tapping one opens a confirmation dialog with its description, which for Personal also carries the Keep Location warning. The enum names and `setting.clean_preset` values did not change.
+
 ## Open decisions
 
 | Decision | Default |
