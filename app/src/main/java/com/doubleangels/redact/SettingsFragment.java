@@ -47,6 +47,7 @@ import com.doubleangels.redact.update.UpdateChecker;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.SwitchRows;
+import com.doubleangels.redact.ui.TellAFriend;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -869,6 +870,8 @@ public class SettingsFragment extends TabFragment {
                 openUrl(getString(R.string.url_report_issue)));
         view.findViewById(R.id.rowAboutRate).setOnClickListener(v ->
                 ReviewPrompt.openStoreListing(requireContext()));
+        view.findViewById(R.id.rowAboutTellFriend).setOnClickListener(v ->
+                TellAFriend.share(requireContext()));
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
         view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->

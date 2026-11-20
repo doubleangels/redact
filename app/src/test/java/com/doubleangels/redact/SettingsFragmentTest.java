@@ -491,6 +491,14 @@ public class SettingsFragmentTest {
             settings.findViewById(row).performClick();
             assertNotNull(nextIntentWithAction(Intent.ACTION_VIEW));
         }
+        settings.findViewById(R.id.rowAboutTellFriend).performClick();
+        Intent chooser = nextIntentWithAction(Intent.ACTION_CHOOSER);
+        assertNotNull(chooser);
+        @SuppressWarnings("deprecation")
+        Intent shared = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertNotNull(shared);
+        assertEquals(Intent.ACTION_SEND, shared.getAction());
+        assertEquals("text/plain", shared.getType());
         TextView version = settings.findViewById(R.id.textAboutVersion);
         assertTrue(version.getText().toString().contains(BuildConfig.VERSION_NAME));
     }

@@ -207,6 +207,9 @@
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_about_donate">寄付</string>
     <string name="settings_about_rate">Google Play で Redact を評価</string>
+    <string name="settings_about_tell_friend">Redact を友だちに教える</string>
+    <string name="tell_friend_chooser_title">Redact を共有</string>
+    <string name="tell_friend_message">写真や動画を共有する前に、Redact で位置情報やカメラの機種などの隠れた情報を消しています。無料で広告もなく、スマホの中だけで動きます。%1$s</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>

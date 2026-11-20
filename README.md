@@ -340,7 +340,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
-**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
+**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction**, **Rate Redact on Google Play** and **Tell a Friend About Redact** (opens the share sheet with a short message and the Play link, which you can edit before sending; no file is shared and Redact sends nothing itself).
 
 Open the Settings tab in the app for the full list.
 

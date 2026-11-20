@@ -210,6 +210,9 @@
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
     <string name="settings_about_donate">दान करें</string>
     <string name="settings_about_rate">Google Play पर Redact को रेट करें</string>
+    <string name="settings_about_tell_friend">किसी दोस्त को Redact के बारे में बताएं</string>
+    <string name="tell_friend_chooser_title">Redact शेयर करें</string>
+    <string name="tell_friend_message">Redact मेरी फ़ोटो और वीडियो शेयर करने से पहले उनसे जगह और कैमरा मॉडल जैसी छिपी जानकारी हटा देता है। यह मुफ़्त है, इसमें विज्ञापन नहीं हैं और यह सीधे आपके फ़ोन पर काम करता है। %1$s</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
     <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>

@@ -206,6 +206,9 @@
     <string name="settings_about_report_issue">回報問題</string>
     <string name="settings_about_donate">捐贈</string>
     <string name="settings_about_rate">在 Google Play 上為 Redact 評分</string>
+    <string name="settings_about_tell_friend">推薦 Redact 給朋友</string>
+    <string name="tell_friend_chooser_title">分享 Redact</string>
+    <string name="tell_friend_message">我在分享照片和影片之前，會用 Redact 移除位置、相機型號等隱藏資訊。它免費、沒有廣告，全部在手機上完成。%1$s</string>
     <string name="settings_link_unavailable">找不到可開啟此連結的應用程式。</string>
     <string name="settings_progress_notifications_label">進行中工作進度</string>
     <string name="settings_progress_notifications_subtitle">長時間工作期間顯示進度的持續通知。預設關閉，需先開啟允許通知。</string>

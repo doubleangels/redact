@@ -174,13 +174,12 @@ public final class ReviewPrompt {
 
     /** Opens Redact's Google Play page, in the Play Store app when there is one. */
     public static void openStoreListing(@NonNull Context context) {
-        String pkg = context.getPackageName();
         try {
-            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pkg)));
+            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(StoreLinks.marketUrl(context))));
         } catch (ActivityNotFoundException noStore) {
             try {
                 context.startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://play.google.com/store/apps/details?id=" + pkg)));
+                        Uri.parse(StoreLinks.playListingUrl(context))));
             } catch (ActivityNotFoundException noBrowser) {
                 AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_STORE);
                 Notice.show(context, R.string.settings_link_unavailable, false);

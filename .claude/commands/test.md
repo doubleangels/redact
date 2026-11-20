@@ -104,6 +104,7 @@ Record, per file, how many screenshots were read and every FAIL with the screens
 - Check the count before the dialog is answered: `review_success_count` in `redact_prefs.xml` goes up by one after each successful job, including a Scan and a clean that finished with the app in the background (start a clean, press Home, wait for it to finish, then reopen Redact).
 - The first time it appears during the sections above, check it offers Rate on Google Play, No Thanks and Not Now (with a line about the removed location above the message when the last job removed one) and cannot be dismissed by tapping outside it or pressing Back, then tap No Thanks: a snackbar says Redact won't ask again and points to Settings › About, and `review_state` is `2`. It must not appear again for the rest of the run, and `review_success_count` stops counting once it is answered.
 - Settings › About › Rate Redact on Google Play opens the Play Store listing (or a browser on an emulator without Play); press Back.
+- Settings › About › Tell a Friend About Redact opens the share sheet with the message ending in the Play link (no `referrer` or other parameter) and no file attached; press Back.
 
 **Quick Settings tile.** Leave the app on another tab and go home. `adb shell cmd statusbar add-tile com.doubleangels.redact/.CleanTileService`, then `cmd statusbar click-tile com.doubleangels.redact/.CleanTileService`: Redact opens on the Clean tab. Collapse the shade with `cmd statusbar collapse`.
 

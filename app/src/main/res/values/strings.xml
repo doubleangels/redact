@@ -125,6 +125,9 @@
     <string name="settings_about_report_issue">Report an Issue</string>
     <string name="settings_about_donate">Donate</string>
     <string name="settings_about_rate">Rate Redact on Google Play</string>
+    <string name="settings_about_tell_friend">Tell a Friend About Redact</string>
+    <string name="tell_friend_chooser_title">Share Redact</string>
+    <string name="tell_friend_message">I use Redact to remove hidden details like location and camera model from my photos and videos before I share them. It\'s free, has no ads and works right on your phone. %1$s</string>
     <string name="settings_link_unavailable">No app found to open this link.</string>
 
     <string name="settings_progress_notifications_label">Ongoing Task Progress</string>
