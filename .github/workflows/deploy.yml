@@ -85,7 +85,7 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
+        uses: anthropics/claude-code-action@c84e279f859e2591391e95bd309286eb111c345f # v1.0.284
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -362,7 +362,7 @@ jobs:
 
       - name: Set up Ruby for Fastlane
         if: steps.metadata_diff.outputs.changed == 'true'
-        uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
+        uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
         with:
           ruby-version: "3.3"
           bundler-cache: true

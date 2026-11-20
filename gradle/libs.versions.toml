@@ -1,6 +1,6 @@
 [versions]
 activity = "1.13.0"
-agp = "9.5.1"
+agp = "9.5.2"
 constraintlayout = "2.2.2"
 customview = "1.2.0"
 exifinterface = "1.4.2"
