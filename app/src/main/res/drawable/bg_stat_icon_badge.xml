@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Circular badge behind the statistic tile icons. -->
+<!-- Rounded-square badge behind the statistic tile icons. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
+    android:shape="rectangle">
     <solid android:color="?attr/colorSecondaryContainer" />
+    <corners android:radius="@dimen/component_corner_small" />
 </shape>

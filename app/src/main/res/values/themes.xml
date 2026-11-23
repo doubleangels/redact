@@ -43,7 +43,28 @@
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Redact.SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Redact.MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Redact.LargeComponent</item>
+        <!-- Rounded squares, never pills or circles. These sizes feed every Material shape that
+             reads the theme (chips, cards, dialogs, sheets, menus, FABs, text fields); the
+             widgets that are pills by design get the app's own styles below. -->
+        <item name="shapeCornerSizeExtraSmall">4dp</item>
+        <item name="shapeCornerSizeSmall">@dimen/component_corner_small</item>
+        <item name="shapeCornerSizeMedium">@dimen/component_corner_medium</item>
+        <item name="shapeCornerSizeLarge">16dp</item>
+        <item name="shapeCornerSizeLargeIncreased">@dimen/component_corner_large</item>
+        <item name="shapeCornerSizeExtraLarge">@dimen/component_corner_large</item>
+        <item name="shapeCornerSizeExtraLargeIncreased">@dimen/component_corner_large</item>
+        <item name="shapeCornerSizeExtraExtraLarge">@dimen/component_corner_large</item>
         <item name="bottomNavigationStyle">@style/Widget.Redact.BottomNavigationView</item>
+        <item name="navigationRailStyle">@style/Widget.Redact.NavigationRailView</item>
+        <item name="materialButtonStyle">@style/Widget.Redact.Button</item>
+        <item name="materialButtonTonalStyle">@style/Widget.Redact.Button.TonalButton</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Redact.Button.OutlinedButton</item>
+        <item name="borderlessButtonStyle">@style/Widget.Redact.Button.TextButton</item>
+        <item name="materialIconButtonStyle">@style/Widget.Redact.Button.IconButton</item>
+        <item name="materialIconButtonFilledTonalStyle">@style/Widget.Redact.Button.IconButton.Filled.Tonal</item>
+        <item name="materialSwitchStyle">@style/Widget.Redact.MaterialSwitch</item>
+        <item name="snackbarButtonStyle">@style/Widget.Redact.Button.TextButton.Snackbar</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Redact.MaterialAlertDialog</item>
     </style>
 
     <!-- SplashScreen API theme: shown while MainActivity cold-starts, then swapped for

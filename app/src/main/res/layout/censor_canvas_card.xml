@@ -54,7 +54,7 @@
         android:layout_marginEnd="@dimen/censor_top_pill_clearance"
         android:visibility="gone"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="@dimen/component_corner_medium"
         app:cardElevation="3dp"
         app:strokeWidth="0dp">
 
@@ -113,7 +113,7 @@
         android:layout_margin="@dimen/spacing_medium"
         android:visibility="gone"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="@dimen/component_corner_medium"
         app:cardElevation="3dp"
         app:strokeWidth="0dp">
 
@@ -159,7 +159,7 @@
         tools:ignore="RtlHardcoded"
         android:visibility="gone"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="@dimen/component_corner_medium"
         app:cardElevation="3dp"
         app:strokeWidth="0dp">
 
