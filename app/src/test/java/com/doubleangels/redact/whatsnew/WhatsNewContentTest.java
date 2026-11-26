@@ -20,8 +20,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Holds every release's in-app notes to the rules in docs/roadmap/whats-new.md: written for this
- * versionCode, 1 to 8 items, short titles and bodies, and every locale with the same items. A
- * release whose notes are missing or for another version fails here, not on someone's phone.
+ * versionCode, 1 to 8 items, short titles in Title Case and short bodies, and every locale with the
+ * same items. A release whose notes are missing or for another version fails here, not on someone's
+ * phone.
  */
 public class WhatsNewContentTest {
 
@@ -31,6 +32,11 @@ public class WhatsNewContentTest {
     private static final int MAX_BODY = 300;
     private static final Set<String> KINDS =
             Set.of(WhatsNew.KIND_NEW, WhatsNew.KIND_IMPROVED, WhatsNew.KIND_FIXED);
+
+    /** Words Title Case leaves lowercase unless they start the title. */
+    private static final Set<String> MINOR_WORDS = Set.of("a", "an", "the", "and", "but", "or",
+            "nor", "for", "so", "yet", "as", "at", "by", "in", "of", "off", "on", "per", "to", "up",
+            "via", "from", "into", "onto", "with");
 
     private static Document parse(File f) throws Exception {
         return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
@@ -97,6 +103,25 @@ public class WhatsNewContentTest {
         for (String icon : icons) {
             assertTrue("unknown icon " + icon, WhatsNewIcons.keys().contains(icon));
         }
+    }
+
+    @Test
+    public void englishTitles_areInTitleCase() throws Exception {
+        List<String> problems = new ArrayList<>();
+        for (String title : array(english(), "whats_new_titles")) {
+            String[] words = title.split("\\s+");
+            for (int i = 0; i < words.length; i++) {
+                String word = words[i];
+                if (word.isEmpty() || !Character.isLowerCase(word.charAt(0))) {
+                    continue;
+                }
+                if (i == 0 || !MINOR_WORDS.contains(word.toLowerCase(java.util.Locale.ROOT))) {
+                    problems.add("\"" + word + "\" in \"" + title + "\"");
+                }
+            }
+        }
+        assertTrue("Write What's New titles in Title Case: " + String.join(", ", problems),
+                problems.isEmpty());
     }
 
     @Test

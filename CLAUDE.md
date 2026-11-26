@@ -37,7 +37,7 @@ Android app (Java, minSdk 31, targetSdk 37) that removes metadata from photos an
 
 ## What's New
 
-The What's New screen shows the notes in `app/src/main/res/values*/whats_new.xml`, which ship inside the app. `/whatsnew` writes them during `/prerelease`, after `/bump`, and they must be for the current `versionCode`: `WhatsNewContentTest` fails otherwise, and the screen never shows notes for another version. They are separate from the Play "What's new" text, which CI keeps writing from the commits. Nothing is fetched to show them.
+The What's New screen shows the notes in `app/src/main/res/values*/whats_new.xml`, which ship inside the app. `/whatsnew` writes them during `/prerelease`, after `/bump`, and they must be for the current `versionCode` with titles in Title Case (translations follow `/translate`'s Case rules): `WhatsNewContentTest` fails otherwise, and the screen never shows notes for another version. They are separate from the Play "What's new" text, which CI keeps writing from the commits. Nothing is fetched to show them.
 
 ## Commands
 

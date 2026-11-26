@@ -106,7 +106,7 @@ The notes format, with tests that hold every release to it.
 **Done when**
 
 - [ ] `whats_new_version_code` equals `BuildConfig.VERSION_CODE`, or the build fails.
-- [ ] There are 1 to 8 items, titles of at most 50 characters and bodies of at most 300.
+- [ ] There are 1 to 8 items, titles in Title Case of at most 50 characters and bodies of at most 300.
 - [ ] Every locale has both arrays, each the same length as the English.
 - [ ] Every kind is `new`, `improved` or `fixed`, and every icon key is known.
 
@@ -259,7 +259,7 @@ The seen version is stored **when the screen opens**, not when it closes, so a c
 
 The in-app notes are for people who don't know what metadata is. Every item answers three questions: what changed, why it matters to me, and where to find it.
 
-**Titles** say what the person can now do.
+**Titles** are in Title Case and say what the person can now do.
 
 | Avoid | Write |
 |---|---|
