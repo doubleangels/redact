@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="@dimen/component_corner_medium"
+        app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 

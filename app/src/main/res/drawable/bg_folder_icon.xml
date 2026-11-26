@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rounded-square badge behind the output folder icons in Settings. -->
+<!-- Circular badge behind the output folder icons in Settings. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
+    android:shape="oval">
     <solid android:color="?attr/colorSecondaryContainer" />
-    <corners android:radius="@dimen/component_corner_small" />
 </shape>

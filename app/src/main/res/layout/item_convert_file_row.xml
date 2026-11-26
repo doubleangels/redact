@@ -85,7 +85,7 @@
              touch. The adapter names the file in its description and tooltip. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/convertItemRemove"
-            style="@style/Widget.Redact.Button.IconButton"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="@dimen/touch_target_min"
             android:layout_height="@dimen/touch_target_min"
             android:layout_marginStart="@dimen/spacing_xsmall"

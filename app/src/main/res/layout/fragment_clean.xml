@@ -122,7 +122,7 @@
             <!-- After a batch where some files were not cleaned: lists them and offers a retry. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cleanFailedButton"
-                style="@style/Widget.Redact.Button.TonalButton"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -202,7 +202,7 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                app:cardCornerRadius="@dimen/component_corner_large"
+                app:cardCornerRadius="36dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="0dp">
 
@@ -237,7 +237,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/emptyStateSelectButton"
-                style="@style/Widget.Redact.Button.TonalButton"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/touch_target_min"
                 android:layout_marginTop="@dimen/spacing_xlarge"
@@ -250,7 +250,7 @@
             <!-- Shown while the clipboard holds a photo or a video (TabFragment.refreshPasteButton). -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/emptyStatePasteButton"
-                style="@style/Widget.Redact.Button.TextButton"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/touch_target_min"
                 android:layout_marginTop="@dimen/spacing_small"

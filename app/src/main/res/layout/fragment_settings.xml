@@ -1074,7 +1074,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonOpenOutputImages"
-                                style="@style/Widget.Redact.Button.IconButton"
+                                style="@style/Widget.Material3.Button.IconButton"
                                 android:layout_width="@dimen/touch_target_min"
                                 android:layout_height="@dimen/touch_target_min"
                                 android:layout_marginStart="@dimen/spacing_xsmall"
@@ -1105,7 +1105,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonResetOutputImages"
-                                style="@style/Widget.Redact.Button.TextButton"
+                                style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:minHeight="@dimen/touch_target_min"
@@ -1114,7 +1114,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonChooseOutputImages"
-                                style="@style/Widget.Redact.Button.TextButton"
+                                style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:minHeight="@dimen/touch_target_min"
@@ -1197,7 +1197,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonOpenOutputVideos"
-                                style="@style/Widget.Redact.Button.IconButton"
+                                style="@style/Widget.Material3.Button.IconButton"
                                 android:layout_width="@dimen/touch_target_min"
                                 android:layout_height="@dimen/touch_target_min"
                                 android:layout_marginStart="@dimen/spacing_xsmall"
@@ -1228,7 +1228,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonResetOutputVideos"
-                                style="@style/Widget.Redact.Button.TextButton"
+                                style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:minHeight="@dimen/touch_target_min"
@@ -1237,7 +1237,7 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonChooseOutputVideos"
-                                style="@style/Widget.Redact.Button.TextButton"
+                                style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:minHeight="@dimen/touch_target_min"
@@ -1715,7 +1715,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonLocationPermission"
-                    style="@style/Widget.Redact.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_xsmall"
@@ -1751,7 +1751,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonOpenSystemSettings"
-                    style="@style/Widget.Redact.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
@@ -1868,7 +1868,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonClearTempFiles"
-                    style="@style/Widget.Redact.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_large"
@@ -1965,7 +1965,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonCrashReportingLearnMore"
-                    style="@style/Widget.Redact.Button.TextButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="40dp"
@@ -2096,7 +2096,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCheckForUpdates"
-                            style="@style/Widget.Redact.Button.TonalButton"
+                            style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"

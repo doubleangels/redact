@@ -20,7 +20,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/onboardingBack"
-            style="@style/Widget.Redact.Button.IconButton"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="@dimen/touch_target_min"
             android:layout_height="@dimen/touch_target_min"
             android:contentDescription="@string/stats_navigate_up"
@@ -42,7 +42,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/onboardingSkip"
-            style="@style/Widget.Redact.Button.TextButton"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/touch_target_min"
             android:minWidth="72dp"
@@ -76,12 +76,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
-                app:cornerRadius="@dimen/component_corner_medium"
+                app:cornerRadius="28dp"
                 tools:text="@string/onboarding_get_started" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/onboardingSecondary"
-                style="@style/Widget.Redact.Button.TextButton"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="@dimen/spacing_xsmall"
