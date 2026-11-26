@@ -62,6 +62,7 @@
             android:layout_marginTop="@dimen/spacing_xlarge"
             android:paddingHorizontal="@dimen/spacing_xlarge"
             android:text="@string/censor_select_photo"
+            app:cornerRadius="@dimen/component_corner_medium"
             app:icon="@drawable/ic_add_photo"
             app:iconPadding="8dp" />
 

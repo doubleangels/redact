@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Rounded squares throughout: Material 3 draws buttons, icon buttons, button groups,
-         and navigation indicators as pills or circles, so each style the app uses is
+         navigation indicators and switches as pills or circles, so each style the app uses is
          redone here with the app's corner sizes. Cards, chips, dialogs, sheets and FABs take their
          corners from the shapeCornerSize* values in Theme.Redact instead. -->
 
     <style name="Widget.Redact.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.MediumComponent</item>
     </style>
 
     <style name="Widget.Redact.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
@@ -14,7 +14,7 @@
     </style>
 
     <style name="Widget.Redact.NavigationRailView.ActiveIndicator" parent="Widget.Material3.NavigationRailView.ActiveIndicator">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.MediumComponent</item>
     </style>
 
     <style name="Widget.Redact.NavigationRailView" parent="Widget.Material3.NavigationRailView">
@@ -27,43 +27,43 @@
 
     <!-- Buttons -->
     <style name="Widget.Redact.Button" parent="Widget.Material3.Button">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.TonalButton" parent="Widget.Material3.Button.TonalButton">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.TextButton" parent="Widget.Material3.Button.TextButton">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.TextButton.Dialog" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.TextButton.Dialog.Flush" parent="Widget.Material3.Button.TextButton.Dialog.Flush">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.TextButton.Snackbar" parent="Widget.Material3.Button.TextButton.Snackbar">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.IconButton" parent="Widget.Material3.Button.IconButton">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.Button.IconButton.Filled.Tonal" parent="Widget.Material3.Button.IconButton.Filled.Tonal">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
     </style>
 
     <style name="Widget.Redact.MaterialButtonGroup.Connected" parent="Widget.Material3.MaterialButtonGroup.Connected">
-        <item name="shapeAppearance">@style/ShapeAppearance.Redact.Control</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Redact.SmallComponent</item>
         <item name="innerCornerSize">4dp</item>
     </style>
 
@@ -81,6 +81,12 @@
         <item name="iconSize">@dimen/icon_size</item>
     </style>
 
+    <!-- A switch with a rounded-square track and thumb in place of Material's pill and circle. -->
+    <style name="Widget.Redact.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:thumb">@drawable/redact_switch_thumb</item>
+        <item name="track">@drawable/redact_switch_track</item>
+        <item name="trackDecoration">@drawable/redact_switch_track_decoration</item>
+    </style>
 
     <!-- Dialog buttons and Snackbar actions with the app's button corners. -->
     <style name="ThemeOverlay.Redact.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">

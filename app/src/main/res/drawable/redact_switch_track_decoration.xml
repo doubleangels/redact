@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The outline of Widget.Redact.MaterialSwitch's track while it is off. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="52dp"
+    android:height="32dp"
+    android:viewportWidth="52"
+    android:viewportHeight="32">
+    <path
+        android:pathData="M8,1 H44 A7,7 0 0,1 51,8 V24 A7,7 0 0,1 44,31 H8 A7,7 0 0,1 1,24 V8 A7,7 0 0,1 8,1 Z"
+        android:strokeWidth="2"
+        android:strokeColor="?attr/colorOutline" />
+</vector>
