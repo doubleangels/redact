@@ -62,7 +62,6 @@
         <item name="borderlessButtonStyle">@style/Widget.Redact.Button.TextButton</item>
         <item name="materialIconButtonStyle">@style/Widget.Redact.Button.IconButton</item>
         <item name="materialIconButtonFilledTonalStyle">@style/Widget.Redact.Button.IconButton.Filled.Tonal</item>
-        <item name="materialSwitchStyle">@style/Widget.Redact.MaterialSwitch</item>
         <item name="snackbarButtonStyle">@style/Widget.Redact.Button.TextButton.Snackbar</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.Redact.MaterialAlertDialog</item>
     </style>

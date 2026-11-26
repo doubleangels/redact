@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App-wide “square” rounded rects (match Scan) -->
+    <!-- Buttons, icon buttons and navigation indicators: small enough that a 32-40dp tall control
+         still reads as a rounded square, not a pill. -->
+    <dimen name="component_corner_control">8dp</dimen>
     <dimen name="component_corner_small">10dp</dimen>
     <dimen name="component_corner_medium">14dp</dimen>
     <dimen name="component_corner_large">20dp</dimen>

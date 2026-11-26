@@ -13,4 +13,8 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/component_corner_large</item>
     </style>
+    <style name="ShapeAppearance.Redact.Control" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/component_corner_control</item>
+    </style>
 </resources>

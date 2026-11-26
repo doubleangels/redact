@@ -1721,8 +1721,7 @@
                     android:layout_marginTop="@dimen/spacing_xsmall"
                     android:minHeight="@dimen/touch_target_min"
                     android:text="@string/settings_location_permission_grant"
-                    android:visibility="gone"
-                    app:cornerRadius="@dimen/component_corner_medium" />
+                    android:visibility="gone" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1756,8 +1755,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:minHeight="@dimen/touch_target_min"
-                    android:text="@string/settings_open_system_settings"
-                    app:cornerRadius="@dimen/component_corner_medium" />
+                    android:text="@string/settings_open_system_settings" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -1873,8 +1871,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_large"
                     android:minHeight="@dimen/touch_target_min"
-                    android:text="@string/settings_storage_clear"
-                    app:cornerRadius="@dimen/component_corner_medium" />
+                    android:text="@string/settings_storage_clear" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
