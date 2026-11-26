@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
-        <item>Choisissez un préréglage de nettoyage</item>
-        <item>Recommandez Redact à un ami</item>
-        <item>Découvrez les nouveautés après chaque mise à jour</item>
+        <item>Choisissez un Préréglage de Nettoyage</item>
+        <item>Recommandez Redact à un Ami</item>
+        <item>Découvrez les Nouveautés après Chaque Mise à Jour</item>
     </string-array>
     <string-array name="whats_new_bodies">
         <item>Dites à Redact à quoi servent les photos, par exemple les envoyer à des proches ou les garder pour vous, et il règle les options pour vous. Préréglage se trouve en haut de Paramètres › Nettoyage des Métadonnées, ou dans la première puce de l\'onglet Nettoyer.</item>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
-        <item>Scegli una preimpostazione per la pulizia</item>
-        <item>Consiglia Redact a un amico</item>
-        <item>Scopri le novità dopo ogni aggiornamento</item>
+        <item>Scegli una Preimpostazione per la Pulizia</item>
+        <item>Consiglia Redact a un Amico</item>
+        <item>Scopri le Novità dopo Ogni Aggiornamento</item>
     </string-array>
     <string-array name="whats_new_bodies">
         <item>Di\' a Redact a cosa servono le foto, ad esempio inviarle a persone che conosci o tenerle per te, e imposterà le opzioni per te. Trovi Preimpostazione in cima a Impostazioni › Pulizia Metadati, oppure nel primo chip della scheda Pulisci.</item>

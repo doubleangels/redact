@@ -19,7 +19,7 @@ Keep only changes a user would notice: new features and settings, visible improv
 Follow the writing guide in `docs/roadmap/whats-new.md`:
 
 - 1 to 8 items. Each one is a `kind` (`new`, `improved` or `fixed`), an `icon` (`clean`, `scan`, `convert`, `censor`, `settings`, `stats` or `fixes`), a title of at most 50 characters and a body of at most 300.
-- Titles say what the person can now do ("Keep the date a photo was taken"), never the feature's internal name.
+- Titles are in Title Case and say what the person can now do ("Keep the Date a Photo Was Taken"), never the feature's internal name. Translations follow the **Case** rules in `translate.md`.
 - Bodies are 1 to 3 short sentences in second person. They answer what changed, why it matters and where to find it, with the app's exact labels from `values/strings.xml` and the path when it helps ("Settings › Metadata Cleaning › Keep Date Taken").
 - No jargon: no EXIF, XMP, codec, container or MIME unless an app label uses the word. No version numbers, commit hashes, class names or internal names.
 - Fixes describe what the person saw. Group many small fixes into one "Smaller fixes" item naming the two or three most noticeable.

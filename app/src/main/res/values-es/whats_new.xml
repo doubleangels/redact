@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
-        <item>Elige un ajuste predefinido para limpiar</item>
-        <item>Recomienda Redact a un amigo</item>
-        <item>Descubre las novedades tras cada actualización</item>
+        <item>Elige un Ajuste Predefinido para Limpiar</item>
+        <item>Recomienda Redact a un Amigo</item>
+        <item>Descubre las Novedades tras Cada Actualización</item>
     </string-array>
     <string-array name="whats_new_bodies">
         <item>Dile a Redact para qué son las fotos, como enviarlas a gente que conoces o guardarlas para ti, y él ajusta las opciones por ti. Encontrarás Ajuste Predefinido arriba en Configuración › Limpieza de Metadatos, o en el primer chip de la pestaña Limpiar.</item>

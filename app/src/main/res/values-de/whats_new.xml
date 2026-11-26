@@ -2,8 +2,8 @@
 <resources>
     <string-array name="whats_new_titles">
         <item>Wähle eine Voreinstellung fürs Bereinigen</item>
-        <item>Empfiehl Redact weiter</item>
-        <item>Sieh nach jedem Update, was neu ist</item>
+        <item>Empfiehl Redact Weiter</item>
+        <item>Sieh nach Jedem Update, was Neu Ist</item>
     </string-array>
     <string-array name="whats_new_bodies">
         <item>Sag Redact, wofür die Fotos sind, etwa zum Senden an Bekannte oder um sie für dich zu behalten, und es stellt die Optionen für dich ein. Du findest Voreinstellung oben unter Einstellungen › Metadaten-Bereinigung oder als ersten Chip im Tab Bereinigen.</item>

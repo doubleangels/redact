@@ -19,9 +19,9 @@
         <item>settings</item>
     </string-array>
     <string-array name="whats_new_titles">
-        <item>Pick a preset for how you clean</item>
-        <item>Tell a friend about Redact</item>
-        <item>See what\'s new after each update</item>
+        <item>Pick a Preset for How You Clean</item>
+        <item>Tell a Friend About Redact</item>
+        <item>See What\'s New After Each Update</item>
     </string-array>
     <string-array name="whats_new_bodies">
         <item>Tell Redact what the photos are for, like sending them to people you know or keeping them for yourself, and it sets the options for you. Find Preset at the top of Settings › Metadata Cleaning, or tap the first chip on the Clean tab.</item>
