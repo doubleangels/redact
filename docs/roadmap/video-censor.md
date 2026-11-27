@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | Planned |
+| **Status** | In progress (Phase 1 done) |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -70,8 +70,8 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 **Done when**
 
-- [ ] Photo Censor output is unchanged.
-- [ ] Both block size and noise come from `CensorBlocks` only.
+- [x] Photo Censor output is unchanged.
+- [x] Both block size and noise come from `CensorBlocks` only.
 
 ## Phase 2. GPU effect for video
 

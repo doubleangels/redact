@@ -34,8 +34,8 @@ public class CensorEffectsTest {
 
     private static boolean isGrey(int c) {
         int r = Color.red(c);
-        return r > 60 && r < 195 && Math.abs(r - Color.green(c)) < 2 * CensorEffects.NOISE + 2
-                && Math.abs(r - Color.blue(c)) < 2 * CensorEffects.NOISE + 2;
+        return r > 60 && r < 195 && Math.abs(r - Color.green(c)) < 2 * CensorBlocks.NOISE + 2
+                && Math.abs(r - Color.blue(c)) < 2 * CensorBlocks.NOISE + 2;
     }
 
     private static int[] pixels(Bitmap b) {
@@ -57,7 +57,7 @@ public class CensorEffectsTest {
         for (int c : colours) {
             assertEquals(0xFF, c >>> 24);
             for (int channel : new int[] {Color.red(c), Color.green(c), Color.blue(c)}) {
-                assertTrue(Math.abs(channel - 0x80) <= CensorEffects.NOISE);
+                assertTrue(Math.abs(channel - 0x80) <= CensorBlocks.NOISE);
             }
         }
     }
@@ -73,22 +73,6 @@ public class CensorEffectsTest {
     }
 
     @Test
-    public void blockSize_scalesWithTheImage() {
-        assertEquals(8, CensorEffects.blockSize(100, 50));
-        assertEquals(83, CensorEffects.blockSize(4000, 3000));
-    }
-
-    @Test
-    public void blockSize_growsWithALargeArea() {
-        // A small area keeps the image's blocks.
-        assertEquals(83, CensorEffects.blockSize(83, new android.graphics.RectF(0, 0, 400, 300)));
-        // A close-up number plate filling most of a 4000x3000 photo: at most six blocks tall.
-        assertEquals(400, CensorEffects.blockSize(83, new android.graphics.RectF(200, 900, 3800, 3300)));
-        // A thin brush stroke keeps the image's blocks, however long it is.
-        assertEquals(83, CensorEffects.blockSize(83, new android.graphics.RectF(0, 0, 4000, 120)));
-    }
-
-    @Test
     public void pixelate_leavesALargeAreaAFewBlocksAcross() {
         Bitmap image = checkerboard(240, 240);
         CensorEffects.apply(image, List.of(CensorRegion.rect(0f, 0f, 1f, 1f)),
@@ -99,8 +83,8 @@ public class CensorEffectsTest {
         for (int x = 0; x < 240; x++) {
             rowColours.add(px[120 * 240 + x]);
         }
-        assertTrue("one row crosses at most " + CensorEffects.MAX_BLOCKS_PER_AREA + " blocks",
-                rowColours.size() <= CensorEffects.MAX_BLOCKS_PER_AREA);
+        assertTrue("one row crosses at most " + CensorBlocks.MAX_BLOCKS_PER_AREA + " blocks",
+                rowColours.size() <= CensorBlocks.MAX_BLOCKS_PER_AREA);
     }
 
     // ---- nothing finer than a block survives -----------------------------------------------------
@@ -168,7 +152,7 @@ public class CensorEffectsTest {
                 maxStep = Math.max(maxStep, Math.abs(Color.red(b.getPixel(x, y)) - Color.red(b.getPixel(x - 1, y))));
             }
         }
-        assertTrue("largest step " + maxStep, maxStep <= CensorEffects.NOISE);
+        assertTrue("largest step " + maxStep, maxStep <= CensorBlocks.NOISE);
     }
 
     // ---- regions on a bitmap ----------------------------------------------------------------------
@@ -281,7 +265,7 @@ public class CensorEffectsTest {
 
         for (int y = 16; y < 48; y += 5) {
             for (int x = 16; x < 48; x += 5) {
-                assertTrue("dark at " + x + "," + y, Color.red(b.getPixel(x, y)) <= CensorEffects.NOISE);
+                assertTrue("dark at " + x + "," + y, Color.red(b.getPixel(x, y)) <= CensorBlocks.NOISE);
             }
         }
     }
@@ -299,4 +283,68 @@ public class CensorEffectsTest {
         assertEquals(plain.hashCode(), blurred.withEffect(null).hashCode());
         assertTrue("the same effect is the same region", blurred == blurred.withEffect(CensorEffects.Effect.BLUR));
     }
+
+    // ---- output pinned ---------------------------------------------------------------------------
+
+    /** A photo-like image with smooth gradients and fine detail, the same on every run. */
+    private static Bitmap goldenImage(int width, int height) {
+        Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Random random = new Random(42);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int r = (x * 255 / width + random.nextInt(32)) & 0xff;
+                int g = (y * 255 / height + random.nextInt(32)) & 0xff;
+                int bl = ((x ^ y) * 3) & 0xff;
+                b.setPixel(x, y, Color.argb(255, r, g, bl));
+            }
+        }
+        return b;
+    }
+
+    private static String sha256(int[] pixels) throws Exception {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        java.nio.ByteBuffer bytes = java.nio.ByteBuffer.allocate(pixels.length * 4);
+        bytes.asIntBuffer().put(pixels);
+        StringBuilder hex = new StringBuilder();
+        for (byte value : digest.digest(bytes.array())) {
+            hex.append(String.format("%02x", value));
+        }
+        return hex.toString();
+    }
+
+    /**
+     * Pins every effect's exact output for a fixed image, regions and noise seed, so a change to how
+     * blocks are sized or coloured (for one shared with video, say) cannot alter photo results.
+     */
+    @Test
+    public void apply_outputIsPinned() throws Exception {
+        List<CensorRegion> regions = List.of(
+                CensorRegion.rect(0.05f, 0.05f, 0.30f, 0.25f),
+                CensorRegion.rect(0.40f, 0.10f, 0.95f, 0.90f).withEffect(CensorEffects.Effect.BLUR),
+                CensorRegion.rect(0.10f, 0.60f, 0.35f, 0.95f).withEffect(CensorEffects.Effect.BLACK),
+                CensorRegion.stroke(new float[] {0.1f, 0.4f, 0.5f, 0.5f, 0.9f, 0.95f}, 0.04f),
+                CensorRegion.rect(0.25f, 0.20f, 0.50f, 0.45f).withEffect(CensorEffects.Effect.PIXELATE));
+        String[][] cases = {
+                {"PIXELATE", GOLDEN_PIXELATE},
+                {"BLUR", GOLDEN_BLUR},
+                {"BLACK", GOLDEN_BLACK},
+        };
+        StringBuilder mismatches = new StringBuilder();
+        for (String[] c : cases) {
+            Bitmap image = goldenImage(400, 300);
+            CensorEffects.apply(image, regions, CensorEffects.Effect.valueOf(c[0]), new Random(9));
+            String actual = sha256(pixels(image));
+            if (!actual.equals(c[1])) {
+                mismatches.append(c[0]).append('=').append(actual).append(' ');
+            }
+        }
+        assertEquals("", mismatches.toString());
+    }
+
+    private static final String GOLDEN_PIXELATE =
+            "3a7b9d2147cc9b0847ac4d249a7ac1e156c7d66017998ab2a66d6f612e85c233";
+    private static final String GOLDEN_BLUR =
+            "de5e699d0cc6bb20dfc6749a2f0f40ac7758a93d4163313d2989aba37c2af82b";
+    private static final String GOLDEN_BLACK =
+            "55acd7393e23952c439899dddc9b6d0797c4051ef6546a383bac5756397f2ecb";
 }
