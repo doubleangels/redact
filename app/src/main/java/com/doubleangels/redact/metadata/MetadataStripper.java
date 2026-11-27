@@ -14,6 +14,7 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.doubleangels.redact.AppPreferences;
 import com.doubleangels.redact.R;
+import com.doubleangels.redact.media.CleanFailedException;
 import com.doubleangels.redact.media.FormatConverter;
 import com.doubleangels.redact.media.MediaFileNames;
 import com.doubleangels.redact.media.MediaSizeLimits;
@@ -361,6 +362,29 @@ public class MetadataStripper {
                                     @NonNull String outputName,
                                     @NonNull FormatConverter.ImageFormatSpec outputFormat) throws IOException {
         return images.saveCensored(original, censored, outputName, outputFormat);
+    }
+
+    /**
+     * Saves a censored video, re-encoded from {@code original} into {@code censored}, to the output
+     * folder as {@code outputName}, after the checks a Convert result gets: no metadata of the
+     * original in its container or fields, no sound when Remove Audio is on, and no user data in the
+     * video stream itself. {@code censored} is left for the caller to delete.
+     *
+     * @throws IOException when it fails a check or can't be saved; nothing is left in the gallery
+     */
+    @NonNull
+    public Uri saveCensoredVideo(@NonNull Uri original, @NonNull File censored, @NonNull String outputName)
+            throws IOException {
+        SentryManager.logEvent("video", "The app is saving a censored video.");
+        throwIfCancelled();
+        verifier.requireConvertedVideoClean(censored, original);
+        VideoStreamMetadata.Report stream = VideoStreamMetadata.scan(context, Uri.fromFile(censored), true);
+        if (stream == null || stream.userDataMessages > 0) {
+            SentryManager.logEvent("verify", "The censored video's stream can't be read or carries user data.");
+            throw new CleanFailedException("Censored video stream check failed");
+        }
+        throwIfCancelled();
+        return VideoMedia3Converter.saveMp4ToOutput(context, censored, outputName);
     }
 
     /**

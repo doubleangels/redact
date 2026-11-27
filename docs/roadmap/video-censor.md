@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | In progress (Phase 1 done; Phase 2 written, its device checks run with Phase 3) |
+| **Status** | In progress (Phases 1 to 3 done; 4K still to try on a device) |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -85,9 +85,9 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 **Done when**
 
-- [ ] On a decoded test frame, every block inside an area is one color within the noise range.
-- [ ] Frames outside an area's range are unchanged apart from encoding.
-- [ ] The effect works at 4K, in portrait and landscape, and on rotated sources (`rotationDegrees` applied first, like photo Censor's upright decode).
+- [x] On a decoded test frame, every block inside an area is one color within the noise range.
+- [x] Frames outside an area's range are unchanged apart from encoding.
+- [ ] The effect works at 4K, in portrait and landscape, and on rotated sources (`rotationDegrees` applied first, like photo Censor's upright decode). Portrait, landscape and a 90 degree rotated source pass in `CensorOnDeviceTest`; Media3 hands effects the upright frame. 4K is still to try.
 
 ## Phase 3. Export and verification
 
@@ -100,9 +100,9 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 **Done when**
 
-- [ ] A censored video passes every clean check that a Convert result passes.
-- [ ] A deliberately broken effect (areas not drawn) makes the save fail, not succeed.
-- [ ] Cancelling mid-export leaves no partial file in MediaStore and removes temp files.
+- [x] A censored video passes every clean check that a Convert result passes.
+- [x] A deliberately broken effect (areas not drawn) makes the save fail, not succeed.
+- [x] Cancelling mid-export leaves no partial file in MediaStore and removes temp files.
 
 ## Phase 4. Editor UI
 
@@ -179,8 +179,8 @@ Planned separately once fixed areas ship.
 | `VideoCensorExporterTest` (new) | The edited item has crop, effect and Remove Audio set, and the clean checks run |
 | `CensorVerifierTest` (new) | Uniform blocks pass, a detailed block fails, and failure deletes the output |
 | `CensorFragmentTest` (extended) | Photo or video editor by type, undo and redo, the Whole Video action |
-| `CleanOnDeviceTest` (extended, managed emulator) | Censors the fixture videos with real codecs and runs the coverage and clean checks. Run locally, since the goldfish decoders fail there in CI |
-| `make_instrumented_media.py` (extended) | A test video with a high-detail pattern (text, a checkerboard) in a known area |
+| `CensorOnDeviceTest` (new, `Pixel_10_Pro` test emulator) | Censors the checkerboard fixtures with real codecs and the GPU effect, and checks the frames independently of `CensorVerifier`: each effect, a time range, a rotated source, a crop, an undrawn area failing the check, and cancelling. Run with `connectedDebugAndroidTest` on `Pixel_10_Pro`; on the managed `Pixel_10_Pro_Clean` the goldfish H.264 decoder fails to configure, locally too |
+| `make_instrumented_media.py` (extended) | `detail.mp4` and `detail_rotated.mp4`: a 3 px checkerboard over the whole frame, plain and with a 90 degree rotation flag |
 | `/test` on `Pixel_10_Pro` | Censor a phone video and a screen recording, play the result and confirm the areas stay covered for their full range |
 
 The 90% line gate still applies. GPU code that only runs on a device is kept in thin classes, so the logic around it stays unit-tested.

@@ -80,4 +80,32 @@ public class VideoOutputSafetyTest {
         assertThrows(SecurityException.class, () -> VideoMedia3Converter.copyToMoviesRedact(app, video, "clip.mp4"));
         assertTrue(FakeMediaStoreProvider.entries().isEmpty());
     }
+
+    @Test
+    public void aSavedCensoredVideo_isExactlyTheCheckedFile_underItsOwnName() throws IOException {
+        Uri out = VideoMedia3Converter.saveMp4ToOutput(app, video, "clip (censored).mp4");
+        assertArrayEquals(Files.readAllBytes(video.toPath()),
+                Files.readAllBytes(FakeMediaStoreProvider.only().file.toPath()));
+        assertFalse(FakeMediaStoreProvider.only().isPending());
+        assertEquals(out.getLastPathSegment(), String.valueOf(FakeMediaStoreProvider.only().id));
+    }
+
+    @Test
+    public void aCensoredVideoThatFailsItsCheck_isNotSaved() {
+        com.doubleangels.redact.metadata.MetadataStripper stripper =
+                new com.doubleangels.redact.metadata.MetadataStripper(app);
+        // Not a readable MP4, so its container can't be vouched for.
+        assertThrows(IOException.class, () -> stripper.saveCensoredVideo(Uri.fromFile(video), video, "clip.mp4"));
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+    }
+
+    @Test
+    public void aCancelledCensoredVideo_isNotSaved() {
+        com.doubleangels.redact.metadata.MetadataStripper stripper =
+                new com.doubleangels.redact.metadata.MetadataStripper(app);
+        stripper.setCancellationCheck(() -> true);
+        assertThrows(ProcessingCancelledException.class,
+                () -> stripper.saveCensoredVideo(Uri.fromFile(video), video, "clip.mp4"));
+        assertTrue(FakeMediaStoreProvider.entries().isEmpty());
+    }
 }

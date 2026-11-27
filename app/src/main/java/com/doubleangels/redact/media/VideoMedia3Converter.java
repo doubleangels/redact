@@ -424,10 +424,43 @@ public final class VideoMedia3Converter {
             long ownerId,
             @Nullable double[] keepLocation)
             throws IOException, InterruptedException {
+        return transcodeTraced(context, sourceUri, outputPath, formatIndex, progressListener, ownerId,
+                keepLocation, ImmutableList.of());
+    }
+
+    /**
+     * Re-encodes {@code sourceUri} to {@code outputPath} (MP4) with {@code editEffects} applied to
+     * every frame, after any frame dropping and before any downscale: Censor's areas and crop.
+     * The video is always re-encoded, and no metadata of the source is written.
+     */
+    public static int transcodeEditedToPath(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @NonNull List<Effect> editEffects,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
+            throws IOException, InterruptedException {
+        return transcodeTraced(context, sourceUri, outputPath, formatIndex, progressListener, ownerId,
+                null, ImmutableList.copyOf(editEffects));
+    }
+
+    /** A transcode inside its video.transcode span. */
+    private static int transcodeTraced(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId,
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
+            throws IOException, InterruptedException {
         SentryManager.Span span = SentryManager.span("video.transcode");
         try {
-            return transcodeToPathUntraced(
-                    context, sourceUri, outputPath, formatIndex, progressListener, ownerId, keepLocation);
+            return transcodeToPathUntraced(context, sourceUri, outputPath, formatIndex, progressListener,
+                    ownerId, keepLocation, editEffects);
         } catch (IOException | InterruptedException | RuntimeException | Error e) {
             span.failed(e);
             throw e;
@@ -444,7 +477,8 @@ public final class VideoMedia3Converter {
             int formatIndex,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -477,7 +511,8 @@ public final class VideoMedia3Converter {
                         ownerId,
                         hasAudio,
                         source,
-                        keepLocation);
+                        keepLocation,
+                        editEffects);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -509,7 +544,7 @@ public final class VideoMedia3Converter {
         Context app = context.getApplicationContext();
         transcodeToPathOnce(app, sourceUri, outputPath, null, Composition.HDR_MODE_KEEP_HDR, null, ownerId,
                 0, 0, sourceHasAudio(app, sourceUri), readSourceVideo(app, sourceUri), keepLocation,
-                vp9Config);
+                vp9Config, ImmutableList.of());
     }
 
     /**
@@ -532,7 +567,8 @@ public final class VideoMedia3Converter {
             long ownerId,
             boolean hasAudio,
             @NonNull SourceVideo source,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
         @Nullable SizeRateSupport support = hardwareEncoderSupport(videoMimeType);
         int[] plan = support != null
@@ -548,7 +584,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
-                    plan[0], plan[1], hasAudio, source, keepLocation, null);
+                    plan[0], plan[1], hasAudio, source, keepLocation, null, editEffects);
             if (plan[0] > 0) {
                 warnDownscaled(app, plan[0]);
             }
@@ -574,7 +610,8 @@ public final class VideoMedia3Converter {
                             hasAudio,
                             source,
                             keepLocation,
-                            null);
+                            null,
+                            editEffects);
                     warnDownscaled(app, shortSide);
                     countSmallerSizeRetry("recovered");
                     return;
@@ -983,7 +1020,8 @@ public final class VideoMedia3Converter {
             boolean hasAudio,
             @NonNull SourceVideo source,
             @Nullable double[] keepLocation,
-            @Nullable byte[] vp9Config)
+            @Nullable byte[] vp9Config,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -1018,7 +1056,8 @@ public final class VideoMedia3Converter {
                     hasAudio,
                     source,
                     keepLocation,
-                    vp9Config);
+                    vp9Config,
+                    editEffects);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -1041,12 +1080,17 @@ public final class VideoMedia3Converter {
             boolean hasAudio,
             @NonNull SourceVideo source,
             @Nullable double[] keepLocation,
-            @Nullable byte[] vp9Config)
+            @Nullable byte[] vp9Config,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
         // No video type: the video is copied as it is, and only the sound is encoded, to Opus.
         boolean copyVideo = videoMimeType == null;
+        if (copyVideo && !editEffects.isEmpty()) {
+            // A copied video is never decoded, so its edits could not be applied.
+            throw new IllegalArgumentException("Edits need the video to be re-encoded");
+        }
         String audioMimeType = copyVideo ? MimeTypes.AUDIO_OPUS : audioMimeTypeForVideoMime(videoMimeType);
         int videoBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
         int audioBitrate = targetAudioBitrate(source, audioMimeType);
@@ -1058,6 +1102,8 @@ public final class VideoMedia3Converter {
             // Dropped on the GPU before the encoder, which is configured for this rate too.
             videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(outputFrameRate));
         }
+        // On the upright frame at full size, so their fractions land where the user put them.
+        videoEffects.addAll(editEffects);
         if (outputShortSide > 0) {
             videoEffects.add(Presentation.createForShortSide(outputShortSide));
         }
@@ -1759,12 +1805,29 @@ public final class VideoMedia3Converter {
     @NonNull
     private static Uri copyToMoviesRedactUntraced(Context context, File file, String originalFileName)
             throws IOException {
-        ContentResolver resolver = context.getContentResolver();
         boolean webm = file.getName().toLowerCase(Locale.ROOT).endsWith(".webm");
         String ext = webm ? ".webm" : ".mp4";
         String mime = webm ? "video/webm" : "video/mp4";
-        String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
+        return saveToOutputUntraced(context, file,
+                MediaFileNames.outputBaseName(context, originalFileName) + ext, mime);
+    }
 
+    /**
+     * Saves a finished, verified MP4 to the output folder as {@code outName}, which carries its
+     * extension, the same way {@link #copyToMoviesRedact} does.
+     */
+    @NonNull
+    public static Uri saveMp4ToOutput(@NonNull Context context, @NonNull File file, @NonNull String outName)
+            throws IOException {
+        return SentryManager.inSpan("output.file_save",
+                () -> saveToOutputUntraced(context, file, outName, "video/mp4"));
+    }
+
+    @NonNull
+    private static Uri saveToOutputUntraced(@NonNull Context context, @NonNull File file,
+                                            @NonNull String outName, @NonNull String mime)
+            throws IOException {
+        ContentResolver resolver = context.getContentResolver();
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 
         try {

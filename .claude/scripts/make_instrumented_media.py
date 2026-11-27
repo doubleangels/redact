@@ -4,7 +4,9 @@ Usage: python3 .claude/scripts/make_instrumented_media.py
 
 The same kinds of metadata as make_test_media.py, at sizes small enough to commit: EXIF GPS and
 camera tags, an XMP location, a PNG eXIf chunk, an Apple-style video location atom with a comment,
-and a WebM title. Needs Pillow and ffmpeg on PATH. Rerun only to change the fixtures.
+and a WebM title. Also the videos Censor is checked against: a fine checkerboard over the whole
+frame, which no covered area can still show, upright and with a 90 degree rotation flag. Needs Pillow
+and ffmpeg on PATH. Rerun only to change the fixtures.
 """
 import os
 import sys
@@ -15,6 +17,18 @@ from make_test_media import exif_with_location, ffmpeg, photo  # noqa: E402
 from PIL import Image  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "app", "src", "androidTest", "assets", "media")
+
+
+CHECKERBOARD = ("color=c=gray:s=320x240:r=30:d=2,format=yuv420p,"
+                "geq=lum='if(mod(floor(X/3)+floor(Y/3)\\,2)\\,235\\,16)':cb=128:cr=128")
+
+
+def censor_fixtures(j):
+    """Censor's videos: 2 s of a 3 px checkerboard, plain and filmed on its side (rotated 90)."""
+    ffmpeg("-f", "lavfi", "-i", CHECKERBOARD, "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
+           "-f", "mp4", j("detail.mp4"))
+    ffmpeg("-display_rotation", "90", "-i", j("detail.mp4"), "-c", "copy", "-f", "mp4",
+           j("detail_rotated.mp4"))
 
 
 def main():
@@ -35,6 +49,7 @@ def main():
            "-f", "mov", j("location.mp4"))
     ffmpeg("-f", "lavfi", "-i", "testsrc=size=320x240:rate=30", "-t", "2",
            "-c:v", "libvpx-vp9", "-b:v", "200k", "-metadata", "title=secret title", j("title.webm"))
+    censor_fixtures(j)
     for name in sorted(os.listdir(OUT)):
         print(f"{os.path.getsize(j(name)):>10}  {name}")
 
