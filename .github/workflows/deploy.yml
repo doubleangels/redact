@@ -276,14 +276,30 @@ jobs:
           name: unsigned-bundle
           path: bundle
 
+      # Signed with the JDK's own jarsigner, as an app bundle is, so no third-party code ever sees
+      # the upload key. The passwords reach jarsigner through the environment, never its command
+      # line, and the keystore lives in the runner's temp folder only while this step runs.
       - name: Sign bundle for Google Play release
-        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
-        with:
-          releaseDirectory: bundle
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          AAB_PATH="bundle/app-release.aab"
+          if [ ! -f "${AAB_PATH}" ]; then
+            echo "::error::${AAB_PATH} is missing from the unsigned-bundle artifact."
+            exit 1
+          fi
+          KEYSTORE="${RUNNER_TEMP}/upload-key.jks"
+          trap 'rm -f "${KEYSTORE}"' EXIT
+          (umask 077 && printf '%s' "${SIGNING_KEY}" | base64 --decode > "${KEYSTORE}")
+          "${JAVA_HOME:+${JAVA_HOME}/bin/}jarsigner" \
+            -keystore "${KEYSTORE}" \
+            -storepass:env KEY_STORE_PASSWORD \
+            -keypass:env KEY_PASSWORD \
+            "${AAB_PATH}" "${ALIAS}"
 
       - name: Verify signed bundle's certificate fingerprint
         env:
