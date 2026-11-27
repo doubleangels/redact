@@ -46,7 +46,11 @@ public final class CensorBlocks {
 
     /** One colour channel moved by up to {@link #NOISE} either way, kept within 0 to 255. */
     public static int noisy(int channel, @NonNull Random random) {
-        int value = channel + random.nextInt(2 * NOISE + 1) - NOISE;
-        return Math.max(0, Math.min(255, value));
+        return Math.max(0, Math.min(255, channel + noiseOffset(random)));
+    }
+
+    /** A random change to one channel, from {@code -NOISE} to {@code NOISE}, from one draw. */
+    public static int noiseOffset(@NonNull Random random) {
+        return random.nextInt(2 * NOISE + 1) - NOISE;
     }
 }

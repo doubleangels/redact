@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | In progress (Phase 1 done) |
+| **Status** | In progress (Phase 1 done; Phase 2 written, its device checks run with Phase 3) |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
