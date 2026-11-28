@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | Built (Phases 1 to 5). Still to try on a device: 4K, and Phase 4's accessibility and form-factor checks. Phase 6 is for later |
+| **Status** | Built (Phases 1 to 6, keyframes without automatic tracking). Still to try on a device: 4K, and Phase 4's accessibility and form-factor checks |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -174,13 +174,17 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 - Scan offers **Censor This Video**, the empty state and Select button say photo or video, and **Delete Originals After Cleaning** moves a censored video's original to the trash too.
 - The Censor tile only opens the tab, so it needed no change.
 
-## Phase 6. Moving areas (later)
+## Phase 6. Moving areas
 
-Planned separately once fixed areas ship.
+- [x] Keyframes, so the user places an area at a few moments and it moves smoothly between them, interpolated per frame. In the editor: a **Moves** switch for the selected area, then moving it at another time sets a keyframe; arrows step between keyframes and a bin deletes one, all part of undo.
+- [x] The coverage check samples each keyframe and halfway between each pair, on frames picked by their exact times (read from the saved video), so a moving area's grid can be placed exactly.
+- [ ] Optionally on-device tracking with a bundled model. Not built: it needs a model and library in the APK, and could never use network-backed ML. Keyframes cover most cases first.
 
-- Keyframes, so the user places an area at a few moments and it moves smoothly between them, interpolated per frame.
-- Optionally on-device tracking with a bundled model, under the same no-network rule as Censor detection.
-- The coverage check then samples frames between keyframes too.
+**As built**
+
+- A moving area's block grid moves with it. A grid fixed to the frame would sample what the area covers at a slightly different offset in every frame, and enough frames together could be combined to recover detail. Areas that stay put keep the frame-wide grid, unchanged.
+- It is padded by the furthest any edge travels in one frame margin, its block size is set once from its largest padded rectangle, and its noise is drawn once for its largest grid.
+- On the emulator, a heavily compressed source (about 170 kbps) left specks of the old picture inside a moving Black area, and the coverage check refused the save. Censored exports now get a bitrate floor, 921.6 kbps at 320 x 240 x 30 fps scaled with pixel rate to the power 0.75 (about 11 Mbps at 1080p30), the lowest that came out clean for a fine checkerboard on the software encoder.
 
 ## Test plan
 
@@ -193,6 +197,7 @@ Planned separately once fixed areas ship.
 | `CensorVerifierTest` (new) | Uniform blocks pass, a detailed block fails, and failure deletes the output |
 | `CensorFragmentTest` (extended) | Photo or video editor by type, undo and redo, the Whole Video action |
 | `CensorOnDeviceTest` (new, `Pixel_10_Pro` test emulator) | Censors the checkerboard fixtures with real codecs and the GPU effect, and checks the frames independently of `CensorVerifier`: each effect, a time range, a rotated source, a crop, an undrawn area failing the check, and cancelling. Run with `connectedDebugAndroidTest` on `Pixel_10_Pro`; on the managed `Pixel_10_Pro_Clean` the goldfish H.264 decoder fails to configure, locally too |
+| `VideoCensorMotionTest` (new) | Keyframes, interpolation, padding, the moving grid and its stable noise, and the coverage check on moving frames |
 | `make_instrumented_media.py` (extended) | `detail.mp4` and `detail_rotated.mp4`: a 3 px checkerboard over the whole frame, plain and with a 90 degree rotation flag |
 | `/test` on `Pixel_10_Pro` | Censor a phone video and a screen recording, play the result and confirm the areas stay covered for their full range |
 
