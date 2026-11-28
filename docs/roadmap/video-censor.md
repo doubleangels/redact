@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | In progress (Phases 1 to 4 built; 4K, and Phase 4's accessibility and form-factor checks, still to try on a device) |
+| **Status** | Built (Phases 1 to 5). Still to try on a device: 4K, and Phase 4's accessibility and form-factor checks. Phase 6 is for later |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -165,8 +165,14 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 **Done when**
 
-- [ ] Sharing a video to **Censor with Redact** opens the video editor.
-- [ ] `SentryNamingTest` passes and the tables list every new name.
+- [x] Sharing a video to **Censor with Redact** opens the video editor.
+- [x] `SentryNamingTest` passes and the tables list every new name.
+
+**As built**
+
+- The new span is `verify.censor_coverage`, around the coverage check, rather than `video_censor_export`: it follows the `area.event` scheme, and the export itself is already timed by `video.transcode`. No new tag or metric: Censor's counters now pass `file.media_type=video` for a video.
+- Scan offers **Censor This Video**, the empty state and Select button say photo or video, and **Delete Originals After Cleaning** moves a censored video's original to the trash too.
+- The Censor tile only opens the tab, so it needed no change.
 
 ## Phase 6. Moving areas (later)
 

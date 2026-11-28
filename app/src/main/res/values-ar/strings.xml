@@ -286,6 +286,7 @@
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
     <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>
+    <string name="scan_censor_this_video">إخفاء أجزاء من هذا الفيديو</string>
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_value">نسخ القيمة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
@@ -480,8 +481,8 @@
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
     <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
     <string name="censor_empty_state_title">أخفِ ما يجب أن يبقى خاصًا</string>
-    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
-    <string name="censor_select_photo">تحديد صورة</string>
+    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة أو الفيديو إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
+    <string name="censor_select_photo">تحديد صورة أو فيديو</string>
     <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. قرّب إصبعين أو باعد بينهما للتكبير والتنقل. اسحب مستطيلًا لتحريكه، وانقر عليه لتغيير حجمه من مقابضه. استخدم قص للاحتفاظ بجزء من الصورة فقط.</string>
     <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة. قرّب إصبعين أو باعد بينهما للتكبير والتنقل.</string>
     <string name="censor_tool_rectangle">مستطيل</string>

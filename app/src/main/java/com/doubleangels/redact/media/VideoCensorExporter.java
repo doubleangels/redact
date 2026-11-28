@@ -15,6 +15,7 @@ import androidx.media3.effect.Crop;
 
 import com.doubleangels.redact.R;
 import com.doubleangels.redact.metadata.MetadataStripper;
+import com.doubleangels.redact.sentry.SentryManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,8 +102,9 @@ public final class VideoCensorExporter {
             VideoMedia3Converter.transcodeEditedToPath(app, source, censored.getAbsolutePath(),
                     formatIndexFor(info.mime), effects, progressListener, transcodeOwnerId);
             throwIfCancelled(cancelled);
-            CensorVerifier.requireVideoAreasCovered(censored, info.width, info.height, rounded, crop,
-                    effect, interval);
+            File output = censored;
+            SentryManager.runInSpan("verify.censor_coverage", () -> CensorVerifier.requireVideoAreasCovered(
+                    output, info.width, info.height, rounded, crop, effect, interval));
             String name = MediaFileNames.outputBaseName(app, fileName, R.string.censor_file_name) + ".mp4";
             return stripper.saveCensoredVideo(source, censored, name);
         } catch (InterruptedException e) {

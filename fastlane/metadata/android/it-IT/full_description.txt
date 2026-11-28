@@ -32,7 +32,7 @@ Oppure condividilo con Scansiona con Redact per controllarlo prima.
 • Converti HEIC in JPG, oltre a immagini PNG e WebP
 • Converti video H.264, H.265, VP9 e AV1
 • Ogni file convertito viene pulito e verificato
-• Censura pixela, annerisce o sfoca volti, targhe e indirizzi, e ritaglia le foto
+• Censura pixela, annerisce o sfoca volti, targhe e indirizzi in foto e video, e li ritaglia
 
 <b>Privata per progettazione</b>
 • Tutto avviene sul telefono, senza bisogno di internet

@@ -272,6 +272,7 @@
     <string name="scan_clean_this_file">Очистить Этот Файл</string>
     <string name="scan_convert_this_file">Конвертировать Этот Файл</string>
     <string name="scan_censor_this_photo">Скрыть Части Этого Фото</string>
+    <string name="scan_censor_this_video">Скрыть Части Этого Видео</string>
     <string name="scan_copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="scan_copy_value">Копировать Значение</string>
     <string name="scan_copy_all_metadata">Копировать Все Метаданные</string>
@@ -452,8 +453,8 @@
     <string name="settings_reset_all_done">Настройки сброшены.</string>
     <string name="settings_reset_all_busy">Нельзя сбросить настройки во время обработки.</string>
     <string name="censor_empty_state_title">Скройте То, Что Должно Остаться Личным</string>
-    <string name="censor_empty_state_description">Пикселизируйте, закрасьте чёрным или размойте лица, номера машин, адреса и всё остальное на фото. Redact сохраняет копию со скрытыми областями без метаданных, а оригинал остаётся без изменений.</string>
-    <string name="censor_select_photo">Выбрать Фото</string>
+    <string name="censor_empty_state_description">Пикселизируйте, закрасьте чёрным или размойте лица, номера машин, адреса и всё остальное на фото или видео. Redact сохраняет копию со скрытыми областями без метаданных, а оригинал остаётся без изменений.</string>
+    <string name="censor_select_photo">Выбрать Фото или Видео</string>
     <string name="censor_hint">Закрасьте всё, что должно остаться личным, затем нажмите Сохранить Копию. Сводите и разводите два пальца, чтобы менять масштаб и перемещаться по фото. Перетащите прямоугольник, чтобы сдвинуть его, или нажмите на него, чтобы изменить размер за маркеры. Инструмент Обрезать оставляет только часть фото.</string>
     <string name="censor_canvas_description">Редактируемое фото. Рисуйте одним пальцем, чтобы скрыть область. Сводите и разводите два пальца, чтобы менять масштаб и перемещаться по фото.</string>
     <string name="censor_tool_rectangle">Прямоугольник</string>

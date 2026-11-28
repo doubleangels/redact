@@ -259,6 +259,7 @@
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_censor_this_photo">Censor This Photo</string>
+    <string name="scan_censor_this_video">Censor This Video</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
     <string name="scan_copy_value">Copy Value</string>
     <string name="scan_maps_consent_title">Open in Maps</string>
@@ -437,8 +438,8 @@
 
     <!-- Censor: cover parts of a photo -->
     <string name="censor_empty_state_title">Cover What Should Stay Private</string>
-    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
-    <string name="censor_select_photo">Select Photo</string>
+    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo or video. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
+    <string name="censor_select_photo">Select Photo or Video</string>
     <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Pinch with two fingers to zoom and move around. Drag a rectangle to move it, and tap it to resize it from its handles. Use Crop to keep only part of the photo.</string>
     <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. Pinch with two fingers to zoom and move around.</string>
     <string name="censor_tool_rectangle">Rectangle</string>

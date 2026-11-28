@@ -790,7 +790,7 @@ public class CensorViewModel extends AndroidViewModel {
                                 timed(snapshot, timesSnapshot), cropSnapshot, chosen,
                                 saveProgress::postValue, transcodeOwner, null))
                         : CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
-                AppMetrics.item(AppMetrics.CENSOR, false, AppMetrics.SUCCESS,
+                AppMetrics.item(AppMetrics.CENSOR, isVideo, AppMetrics.SUCCESS,
                         SystemClock.elapsedRealtime() - saveStartMs);
                 AppMetrics.censorRegions(snapshot.size());
                 // The copy went through a clean, so it counts in the statistics like one.
@@ -818,7 +818,7 @@ public class CensorViewModel extends AndroidViewModel {
                 state.postValue(State.SAVED);
             } catch (Exception e) {
                 SentryManager.setCustomKey("error_type", SentryManager.errorType(e));
-                AppMetrics.item(AppMetrics.CENSOR, false,
+                AppMetrics.item(AppMetrics.CENSOR, isVideo,
                         AppMetrics.outcomeOf(e, UnsupportedMediaException.isCauseOf(e)), -1);
                 SentryManager.recordException(e);
                 SentryManager.failCurrentSpan(e);

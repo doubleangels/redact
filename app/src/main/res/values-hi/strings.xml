@@ -258,6 +258,7 @@
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
     <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>
+    <string name="scan_censor_this_video">इस वीडियो के हिस्से छिपाएँ</string>
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_value">मान कॉपी करें</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
@@ -424,8 +425,8 @@
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
     <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
     <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
-    <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
-    <string name="censor_select_photo">फ़ोटो चुनें</string>
+    <string name="censor_empty_state_description">फ़ोटो या वीडियो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ाइल जैसी है वैसी ही रहती है।</string>
+    <string name="censor_select_photo">फ़ोटो या वीडियो चुनें</string>
     <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने और इधर-उधर जाने के लिए दो उंगलियों से पिंच करें। किसी आयत को खिसकाने के लिए उसे खींचें, और उसके हैंडल से आकार बदलने के लिए उस पर टैप करें। फ़ोटो का सिर्फ़ एक हिस्सा रखने के लिए क्रॉप का इस्तेमाल करें।</string>
     <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ। ज़ूम करने और इधर-उधर जाने के लिए दो उंगलियों से पिंच करें।</string>
     <string name="censor_tool_rectangle">आयत</string>

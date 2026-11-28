@@ -257,6 +257,7 @@
     <string name="scan_clean_this_file">Diese Datei Bereinigen</string>
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
     <string name="scan_censor_this_photo">Dieses Foto Zensieren</string>
+    <string name="scan_censor_this_video">Dieses Video Zensieren</string>
     <string name="scan_copied_to_clipboard">In Zwischenablage kopiert</string>
     <string name="scan_copy_value">Wert Kopieren</string>
     <string name="scan_copy_all_metadata">Alle Metadaten Kopieren</string>
@@ -423,8 +424,8 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="settings_reset_all_done">Einstellungen auf Standard zurückgesetzt.</string>
     <string name="settings_reset_all_busy">Einstellungen können während der Verarbeitung nicht zurückgesetzt werden.</string>
     <string name="censor_empty_state_title">Verdecke, Was Privat Bleiben Soll</string>
-    <string name="censor_empty_state_description">Verpixle, schwärze oder verwische Gesichter, Kennzeichen, Adressen und alles andere in einem Foto. Redact speichert eine zensierte Kopie ohne Metadaten, und dein Original bleibt unverändert.</string>
-    <string name="censor_select_photo">Foto Auswählen</string>
+    <string name="censor_empty_state_description">Verpixle, schwärze oder verwische Gesichter, Kennzeichen, Adressen und alles andere in einem Foto oder Video. Redact speichert eine zensierte Kopie ohne Metadaten, und dein Original bleibt unverändert.</string>
+    <string name="censor_select_photo">Foto oder Video Auswählen</string>
     <string name="censor_hint">Male über alles, was privat bleiben soll, und tippe dann auf Kopie Speichern. Mit zwei Fingern zoomst du und bewegst den Ausschnitt. Ziehe ein Rechteck, um es zu verschieben, und tippe darauf, um seine Größe an den Griffen zu ändern. Mit Zuschneiden behältst du nur einen Teil des Fotos.</string>
     <string name="censor_canvas_description">Foto, das zensiert wird. Zeichne mit einem Finger, um einen Bereich zu verdecken. Mit zwei Fingern zoomst du und bewegst den Ausschnitt.</string>
     <string name="censor_tool_rectangle">Rechteck</string>

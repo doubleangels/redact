@@ -265,6 +265,7 @@
     <string name="scan_clean_this_file">Limpiar Este Archivo</string>
     <string name="scan_convert_this_file">Convertir Este Archivo</string>
     <string name="scan_censor_this_photo">Censurar Esta Foto</string>
+    <string name="scan_censor_this_video">Censurar Este Vídeo</string>
     <string name="scan_copied_to_clipboard">Copiado al portapapeles</string>
     <string name="scan_copy_value">Copiar Valor</string>
     <string name="scan_copy_all_metadata">Copiar Todos los Metadatos</string>
@@ -438,8 +439,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="settings_reset_all_done">Ajustes restablecidos a los valores predeterminados.</string>
     <string name="settings_reset_all_busy">No se pueden restablecer los ajustes mientras hay un procesamiento en curso.</string>
     <string name="censor_empty_state_title">Cubre lo Que Debe Seguir Siendo Privado</string>
-    <string name="censor_empty_state_description">Pixela, tapa en negro o desenfoca caras, matrículas, direcciones y cualquier otra cosa de una foto. Redact guarda una copia censurada sin metadatos, y tu original queda tal como está.</string>
-    <string name="censor_select_photo">Seleccionar Foto</string>
+    <string name="censor_empty_state_description">Pixela, tapa en negro o desenfoca caras, matrículas, direcciones y cualquier otra cosa de una foto o un vídeo. Redact guarda una copia censurada sin metadatos, y tu original queda tal como está.</string>
+    <string name="censor_select_photo">Seleccionar Foto o Vídeo</string>
     <string name="censor_hint">Dibuja sobre todo lo que deba seguir siendo privado y luego toca Guardar Copia. Pellizca con dos dedos para hacer zoom y desplazarte. Arrastra un rectángulo para moverlo y tócalo para cambiar su tamaño con sus tiradores. Usa Recortar para conservar solo una parte de la foto.</string>
     <string name="censor_canvas_description">Foto que se está censurando. Dibuja con un dedo para cubrir una zona. Pellizca con dos dedos para hacer zoom y desplazarte.</string>
     <string name="censor_tool_rectangle">Rectángulo</string>

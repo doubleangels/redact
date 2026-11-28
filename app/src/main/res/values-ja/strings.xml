@@ -252,6 +252,7 @@
     <string name="scan_clean_this_file">このファイルをクリーン</string>
     <string name="scan_convert_this_file">このファイルを変換</string>
     <string name="scan_censor_this_photo">この写真の一部を隠す</string>
+    <string name="scan_censor_this_video">この動画の一部を隠す</string>
     <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="scan_copy_value">値をコピー</string>
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
@@ -411,8 +412,8 @@
     <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
     <string name="settings_reset_all_busy">処理中は設定をリセットできません。</string>
     <string name="censor_empty_state_title">見せたくないものを隠す</string>
-    <string name="censor_empty_state_description">写真の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元の写真はそのまま残ります。</string>
-    <string name="censor_select_photo">写真を選択</string>
+    <string name="censor_empty_state_description">写真や動画の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元のファイルはそのまま残ります。</string>
+    <string name="censor_select_photo">写真や動画を選択</string>
     <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。2 本の指でピンチすると拡大や表示位置の移動ができます。四角形はドラッグで移動でき、タップするとハンドルでサイズを変更できます。「切り抜き」では写真の一部だけを残せます。</string>
     <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。2 本の指でピンチすると拡大や表示位置の移動ができます。</string>
     <string name="censor_tool_rectangle">四角形</string>

@@ -251,6 +251,7 @@
     <string name="scan_clean_this_file">清理此文件</string>
     <string name="scan_convert_this_file">转换此文件</string>
     <string name="scan_censor_this_photo">遮挡此照片的部分内容</string>
+    <string name="scan_censor_this_video">遮挡此视频的部分内容</string>
     <string name="scan_copied_to_clipboard">已复制到剪贴板</string>
     <string name="scan_copy_value">复制值</string>
     <string name="scan_copy_all_metadata">复制全部元数据</string>
@@ -410,8 +411,8 @@
     <string name="settings_reset_all_done">设置已恢复为默认值。</string>
     <string name="settings_reset_all_busy">处理过程中无法重置设置。</string>
     <string name="censor_empty_state_title">遮住应保持私密的内容</string>
-    <string name="censor_empty_state_description">为照片中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原图保持不变。</string>
-    <string name="censor_select_photo">选择照片</string>
+    <string name="censor_empty_state_description">为照片或视频中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原文件保持不变。</string>
+    <string name="censor_select_photo">选择照片或视频</string>
     <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。用双指缩放并移动画面。拖动矩形可移动它，点按矩形后可拖动控制点调整大小。选择“裁剪”可只保留照片的一部分。</string>
     <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域。用双指缩放并移动画面。</string>
     <string name="censor_tool_rectangle">矩形</string>

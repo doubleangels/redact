@@ -1006,8 +1006,8 @@ public class CensorFragment extends TabFragment {
 
     /**
      * After a save with Delete Originals After Cleaning on, asks Android (with its own confirmation,
-     * the same one Clean uses) to move the uncensored original to the trash, when it is a photo in
-     * the phone's media library. Returns whether the request was made.
+     * the same one Clean uses) to move the uncensored original to the trash, when it is a photo or
+     * video in the phone's media library. Returns whether the request was made.
      */
     private boolean requestTrashOriginal() {
         if (!AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
@@ -1037,7 +1037,8 @@ public class CensorFragment extends TabFragment {
             } else {
                 media = MediaStore.getMediaUri(requireContext(), source);
             }
-            return media != null ? CleanFragment.trashableMediaUri(media, "image/*") : null;
+            return media != null
+                    ? CleanFragment.trashableMediaUri(media, viewModel.isVideo() ? "video/*" : "image/*") : null;
         } catch (Exception notMedia) {
             // A photo from another app's provider: leave it alone.
             return null;

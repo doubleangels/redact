@@ -32,7 +32,7 @@ Ou partagez-le vers « Scanner avec Redact » pour le vérifier d'abord.
 • Convertissez HEIC en JPG, ainsi que des images PNG et WebP
 • Convertissez des vidéos H.264, H.265, VP9 et AV1
 • Chaque fichier converti est nettoyé et vérifié
-• Censurer pixellise, noircit ou floute visages, plaques et adresses, et rogne les photos
+• Censurer pixellise, noircit ou floute visages, plaques et adresses sur les photos et les vidéos, et les rogne
 
 <b>Privé par conception</b>
 • Tout se passe sur votre téléphone, sans connexion Internet

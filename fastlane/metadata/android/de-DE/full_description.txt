@@ -32,7 +32,7 @@ Oder teile sie mit „Mit Redact Scannen“, um sie zuerst zu prüfen.
 • HEIC in JPG umwandeln, dazu PNG- und WebP-Bilder
 • H.264-, H.265-, VP9- und AV1-Videos konvertieren
 • Jede konvertierte Datei wird bereinigt und geprüft
-• Zensieren verpixelt, schwärzt oder verwischt Gesichter, Kennzeichen und Adressen und schneidet Fotos zu
+• Zensieren verpixelt, schwärzt oder verwischt Gesichter, Kennzeichen und Adressen in Fotos und Videos und schneidet sie zu
 
 <b>Privat von Grund auf</b>
 • Alles läuft auf deinem Handy, ganz ohne Internet

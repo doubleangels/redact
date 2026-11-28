@@ -251,6 +251,7 @@
     <string name="scan_clean_this_file">清理此檔案</string>
     <string name="scan_convert_this_file">轉換此檔案</string>
     <string name="scan_censor_this_photo">遮蔽此照片的部分內容</string>
+    <string name="scan_censor_this_video">遮蔽此影片的部分內容</string>
     <string name="scan_copied_to_clipboard">已複製到剪貼簿</string>
     <string name="scan_copy_value">複製值</string>
     <string name="scan_copy_all_metadata">複製全部中繼資料</string>
@@ -410,8 +411,8 @@
     <string name="settings_reset_all_done">設定已恢復為預設值。</string>
     <string name="settings_reset_all_busy">處理期間無法重設設定。</string>
     <string name="censor_empty_state_title">遮住應保持私密的內容</string>
-    <string name="censor_empty_state_description">為照片中的人臉、車牌、地址等任何內容加上馬賽克、塗黑或模糊處理。Redact 會儲存一份不含任何中繼資料的遮蔽副本，原始照片維持不變。</string>
-    <string name="censor_select_photo">選擇照片</string>
+    <string name="censor_empty_state_description">為照片或影片中的人臉、車牌、地址等任何內容加上馬賽克、塗黑或模糊處理。Redact 會儲存一份不含任何中繼資料的遮蔽副本，原始檔案維持不變。</string>
+    <string name="censor_select_photo">選擇照片或影片</string>
     <string name="censor_hint">在需要保密的內容上繪製，然後輕觸「儲存副本」。用雙指縮放並移動畫面。拖曳矩形可移動它，輕觸矩形後可拖曳控點調整大小。選擇「裁切」可只保留相片的一部分。</string>
     <string name="censor_canvas_description">正在遮蔽的照片。用一根手指繪製以遮蔽區域。用雙指縮放並移動畫面。</string>
     <string name="censor_tool_rectangle">矩形</string>

@@ -265,6 +265,7 @@
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
     <string name="scan_censor_this_photo">Censura Questa Foto</string>
+    <string name="scan_censor_this_video">Censura Questo Video</string>
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
     <string name="scan_copy_value">Copia Valore</string>
     <string name="scan_copy_all_metadata">Copia Tutti i Metadati</string>
@@ -438,8 +439,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
     <string name="settings_reset_all_busy">Impossibile ripristinare le impostazioni durante l\'elaborazione.</string>
     <string name="censor_empty_state_title">Copri Ciò Che Deve Restare Privato</string>
-    <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
-    <string name="censor_select_photo">Seleziona Foto</string>
+    <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto o in un video. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
+    <string name="censor_select_photo">Seleziona Foto o Video</string>
     <string name="censor_hint">Disegna su tutto ciò che deve restare privato, poi tocca Salva Copia. Avvicina o allontana due dita per ingrandire e spostarti. Trascina un rettangolo per spostarlo e toccalo per ridimensionarlo con le maniglie. Usa Ritaglia per tenere solo una parte della foto.</string>
     <string name="censor_canvas_description">Foto da censurare. Disegna con un dito per coprire un’area. Avvicina o allontana due dita per ingrandire e spostarti.</string>
     <string name="censor_tool_rectangle">Rettangolo</string>
