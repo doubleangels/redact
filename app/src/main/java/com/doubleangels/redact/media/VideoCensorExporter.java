@@ -184,6 +184,7 @@ public final class VideoCensorExporter {
         } catch (IOException | RuntimeException e) {
             // Unknown rotation: taken as upright. A wrong guess fails the coverage check, never
             // passes an uncovered area.
+            SentryManager.logEvent("video", "The video's rotation could not be read, so Censor took it as upright.");
             rotation = 0;
         }
         boolean sideways = Math.floorMod(rotation, 180) == 90;

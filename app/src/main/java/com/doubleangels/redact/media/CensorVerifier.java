@@ -513,6 +513,8 @@ public final class CensorVerifier {
                 java.util.Arrays.sort(sorted);
                 return sorted;
             } catch (IOException | RuntimeException e) {
+                // Only a moving area needs them, and its check then fails closed.
+                SentryManager.logEvent("verify", "The censored video's frame times could not be read.");
                 return new long[0];
             } finally {
                 extractor.release();
