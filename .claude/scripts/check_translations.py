@@ -43,6 +43,8 @@ SAME_AS_ENGLISH_OK = re.compile(
 REVIEWED_SAME_AS_ENGLISH = {
     "de:clean_preset_standard", "fr:clean_preset_standard", "it:clean_preset_standard",
     "de:whats_new_version", "fr:whats_new_version",
+    # "Keyframe" is the German video editing term.
+    "de:censor_keyframe_count",
     "de:content_description_selected_video", "it:content_description_selected_video",
     "de:convert_item_type_video", "de:settings_output_videos",
     "de:scan_section_details", "de:settings_about_version",

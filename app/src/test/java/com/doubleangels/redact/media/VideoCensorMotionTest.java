@@ -4,7 +4,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -93,13 +92,6 @@ public class VideoCensorMotionTest {
         assertEquals(0.5 / 2_000_000.0, speed[0], 1e-12);
         assertEquals(0.0, speed[1], 1e-12);
         assertArrayEquals(new double[] {0, 0}, VideoCensorRegion.wholeVideo(LEFT).maxSpeed(), 0);
-    }
-
-    @Test
-    public void keyframeNear_findsOneWithinTheTolerance() {
-        VideoCensorRegion region = sliding();
-        assertEquals(1_000_000L, region.keyframeNear(1_010_000L, 20_000L).timeUs());
-        assertNull(region.keyframeNear(2_000_000L, 20_000L));
     }
 
     @Test

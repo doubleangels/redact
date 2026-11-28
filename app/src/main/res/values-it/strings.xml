@@ -482,6 +482,11 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_video_position">Posizione nel Video</string>
     <string name="censor_area_times">Intervallo di Tempo dell\'Area %1$d</string>
     <string name="censor_whole_video">Video Intero</string>
+    <string name="censor_area_moves">Si Muove</string>
+    <string name="censor_previous_keyframe">Fotogramma Chiave Precedente</string>
+    <string name="censor_next_keyframe">Fotogramma Chiave Successivo</string>
+    <string name="censor_delete_keyframe">Elimina Fotogramma Chiave</string>
+    <string name="censor_keyframe_count">Fotogrammi chiave: %1$d</string>
     <string name="censor_error_open_video">Impossibile aprire questo video.</string>
     <string name="censor_error_unsupported_video">Questo tipo di video non può essere censurato su questo dispositivo.</string>
     <string name="censor_error_save">Impossibile salvare la copia censurata.</string>

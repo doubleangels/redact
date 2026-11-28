@@ -49,6 +49,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
 import com.google.android.material.slider.Slider;
@@ -138,6 +139,13 @@ public class CensorFragment extends TabFragment {
     private TextView areaTimesLabel;
     private RangeSlider areaTimesSlider;
     private View wholeVideoButton;
+    /** Whether the selected area moves, and its keyframes, shown while a rectangle is selected. */
+    private View areaMotion;
+    private MaterialSwitch areaMovesSwitch;
+    private TextView keyframeCount;
+    private View previousKeyframeButton;
+    private View nextKeyframeButton;
+    private View deleteKeyframeButton;
     /** Whether a thumb of {@link #areaTimesSlider} is being dragged; its range is set when it is let go. */
     private boolean draggingAreaTimes;
     /** The area's range as the slider last showed it, in milliseconds, to tell which end moved. */
@@ -253,6 +261,12 @@ public class CensorFragment extends TabFragment {
         areaTimesLabel = view.findViewById(R.id.censorAreaTimesLabel);
         areaTimesSlider = view.findViewById(R.id.censorAreaTimesSlider);
         wholeVideoButton = view.findViewById(R.id.censorWholeVideoButton);
+        areaMotion = view.findViewById(R.id.censorAreaMotion);
+        areaMovesSwitch = view.findViewById(R.id.censorAreaMovesSwitch);
+        keyframeCount = view.findViewById(R.id.censorKeyframeCount);
+        previousKeyframeButton = view.findViewById(R.id.censorPreviousKeyframe);
+        nextKeyframeButton = view.findViewById(R.id.censorNextKeyframe);
+        deleteKeyframeButton = view.findViewById(R.id.censorDeleteKeyframe);
 
         view.findViewById(R.id.emptyStateSelectButton).setOnClickListener(v -> pickPhoto());
         view.findViewById(R.id.selectButton).setOnClickListener(v -> pickPhoto());
@@ -384,8 +398,11 @@ public class CensorFragment extends TabFragment {
             SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
         });
         viewModel.getHistoryVersion().observe(getViewLifecycleOwner(), v -> {
-            canvas.setRegions(viewModel.regions());
+            // A video's moving area moves when another frame shows; it stays selected.
+            canvas.setRegions(viewModel.regions(), viewModel.isVideo());
             canvas.setCrop(viewModel.getCrop());
+            // Delete follows the selected rectangle, which a moving area moves between frames.
+            selectionBounds = canvas.selectedBoundsInView();
             updateControls();
             updateEffectButtons();
             updateVideoControls();
@@ -870,6 +887,35 @@ public class CensorFragment extends TabFragment {
                 viewModel.setRegionTimes(selectedRectangle, 0L, VideoCensorRegion.END_OF_VIDEO);
             }
         });
+        areaMovesSwitch.setOnCheckedChangeListener((button, checked) -> {
+            if (button.isPressed() || button.isFocused()) {
+                Haptics.tick(button);
+            }
+            if (selectedRectangle >= 0 && checked != viewModel.isMoving(selectedRectangle)) {
+                viewModel.setMoving(selectedRectangle, checked);
+            }
+        });
+        previousKeyframeButton.setOnClickListener(v -> stepToKeyframe(false));
+        nextKeyframeButton.setOnClickListener(v -> stepToKeyframe(true));
+        deleteKeyframeButton.setOnClickListener(v -> {
+            if (selectedRectangle >= 0) {
+                Haptics.tick(v);
+                viewModel.removeKeyframeAtPlayhead(selectedRectangle);
+            }
+        });
+    }
+
+    /** Shows the selected area's next keyframe, or its previous one. */
+    private void stepToKeyframe(boolean forward) {
+        if (selectedRectangle < 0) {
+            return;
+        }
+        long time = viewModel.adjacentKeyframe(selectedRectangle, forward);
+        if (time >= 0) {
+            Haptics.tick(forward ? nextKeyframeButton : previousKeyframeButton);
+            viewModel.setPlayhead(time);
+            updateVideoControls();
+        }
     }
 
     /** Gives the selected area the range on the slider, as an edit that can be undone. */
@@ -908,6 +954,10 @@ public class CensorFragment extends TabFragment {
         showVideoTime();
         boolean selected = selectedRectangle >= 0 && selectedRectangle < viewModel.regions().size();
         areaTimes.setVisibility(selected ? View.VISIBLE : View.GONE);
+        areaMotion.setVisibility(selected ? View.VISIBLE : View.GONE);
+        if (selected) {
+            showMotion(ready);
+        }
         if (!selected || draggingAreaTimes) {
             return;
         }
@@ -922,6 +972,27 @@ public class CensorFragment extends TabFragment {
         areaTimesSlider.setEnabled(ready);
         showAreaTimesLabel(start, end);
         wholeVideoButton.setEnabled(ready && !span.isWhole());
+    }
+
+    /**
+     * Shows whether the selected area moves and, when it does, how many keyframes it has and
+     * which of the step and delete buttons apply at the playhead.
+     */
+    private void showMotion(boolean ready) {
+        boolean moving = viewModel.isMoving(selectedRectangle);
+        if (areaMovesSwitch.isChecked() != moving) {
+            areaMovesSwitch.setChecked(moving);
+        }
+        areaMovesSwitch.setEnabled(ready);
+        int keyframes = viewModel.keyframeTimes(selectedRectangle).size();
+        keyframeCount.setVisibility(moving ? View.VISIBLE : View.INVISIBLE);
+        keyframeCount.setText(getString(R.string.censor_keyframe_count, keyframes));
+        previousKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        nextKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        deleteKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        previousKeyframeButton.setEnabled(ready && viewModel.adjacentKeyframe(selectedRectangle, false) >= 0);
+        nextKeyframeButton.setEnabled(ready && viewModel.adjacentKeyframe(selectedRectangle, true) >= 0);
+        deleteKeyframeButton.setEnabled(ready && viewModel.hasKeyframeAtPlayhead(selectedRectangle));
     }
 
     /** Sets {@code slider}'s range to 0 to {@code max}, moving its value into it first. */

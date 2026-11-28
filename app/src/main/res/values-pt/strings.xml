@@ -482,6 +482,11 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_video_position">Posição no Vídeo</string>
     <string name="censor_area_times">Intervalo de Tempo da Área %1$d</string>
     <string name="censor_whole_video">Vídeo Inteiro</string>
+    <string name="censor_area_moves">Move-se</string>
+    <string name="censor_previous_keyframe">Quadro-Chave Anterior</string>
+    <string name="censor_next_keyframe">Próximo Quadro-Chave</string>
+    <string name="censor_delete_keyframe">Excluir Quadro-Chave</string>
+    <string name="censor_keyframe_count">Quadros-chave: %1$d</string>
     <string name="censor_error_open_video">Não foi possível abrir este vídeo.</string>
     <string name="censor_error_unsupported_video">Este tipo de vídeo não pode ser censurado neste dispositivo.</string>
     <string name="censor_error_save">Não foi possível salvar a cópia censurada.</string>

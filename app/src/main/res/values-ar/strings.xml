@@ -524,6 +524,11 @@
     <string name="censor_video_position">الموضع في الفيديو</string>
     <string name="censor_area_times">المدة الزمنية للمنطقة %1$d</string>
     <string name="censor_whole_video">الفيديو كاملًا</string>
+    <string name="censor_area_moves">يتحرك</string>
+    <string name="censor_previous_keyframe">الإطار الرئيسي السابق</string>
+    <string name="censor_next_keyframe">الإطار الرئيسي التالي</string>
+    <string name="censor_delete_keyframe">حذف الإطار الرئيسي</string>
+    <string name="censor_keyframe_count">الإطارات الرئيسية: %1$d</string>
     <string name="censor_error_open_video">تعذّر فتح هذا الفيديو.</string>
     <string name="censor_error_unsupported_video">لا يمكن إخفاء أجزاء من هذا النوع من الفيديو على هذا الجهاز.</string>
     <string name="censor_error_save">تعذّر حفظ النسخة المخفية الأجزاء.</string>

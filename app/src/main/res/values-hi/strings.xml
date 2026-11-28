@@ -468,6 +468,11 @@
     <string name="censor_video_position">वीडियो में स्थिति</string>
     <string name="censor_area_times">क्षेत्र %1$d की समय सीमा</string>
     <string name="censor_whole_video">पूरा वीडियो</string>
+    <string name="censor_area_moves">चलता है</string>
+    <string name="censor_previous_keyframe">पिछला कीफ़्रेम</string>
+    <string name="censor_next_keyframe">अगला कीफ़्रेम</string>
+    <string name="censor_delete_keyframe">कीफ़्रेम हटाएँ</string>
+    <string name="censor_keyframe_count">कीफ़्रेम: %1$d</string>
     <string name="censor_error_open_video">यह वीडियो खोला नहीं जा सका।</string>
     <string name="censor_error_unsupported_video">इस डिवाइस पर इस तरह के वीडियो को सेंसर नहीं किया जा सकता।</string>
     <string name="censor_error_save">छिपाई गई कॉपी सहेजी नहीं जा सकी।</string>

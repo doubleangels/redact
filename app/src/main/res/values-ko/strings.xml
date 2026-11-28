@@ -454,6 +454,11 @@
     <string name="censor_video_position">동영상 내 위치</string>
     <string name="censor_area_times">영역 %1$d의 시간 범위</string>
     <string name="censor_whole_video">동영상 전체</string>
+    <string name="censor_area_moves">움직임</string>
+    <string name="censor_previous_keyframe">이전 키프레임</string>
+    <string name="censor_next_keyframe">다음 키프레임</string>
+    <string name="censor_delete_keyframe">키프레임 삭제</string>
+    <string name="censor_keyframe_count">키프레임: %1$d</string>
     <string name="censor_error_open_video">이 동영상을 열 수 없습니다.</string>
     <string name="censor_error_unsupported_video">이 기기에서는 이 유형의 동영상을 검열할 수 없습니다.</string>
     <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>

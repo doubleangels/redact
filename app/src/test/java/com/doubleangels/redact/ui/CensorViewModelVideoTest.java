@@ -1,5 +1,6 @@
 package com.doubleangels.redact.ui;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -169,6 +170,7 @@ public class CensorViewModelVideoTest {
         vm.addRegion(BOX);
         set(vm, "savedRegions", vm.regions());
         set(vm, "savedTimes", List.of(CensorViewModel.Span.WHOLE));
+        set(vm, "savedMotions", List.of(List.of()));
         set(vm, "savedEffect", vm.getEffect().getValue());
         assertFalse(vm.hasUnsavedEdits());
         vm.setRegionTimes(0, 0L, 1_000_000L);
@@ -205,6 +207,114 @@ public class CensorViewModelVideoTest {
                 List.of(new CensorViewModel.Span(1L, 2L)));
         assertEquals(VideoCensorRegion.of(BOX, 1L, 2L), timed.get(0));
         assertTrue("an area with no range covers the whole video", timed.get(1).coversWholeVideo());
+    }
+
+    // ---- moving areas -----------------------------------------------------------------------------
+
+    @Test
+    public void anAreaThatMoves_isPlacedByKeyframesSetAtThePlayhead() throws Exception {
+        openFakeVideo();
+        vm.addRegion(BOX);
+        set(vm, "playheadUs", 1_000_000L);
+        vm.setMoving(0, true);
+        assertTrue(vm.isMoving(0));
+        assertEquals(List.of(1_000_000L), vm.keyframeTimes(0));
+        assertTrue(vm.hasKeyframeAtPlayhead(0));
+
+        // Moved at 3 s: a second keyframe there, and it slides between them.
+        set(vm, "playheadUs", 3_000_000L);
+        assertFalse(vm.hasKeyframeAtPlayhead(0));
+        vm.replaceRegion(0, OTHER);
+        assertEquals(List.of(1_000_000L, 3_000_000L), vm.keyframeTimes(0));
+        assertEquals(OTHER.withEffect(CensorEffects.Effect.BLACK), vm.regions().get(0));
+        set(vm, "playheadUs", 2_000_000L);
+        assertArrayEquals(new float[] {0.35f, 0.35f, 0.7f, 0.7f}, vm.regions().get(0).points(), 1e-5f);
+        assertEquals(vm.regions(), vm.visibleRegions());
+
+        // Moved again on a keyframe's own frame: that keyframe changes, no new one.
+        set(vm, "playheadUs", 3_010_000L);
+        vm.replaceRegion(0, CensorRegion.rect(0.7f, 0.7f, 0.95f, 0.95f));
+        assertEquals(List.of(1_000_000L, 3_000_000L), vm.keyframeTimes(0));
+
+        assertTrue(CensorViewModel.timed(List.of(BOX), List.of(CensorViewModel.Span.WHOLE),
+                List.of(List.of(new VideoCensorRegion.Keyframe(0L, BOX),
+                        new VideoCensorRegion.Keyframe(9L, OTHER)))).get(0).moves());
+    }
+
+    @Test
+    public void keyframes_canBeSteppedThroughAndDeleted() throws Exception {
+        openFakeVideo();
+        vm.addRegion(BOX);
+        set(vm, "playheadUs", 1_000_000L);
+        vm.setMoving(0, true);
+        set(vm, "playheadUs", 3_000_000L);
+        vm.replaceRegion(0, OTHER);
+        set(vm, "playheadUs", 2_000_000L);
+        assertEquals(1_000_000L, vm.adjacentKeyframe(0, false));
+        assertEquals(3_000_000L, vm.adjacentKeyframe(0, true));
+        set(vm, "playheadUs", 3_000_000L);
+        assertEquals(-1L, vm.adjacentKeyframe(0, true));
+
+        vm.removeKeyframeAtPlayhead(0);
+        assertEquals(List.of(1_000_000L), vm.keyframeTimes(0));
+        assertEquals(BOX.withEffect(CensorEffects.Effect.BLACK), vm.regions().get(0));
+        vm.undo();
+        assertEquals(List.of(1_000_000L, 3_000_000L), vm.keyframeTimes(0));
+        vm.redo();
+        // Nothing to delete off a keyframe.
+        set(vm, "playheadUs", 2_000_000L);
+        vm.removeKeyframeAtPlayhead(0);
+        assertEquals(1, vm.keyframeTimes(0).size());
+        // The last one goes: the area stays put where it was.
+        set(vm, "playheadUs", 1_000_000L);
+        vm.removeKeyframeAtPlayhead(0);
+        assertFalse(vm.isMoving(0));
+        assertEquals(BOX.withEffect(CensorEffects.Effect.BLACK), vm.regions().get(0));
+    }
+
+    @Test
+    public void stoppingAnArea_keepsItWhereItIsAtThePlayhead() throws Exception {
+        openFakeVideo();
+        vm.addRegion(BOX);
+        set(vm, "playheadUs", 1_000_000L);
+        vm.setMoving(0, true);
+        set(vm, "playheadUs", 3_000_000L);
+        vm.replaceRegion(0, OTHER);
+        set(vm, "playheadUs", 2_000_000L);
+        vm.setMoving(0, false);
+        assertFalse(vm.isMoving(0));
+        assertTrue(vm.keyframeTimes(0).isEmpty());
+        assertArrayEquals(new float[] {0.35f, 0.35f, 0.7f, 0.7f}, vm.regions().get(0).points(), 1e-5f);
+        vm.undo();
+        assertTrue(vm.isMoving(0));
+        // The same state again, or no such area, changes nothing.
+        vm.setMoving(0, true);
+        vm.setMoving(5, true);
+        assertEquals(2, vm.keyframeTimes(0).size());
+        assertFalse(vm.isMoving(5));
+    }
+
+    @Test
+    public void changedKeyframes_areUnsaved() throws Exception {
+        openFakeVideo();
+        vm.addRegion(BOX);
+        set(vm, "savedRegions", vm.regions());
+        set(vm, "savedTimes", List.of(CensorViewModel.Span.WHOLE));
+        set(vm, "savedMotions", List.of(List.of()));
+        set(vm, "savedEffect", vm.getEffect().getValue());
+        assertFalse(vm.hasUnsavedEdits());
+        vm.setMoving(0, true);
+        assertTrue(vm.hasUnsavedEdits());
+    }
+
+    @Test
+    public void aPhotoCannotMove() {
+        vm.requestOpen(Uri.parse("content://media/external/images/media/1"));
+        vm.addRegion(BOX);
+        vm.setMoving(0, true);
+        assertFalse(vm.isMoving(0));
+        assertFalse(vm.hasKeyframeAtPlayhead(0));
+        assertEquals(-1L, vm.adjacentKeyframe(0, true));
     }
 
     // ---- opening, scrubbing and saving a real file ----------------------------------------------

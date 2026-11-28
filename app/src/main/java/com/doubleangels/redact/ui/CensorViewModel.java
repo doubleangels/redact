@@ -121,9 +121,19 @@ public class CensorViewModel extends AndroidViewModel {
         }
     }
 
-    /** One version of the edits: the regions, their times and the crop, as undo and redo restore them. */
+    /**
+     * Where each region of a video is at its keyframes, in the same order as {@link #regions};
+     * empty for one that stays put. A region with keyframes shows and is edited where it is at
+     * the playhead, and editing it sets the keyframe there.
+     */
+    private final List<List<VideoCensorRegion.Keyframe>> motions = new ArrayList<>();
+
+    /**
+     * One version of the edits: the regions, their times and keyframes, and the crop, as undo and
+     * redo restore them.
+     */
     private record Edit(@NonNull List<CensorRegion> regions, @NonNull List<Span> times,
-                        @Nullable CensorRegion crop) {
+                        @NonNull List<List<VideoCensorRegion.Keyframe>> motions, @Nullable CensorRegion crop) {
     }
 
     /** Whether the open file is a video, edited one frame at a time. */
@@ -174,6 +184,8 @@ public class CensorViewModel extends AndroidViewModel {
     private volatile List<CensorRegion> savedRegions;
     @Nullable
     private volatile List<Span> savedTimes;
+    @Nullable
+    private volatile List<List<VideoCensorRegion.Keyframe>> savedMotions;
     @Nullable
     private volatile CensorEffects.Effect savedEffect;
     /** The crop the last saved copy was made with. */
@@ -513,6 +525,7 @@ public class CensorViewModel extends AndroidViewModel {
     private void reset() {
         regions.clear();
         times.clear();
+        motions.clear();
         video = false;
         sourceIsVideo = false;
         durationUs = 0L;
@@ -532,6 +545,7 @@ public class CensorViewModel extends AndroidViewModel {
         lastSaveFailed = false;
         savedRegions = null;
         savedTimes = null;
+        savedMotions = null;
         savedEffect = null;
         savedCrop = null;
         preview.setValue(null);
@@ -554,6 +568,7 @@ public class CensorViewModel extends AndroidViewModel {
         // A new area covers the whole video until its time range is narrowed: covering too much
         // is the safe mistake.
         times.add(Span.WHOLE);
+        motions.add(List.of());
         lastSaveFailed = false;
         bumpHistory();
         renderAdded(region);
@@ -567,14 +582,152 @@ public class CensorViewModel extends AndroidViewModel {
         if (region.effect() == null && index >= 0 && index < regions.size()) {
             region = region.withEffect(regions.get(index).effect());
         }
-        if (index < 0 || index >= regions.size() || region.isEmpty() || region.equals(regions.get(index))) {
+        if (index < 0 || index >= regions.size() || region.isEmpty() || region.equals(regionAt(index))) {
             // Clears the drawn outline, which waits for a new preview.
             preview.setValue(preview.getValue());
             return;
         }
         remember();
-        regions.set(index, region);
+        if (isMoving(index)) {
+            // A moving area is placed at the playhead: the keyframe there is set, or added.
+            setKeyframe(index, region);
+        } else {
+            regions.set(index, region);
+        }
         historyChanged();
+    }
+
+    /** Whether the region at {@code index} moves: whether it has keyframes. */
+    public boolean isMoving(int index) {
+        return index >= 0 && index < motions.size() && !motions.get(index).isEmpty();
+    }
+
+    /** The times of the region at {@code index}'s keyframes, in order; empty when it stays put. */
+    @NonNull
+    public List<Long> keyframeTimes(int index) {
+        List<Long> out = new ArrayList<>();
+        if (isMoving(index)) {
+            for (VideoCensorRegion.Keyframe keyframe : motions.get(index)) {
+                out.add(keyframe.timeUs());
+            }
+        }
+        return out;
+    }
+
+    /** Whether the region at {@code index} has a keyframe at the playhead. */
+    public boolean hasKeyframeAtPlayhead(int index) {
+        return keyframeAtPlayhead(index) != null;
+    }
+
+    /** The region at {@code index}'s keyframe at the playhead, give or take half a frame, or null. */
+    @Nullable
+    private VideoCensorRegion.Keyframe keyframeAtPlayhead(int index) {
+        if (!isMoving(index)) {
+            return null;
+        }
+        for (VideoCensorRegion.Keyframe keyframe : motions.get(index)) {
+            if (Math.abs(keyframe.timeUs() - playheadUs) <= keyframeTolerance()) {
+                return keyframe;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Makes the region at {@code index} move, or stay put again, as an edit that can be undone.
+     * It starts with one keyframe where it is at the playhead; moving it at another time adds the
+     * next. Staying put again keeps it where it is at the playhead.
+     */
+    public void setMoving(int index, boolean moving) {
+        if (!video || index < 0 || index >= regions.size() || moving == isMoving(index)) {
+            bumpHistory();
+            return;
+        }
+        remember();
+        CensorRegion here = regionAt(index);
+        regions.set(index, here);
+        motions.set(index, moving ? List.of(new VideoCensorRegion.Keyframe(playheadUs, here)) : List.of());
+        historyChanged();
+    }
+
+    /** Removes the region at {@code index}'s keyframe at the playhead, as an edit that can be undone. */
+    public void removeKeyframeAtPlayhead(int index) {
+        VideoCensorRegion.Keyframe here = keyframeAtPlayhead(index);
+        if (here == null) {
+            return;
+        }
+        List<VideoCensorRegion.Keyframe> kept = new ArrayList<>(motions.get(index));
+        kept.removeIf(keyframe -> keyframe.timeUs() == here.timeUs());
+        if (kept.isEmpty()) {
+            // The last one: the area stays put where it was.
+            kept = List.of();
+        }
+        remember();
+        motions.set(index, List.copyOf(kept));
+        if (!kept.isEmpty()) {
+            regions.set(index, kept.get(0).area().withEffect(regions.get(index).effect()));
+        }
+        historyChanged();
+    }
+
+    /**
+     * The keyframe of the region at {@code index} after the playhead ({@code forward}) or before
+     * it, or -1 when there is none.
+     */
+    public long adjacentKeyframe(int index, boolean forward) {
+        long tolerance = keyframeTolerance();
+        long best = -1L;
+        for (long time : keyframeTimes(index)) {
+            if (forward ? time > playheadUs + tolerance && (best < 0 || time < best)
+                    : time < playheadUs - tolerance && time > best) {
+                best = time;
+            }
+        }
+        return best;
+    }
+
+    /** Sets or adds the keyframe at the playhead of the moving region at {@code index}. */
+    private void setKeyframe(int index, @NonNull CensorRegion region) {
+        long tolerance = keyframeTolerance();
+        List<VideoCensorRegion.Keyframe> next = new ArrayList<>();
+        long at = playheadUs;
+        for (VideoCensorRegion.Keyframe keyframe : motions.get(index)) {
+            if (Math.abs(keyframe.timeUs() - playheadUs) <= tolerance) {
+                // Moved again on its own frame: that keyframe changes, keeping its time.
+                at = keyframe.timeUs();
+            } else {
+                next.add(keyframe);
+            }
+        }
+        next.add(new VideoCensorRegion.Keyframe(at, region));
+        VideoCensorRegion moved = VideoCensorRegion.of(regions.get(index), 0L, VideoCensorRegion.END_OF_VIDEO)
+                .withKeyframes(next);
+        motions.set(index, moved.keyframes().isEmpty() ? List.of(new VideoCensorRegion.Keyframe(at, region))
+                : moved.keyframes());
+        regions.set(index, moved.area().withEffect(regions.get(index).effect()));
+    }
+
+    /** How close to the playhead a keyframe counts as on it: half a frame. */
+    private long keyframeTolerance() {
+        return Math.max(1_000L, frameIntervalUs / 2);
+    }
+
+    /** The region at {@code index} with its times and keyframes, as the exporter takes it. */
+    @NonNull
+    private VideoCensorRegion timed(int index) {
+        Span span = index < times.size() ? times.get(index) : Span.WHOLE;
+        List<VideoCensorRegion.Keyframe> motion = index < motions.size() ? motions.get(index) : List.of();
+        return VideoCensorRegion.of(regions.get(index), span.startUs(), span.endUs()).withKeyframes(motion);
+    }
+
+    /** Where the region at {@code index} is at the playhead, with its own effect. */
+    @NonNull
+    private CensorRegion regionAt(int index) {
+        CensorRegion region = regions.get(index);
+        if (!video || !isMoving(index)) {
+            return region;
+        }
+        return timed(index).areaAt(playheadUs).withEffect(region.effect());
     }
 
     /** Removes the region at {@code index}, as an edit that can be undone. */
@@ -585,6 +738,7 @@ public class CensorViewModel extends AndroidViewModel {
         remember();
         regions.remove(index);
         times.remove(index);
+        motions.remove(index);
         historyChanged();
     }
 
@@ -654,16 +808,19 @@ public class CensorViewModel extends AndroidViewModel {
 
     @NonNull
     private Edit currentEdit() {
-        return new Edit(new ArrayList<>(regions), new ArrayList<>(times), crop);
+        return new Edit(new ArrayList<>(regions), new ArrayList<>(times), new ArrayList<>(motions), crop);
     }
 
     /** Puts back an earlier or undone version, covering the preview again only if the regions changed. */
     private void restore(@NonNull Edit edit) {
-        boolean regionsChanged = !edit.regions().equals(regions) || !edit.times().equals(times);
+        boolean regionsChanged = !edit.regions().equals(regions) || !edit.times().equals(times)
+                || !edit.motions().equals(motions);
         regions.clear();
         regions.addAll(edit.regions());
         times.clear();
         times.addAll(edit.times());
+        motions.clear();
+        motions.addAll(edit.motions());
         crop = edit.crop();
         if (regionsChanged) {
             historyChanged();
@@ -756,14 +913,19 @@ public class CensorViewModel extends AndroidViewModel {
         }
         List<CensorRegion> saved = savedRegions;
         return saved == null || !saved.equals(regions) || !Objects.equals(savedCrop, crop)
-                || (video && !times.equals(savedTimes))
+                || (video && (!times.equals(savedTimes) || !motions.equals(savedMotions)))
                 // The current effect only shows on areas without their own.
                 || (anyTakesPhotoEffect() && savedEffect != effect.getValue());
     }
 
+    /** The regions as they show: for a video, a moving one where it is at the playhead. */
     @NonNull
     public List<CensorRegion> regions() {
-        return new ArrayList<>(regions);
+        List<CensorRegion> shown = new ArrayList<>(regions.size());
+        for (int i = 0; i < regions.size(); i++) {
+            shown.add(regionAt(i));
+        }
+        return shown;
     }
 
     public void save() {
@@ -773,6 +935,7 @@ public class CensorViewModel extends AndroidViewModel {
         }
         List<CensorRegion> snapshot = new ArrayList<>(regions);
         List<Span> timesSnapshot = new ArrayList<>(times);
+        List<List<VideoCensorRegion.Keyframe>> motionsSnapshot = new ArrayList<>(motions);
         boolean isVideo = video;
         CensorRegion cropSnapshot = crop;
         CensorEffects.Effect chosen = effectOrDefault();
@@ -787,7 +950,7 @@ public class CensorViewModel extends AndroidViewModel {
             try {
                 CensorExporter.Result result = isVideo
                         ? CensorExporter.Result.ofVideo(VideoCensorExporter.export(getApplication(), uri, name,
-                                timed(snapshot, timesSnapshot), cropSnapshot, chosen,
+                                timed(snapshot, timesSnapshot, motionsSnapshot), cropSnapshot, chosen,
                                 saveProgress::postValue, transcodeOwner, null))
                         : CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
                 AppMetrics.item(AppMetrics.CENSOR, isVideo, AppMetrics.SUCCESS,
@@ -805,6 +968,7 @@ public class CensorViewModel extends AndroidViewModel {
                 lastSaveFailed = false;
                 savedRegions = snapshot;
                 savedTimes = timesSnapshot;
+                savedMotions = motionsSnapshot;
                 savedEffect = chosen;
                 savedCrop = cropSnapshot;
                 // Counted here, so a save that finishes with the app in the background still counts.
@@ -833,10 +997,18 @@ public class CensorViewModel extends AndroidViewModel {
     /** The regions with their times, as the video exporter takes them. */
     @NonNull
     static List<VideoCensorRegion> timed(@NonNull List<CensorRegion> regions, @NonNull List<Span> times) {
+        return timed(regions, times, List.of());
+    }
+
+    /** The regions with their times and keyframes, as the video exporter takes them. */
+    @NonNull
+    static List<VideoCensorRegion> timed(@NonNull List<CensorRegion> regions, @NonNull List<Span> times,
+                                         @NonNull List<List<VideoCensorRegion.Keyframe>> motions) {
         List<VideoCensorRegion> timed = new ArrayList<>(regions.size());
         for (int i = 0; i < regions.size(); i++) {
             Span span = i < times.size() ? times.get(i) : Span.WHOLE;
-            timed.add(VideoCensorRegion.of(regions.get(i), span.startUs(), span.endUs()));
+            List<VideoCensorRegion.Keyframe> motion = i < motions.size() ? motions.get(i) : List.of();
+            timed.add(VideoCensorRegion.of(regions.get(i), span.startUs(), span.endUs()).withKeyframes(motion));
         }
         return timed;
     }
@@ -925,10 +1097,8 @@ public class CensorViewModel extends AndroidViewModel {
         long margin = VideoCensorExporter.frameMarginUs(frameIntervalUs);
         List<CensorRegion> visible = new ArrayList<>();
         for (int i = 0; i < regions.size(); i++) {
-            Span span = i < times.size() ? times.get(i) : Span.WHOLE;
-            if (VideoCensorRegion.of(regions.get(i), span.startUs(), span.endUs())
-                    .coversFrame(playheadUs, margin)) {
-                visible.add(regions.get(i));
+            if (timed(i).coversFrame(playheadUs, margin)) {
+                visible.add(regionAt(i));
             }
         }
         return visible;

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A video's timeline, beside the photo card: the scrubber that picks the frame shown (the photo
      card edits that frame) with its time, and, while a rectangle is selected, when that area
-     covers the video, with Whole Video to cover all of it. Gone for a photo. -->
+     covers the video, with Whole Video to cover all of it, and whether it moves: a moving area
+     is placed by keyframes, set by moving it at different times, which the arrows step between.
+     Gone for a photo. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -74,5 +76,52 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/censor_whole_video" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/censorAreaMotion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/censorAreaMovesSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:saveEnabled="false"
+            android:text="@string/censor_area_moves" />
+
+        <TextView
+            android:id="@+id/censorKeyframeCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_weight="1"
+            android:textAlignment="viewEnd"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorPreviousKeyframe"
+            style="@style/Widget.Redact.Censor.IconButton"
+            android:contentDescription="@string/censor_previous_keyframe"
+            android:tooltipText="@string/censor_previous_keyframe"
+            app:icon="@drawable/ic_keyframe_previous" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorDeleteKeyframe"
+            style="@style/Widget.Redact.Censor.IconButton"
+            android:contentDescription="@string/censor_delete_keyframe"
+            android:tooltipText="@string/censor_delete_keyframe"
+            app:icon="@drawable/ic_delete" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorNextKeyframe"
+            style="@style/Widget.Redact.Censor.IconButton"
+            android:contentDescription="@string/censor_next_keyframe"
+            android:tooltipText="@string/censor_next_keyframe"
+            app:icon="@drawable/ic_keyframe_next" />
     </LinearLayout>
 </LinearLayout>

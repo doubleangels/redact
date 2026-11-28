@@ -454,6 +454,11 @@
     <string name="censor_video_position">影片中的位置</string>
     <string name="censor_area_times">區域 %1$d 的時間範圍</string>
     <string name="censor_whole_video">整部影片</string>
+    <string name="censor_area_moves">會移動</string>
+    <string name="censor_previous_keyframe">上一個關鍵影格</string>
+    <string name="censor_next_keyframe">下一個關鍵影格</string>
+    <string name="censor_delete_keyframe">刪除關鍵影格</string>
+    <string name="censor_keyframe_count">關鍵影格：%1$d</string>
     <string name="censor_error_open_video">無法開啟此影片。</string>
     <string name="censor_error_unsupported_video">此裝置無法遮蔽這類影片。</string>
     <string name="censor_error_save">無法儲存遮蔽副本。</string>

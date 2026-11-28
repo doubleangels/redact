@@ -1,7 +1,6 @@
 package com.doubleangels.redact.media;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -180,17 +179,6 @@ public final class VideoCensorRegion {
             y = Math.max(y, Math.max(Math.abs(b[1] - a[1]), Math.abs(b[3] - a[3])) / dt);
         }
         return new double[] {x, y};
-    }
-
-    /** The keyframe at {@code timeUs}, give or take {@code toleranceUs}, or null. */
-    @Nullable
-    public Keyframe keyframeNear(long timeUs, long toleranceUs) {
-        for (Keyframe keyframe : keyframes) {
-            if (Math.abs(keyframe.timeUs() - timeUs) <= toleranceUs) {
-                return keyframe;
-            }
-        }
-        return null;
     }
 
     /**

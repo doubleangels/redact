@@ -827,6 +827,26 @@ public class CensorFragmentTest {
             assertEquals(activity.getString(R.string.censor_area_times, 1),
                     root.findViewById(R.id.censorAreaTimesSlider).getContentDescription().toString());
 
+            // Moves: the switch makes the area move, starting with a keyframe at the playhead.
+            View motion = root.findViewById(R.id.censorAreaMotion);
+            assertEquals(View.VISIBLE, motion.getVisibility());
+            com.google.android.material.materialswitch.MaterialSwitch moves =
+                    root.findViewById(R.id.censorAreaMovesSwitch);
+            assertFalse(moves.isChecked());
+            assertEquals(View.GONE, root.findViewById(R.id.censorDeleteKeyframe).getVisibility());
+            moves.performClick();
+            idle();
+            assertTrue(vm.isMoving(0));
+            assertEquals(activity.getString(R.string.censor_keyframe_count, 1),
+                    ((TextView) root.findViewById(R.id.censorKeyframeCount)).getText().toString());
+            assertTrue(root.findViewById(R.id.censorDeleteKeyframe).isEnabled());
+            assertFalse(root.findViewById(R.id.censorNextKeyframe).isEnabled());
+            assertFalse(root.findViewById(R.id.censorPreviousKeyframe).isEnabled());
+            root.findViewById(R.id.censorDeleteKeyframe).performClick();
+            idle();
+            assertFalse("deleting its only keyframe makes it stay put", vm.isMoving(0));
+            assertFalse(moves.isChecked());
+
             vm.setRegionTimes(0, 1_000_000L, 2_000_000L);
             idle();
             assertEquals("00:01–00:02",

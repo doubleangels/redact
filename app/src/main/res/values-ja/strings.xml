@@ -455,6 +455,11 @@
     <string name="censor_video_position">動画内の位置</string>
     <string name="censor_area_times">範囲 %1$d の時間</string>
     <string name="censor_whole_video">動画全体</string>
+    <string name="censor_area_moves">移動する</string>
+    <string name="censor_previous_keyframe">前のキーフレーム</string>
+    <string name="censor_next_keyframe">次のキーフレーム</string>
+    <string name="censor_delete_keyframe">キーフレームを削除</string>
+    <string name="censor_keyframe_count">キーフレーム: %1$d</string>
     <string name="censor_error_open_video">この動画を開けませんでした。</string>
     <string name="censor_error_unsupported_video">この種類の動画はこのデバイスでは検閲できません。</string>
     <string name="censor_error_save">一部を隠したコピーを保存できませんでした。</string>
