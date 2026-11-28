@@ -16,6 +16,8 @@ import com.drew.metadata.exif.ExifInteropDirectory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
 import com.drew.metadata.exif.GpsDirectory;
+import com.drew.metadata.file.FileTypeDirectory;
+import com.drew.metadata.icc.IccDirectory;
 import com.drew.metadata.xmp.XmpDirectory;
 
 import java.io.BufferedInputStream;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -187,6 +190,23 @@ final class IndependentScan {
                     + "software|encoder|encoded|handler name|writer|creator|user|text|url|uuid|"
                     + "unique|name|album|genre|composer|publisher|rating).*");
 
+    // ---- colour profiles ----------------------------------------------------------------------
+
+    /**
+     * ICC header fields a clean always zeroes ({@link ImageContainerMetadata#clearIccHeader}): the
+     * CMM, creation date, device maker, model and attributes, the creator and the profile ID. A
+     * header field is keyed by its byte offset.
+     */
+    private static final Set<Integer> ICC_HEADER_CLEARED = Set.of(4, 24, 48, 52, 56, 80, 84);
+    private static final int ICC_HEADER_DATE = 24;
+    private static final int ICC_DESC = signature("desc");
+    private static final int ICC_CPRT = signature("cprt");
+    /** Profile tags that name a display or the day and target it was calibrated against. */
+    private static final Set<Integer> ICC_PERSONAL = Set.of(
+            signature("dmnd"), signature("dmdd"), signature("calt"), signature("targ"), signature("pseq"));
+    /** A localized ICC text as the reader shows it: {@code 1 enUS(sRGB built-in)}. */
+    private static final Pattern ICC_LOCALIZED = Pattern.compile("^\\d+ [A-Za-z]{4}\\((.*)\\)$");
+
     /** Directories whose whole content is text, history or vendor data, whatever its tags. */
     private static final Pattern IDENTIFYING_DIRECTORY = Pattern.compile(
             "(?i).*(makernote|iptc|photoshop|comment|ducky|printim|icc profile description|"
@@ -219,6 +239,13 @@ final class IndependentScan {
 
     private static void sort(Directory directory, List<Finding> out) {
         String dirName = directory.getName();
+        if (directory instanceof FileTypeDirectory) {
+            return; // the reader's own guess at the format and extension, not read from the file
+        }
+        if (directory instanceof IccDirectory) {
+            sortIcc(directory, out);
+            return;
+        }
         if (directory instanceof XmpDirectory) {
             Map<String, String> properties = ((XmpDirectory) directory).getXmpProperties();
             for (Map.Entry<String, String> p : properties.entrySet()) {
@@ -258,6 +285,71 @@ final class IndependentScan {
             }
             out.add(new Finding(kind, dirName, name, value));
         }
+    }
+
+    /**
+     * A colour profile is kept because dropping it changes the colours. Its colour numbers are
+     * structural. The header fields a clean zeroes, the display and calibration tags and any tag the
+     * reader can't name are not. The description and copyright pass only for a well-known profile
+     * ({@link IccProfiles#isWellKnown}) or when both carry the neutral name Strict and shares give
+     * any other profile.
+     */
+    private static void sortIcc(Directory directory, List<Finding> out) {
+        String description = iccText(directory.getDescription(ICC_DESC));
+        String copyright = iccText(directory.getDescription(ICC_CPRT));
+        boolean impersonalName = IccProfiles.isWellKnown(description)
+                || IccProfiles.NEUTRAL_NAME.equals(description) && IccProfiles.NEUTRAL_NAME.equals(copyright);
+        for (Tag tag : directory.getTags()) {
+            int type = tag.getTagType();
+            Kind kind;
+            if (type < 128) {
+                boolean set = ICC_HEADER_CLEARED.contains(type) && !isBlank(directory.getObject(type));
+                kind = !set ? Kind.STRUCTURAL : type == ICC_HEADER_DATE ? Kind.DATE : Kind.IDENTIFYING;
+            } else if (type == ICC_DESC || type == ICC_CPRT) {
+                kind = impersonalName ? Kind.STRUCTURAL : Kind.IDENTIFYING;
+            } else if (ICC_PERSONAL.contains(type) || !directory.hasTagName(type)) {
+                kind = Kind.IDENTIFYING;
+            } else {
+                kind = Kind.STRUCTURAL;
+            }
+            out.add(new Finding(kind, directory.getName(), tag.getTagName(), tag.getDescription()));
+        }
+    }
+
+    @Nullable
+    private static String iccText(@Nullable String shown) {
+        if (shown == null) {
+            return null;
+        }
+        Matcher m = ICC_LOCALIZED.matcher(shown.trim());
+        return m.matches() ? m.group(1) : shown.trim();
+    }
+
+    private static boolean isBlank(@Nullable Object raw) {
+        if (raw == null) {
+            return true;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).longValue() == 0;
+        }
+        if (raw instanceof byte[]) {
+            for (byte b : (byte[]) raw) {
+                if (b != 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        String text = raw.toString().replace("\0", "").trim();
+        return text.isEmpty() || text.equals("0");
+    }
+
+    private static int signature(String fourChars) {
+        int v = 0;
+        for (int i = 0; i < 4; i++) {
+            v = v << 8 | fourChars.charAt(i) & 0xFF;
+        }
+        return v;
     }
 
     private static Kind exifKind(Directory directory, int type) {
