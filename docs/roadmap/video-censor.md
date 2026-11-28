@@ -43,8 +43,8 @@ Following a moving face is deliberately left for a later phase. Fixed areas cove
 **Non-goals for the first release**
 
 - Areas that follow a moving object. See [Phase 6](#phase-6-moving-areas-later).
-- The brush tool on video. Rectangles only at first.
-- Muting or bleeping part of the audio. Remove Audio still applies to the whole video.
+- The brush tool on video. Rectangles only at first. Planned in the [Video Censor Additions roadmap](video-censor-additions.md).
+- Muting or bleeping part of the audio. Remove Audio still applies to the whole video. Planned in the [Video Censor Additions roadmap](video-censor-additions.md).
 - Live playback with effects. The editor shows still frames from a timeline instead.
 - Automatic face or plate detection.
 

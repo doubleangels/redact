@@ -12,6 +12,7 @@ Plans for features that aren't built yet. Each one lists its phases, what's done
 | [More Formats](more-formats.md) | Keep DNG raw photos as DNG, open TIFF, and test more video containers | Medium to large | Planned |
 | [Privacy Additions](privacy-additions.md) | Warnings about faces and text in a photo, suggested censor areas, screenshot cleanup, permanent delete and a camera fingerprint study | Large | Planned |
 | [Private Notifications](private-notifications.md) | Keep counts and locations removed off the lock screen and off paired watches | Small | Planned |
+| [Video Censor Additions](video-censor-additions.md) | Mute or bleep part of a video's sound, trim or cut sections, and the brush on video | Large | Planned |
 
 Privacy Additions and Video Tracking share the LiteRT runtime and YuNet face detector spike. Whichever starts first does it.
 
