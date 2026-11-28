@@ -4,11 +4,14 @@
      and Black for the areas covered next (and for the selected rectangle), then Add Area, which
      shows only while an accessibility service is on. The tools scroll sideways when they do not
      fit, as with Add Area on a small phone; the handle stays put. The layer has almost no side
-     padding, so on a phone like a Pixel 10 Pro the handle and every tool fit without scrolling. The layer it floats in covers the photo but catches no
-     touches, so drawing works wherever the row is not. It sits above the photo card's elevation, so
-     it is drawn, and touched, first. -->
+     padding, so on a phone like a Pixel 10 Pro the handle and every tool fit without scrolling.
+     The card is placed from the left in every language, as FloatingToolbar offsets it from there;
+     its row still mirrors for right-to-left languages. The layer it floats in covers the photo but
+     catches no touches, so drawing works wherever the row is not. It sits above the photo card's
+     elevation, so it is drawn, and touched, first. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/censorToolbar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -22,7 +25,8 @@
         android:id="@+id/censorToolbarCard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
+        android:layout_gravity="top|left"
+        tools:ignore="RtlHardcoded"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
         app:cardCornerRadius="24dp"
         app:cardElevation="4dp"

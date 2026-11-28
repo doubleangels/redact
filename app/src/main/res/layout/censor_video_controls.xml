@@ -42,40 +42,48 @@
             app:labelBehavior="gone" />
     </LinearLayout>
 
+    <!-- The selected area's range: its times and Whole Video on one line, and the slider on its
+         own line below at the full width, so it stays usable with a large font. -->
     <LinearLayout
         android:id="@+id/censorAreaTimes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <TextView
-            android:id="@+id/censorAreaTimesLabel"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:importantForAccessibility="no"
-            android:minWidth="88dp"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="0:04–0:31" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/censorAreaTimesLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:importantForAccessibility="no"
+                android:textAlignment="viewStart"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="0:04–0:31" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/censorWholeVideoButton"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/censor_whole_video" />
+        </LinearLayout>
 
         <com.google.android.material.slider.RangeSlider
             android:id="@+id/censorAreaTimesSlider"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:saveEnabled="false"
             android:valueFrom="0"
             android:valueTo="1"
             app:labelBehavior="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/censorWholeVideoButton"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/censor_whole_video" />
     </LinearLayout>
 
     <LinearLayout
