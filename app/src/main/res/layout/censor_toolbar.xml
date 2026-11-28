@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The editor's tools, in one row that floats over the photo under a slim handle that drags it
-     anywhere (FloatingToolbar): Rectangle, Brush, Move and Crop, then Pixelate, Blur and Black for
-     the areas covered next (and for the selected rectangle), then Add Area, which shows only while
-     an accessibility service is on. The handle spans the row, so it adds no width. The row scrolls sideways when it does not fit, as with a large
-     font or Add Area on a small phone. The layer it floats in covers the photo but catches no
+<!-- The editor's tools, in one row that floats over the photo: a square handle on the left that
+     drags it anywhere (FloatingToolbar), then Rectangle, Brush, Move and Crop, then Pixelate, Blur
+     and Black for the areas covered next (and for the selected rectangle), then Add Area, which
+     shows only while an accessibility service is on. The tools scroll sideways when they do not
+     fit, as with Add Area on a small phone; the handle stays put. The layer has almost no side
+     padding, so on a phone like a Pixel 10 Pro the handle and every tool fit without scrolling. The layer it floats in covers the photo but catches no
      touches, so drawing works wherever the row is not. It sits above the photo card's elevation, so
      it is drawn, and touched, first. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -13,7 +14,8 @@
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:elevation="2dp"
-    android:padding="@dimen/spacing_small"
+    android:paddingHorizontal="2dp"
+    android:paddingVertical="@dimen/spacing_small"
     android:visibility="gone">
 
     <com.google.android.material.card.MaterialCardView
@@ -29,24 +31,32 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- Drag to move the toolbar; double tap to put it back at the bottom. -->
+            <!-- Drag to move the toolbar; double tap to put it back at the bottom. The whole height
+                 of the row can be grabbed; the square shows where. It sits in from the card's
+                 rounded end, so the curve never clips it. -->
             <FrameLayout
                 android:id="@+id/censorToolbarGrip"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/censor_toolbar_grip_height"
-                android:background="?attr/selectableItemBackground"
+                android:layout_width="@dimen/censor_toolbar_grip_width"
+                android:layout_height="@dimen/touch_target_min"
                 android:contentDescription="@string/censor_toolbar_move"
                 android:focusable="true"
+                android:paddingStart="8dp"
+                android:paddingEnd="2dp"
                 android:tooltipText="@string/censor_toolbar_move">
 
-                <View
-                    android:layout_width="32dp"
-                    android:layout_height="4dp"
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_drag_handle"
-                    android:importantForAccessibility="no" />
+                    android:background="@drawable/bg_toolbar_grip"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:padding="3dp"
+                    android:src="@drawable/ic_drag_indicator"
+                    app:tint="?attr/colorOnSurfaceVariant" />
             </FrameLayout>
 
             <HorizontalScrollView
