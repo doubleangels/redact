@@ -244,6 +244,7 @@ public class CensorVerifierTest {
         private final long intervalUs;
         final List<Long> asked = new ArrayList<>();
         boolean closed;
+        boolean noFrameTimes;
 
         FakeFrames(Bitmap picture, long durationUs, long intervalUs) {
             this.picture = picture;
@@ -259,6 +260,19 @@ public class CensorVerifierTest {
         @Override
         public long frameIntervalUs() {
             return intervalUs;
+        }
+
+        /** Frames every {@code intervalUs}, unless told there are none. */
+        @Override
+        public long[] frameTimesUs() {
+            if (noFrameTimes || intervalUs <= 0) {
+                return new long[0];
+            }
+            long[] times = new long[(int) (durationUs / intervalUs)];
+            for (int i = 0; i < times.length; i++) {
+                times[i] = i * intervalUs;
+            }
+            return times;
         }
 
         @Override

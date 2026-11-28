@@ -83,7 +83,7 @@ public final class VideoCensorEffect implements GlEffect {
     @Override
     public boolean isNoOp(int inputWidth, int inputHeight) {
         for (VideoCensorRegion region : regions) {
-            if (!region.area().isEmpty()) {
+            if (region.moves() || !region.area().isEmpty()) {
                 return false;
             }
         }
@@ -96,8 +96,22 @@ public final class VideoCensorEffect implements GlEffect {
         return VideoCensorLayout.layOut(regions, defaultEffect, width, height, random);
     }
 
+    /**
+     * Tracks every area over frames of {@code width} x {@code height}, with fresh noise; a moving
+     * area is padded by how far it travels while a frame shows.
+     */
+    @NonNull
+    List<VideoCensorLayout.Track> tracks(int width, int height) {
+        return VideoCensorLayout.tracks(regions, defaultEffect, width, height, frameDurationUs, random);
+    }
+
     /** Whether {@code area} covers the frame at {@code presentationTimeUs}. */
     boolean covers(@NonNull VideoCensorLayout.Area area, long presentationTimeUs) {
-        return regions.get(area.regionIndex).coversFrame(presentationTimeUs, frameDurationUs);
+        return covers(area.regionIndex, presentationTimeUs);
+    }
+
+    /** Whether the area at {@code regionIndex} covers the frame at {@code presentationTimeUs}. */
+    boolean covers(int regionIndex, long presentationTimeUs) {
+        return regions.get(regionIndex).coversFrame(presentationTimeUs, frameDurationUs);
     }
 }

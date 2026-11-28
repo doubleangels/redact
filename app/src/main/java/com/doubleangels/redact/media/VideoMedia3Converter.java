@@ -821,6 +821,57 @@ public final class VideoMedia3Converter {
     }
 
     /**
+     * The least a censored export is given, at {@link #EDITED_FLOOR_REFERENCE_PIXEL_RATE} pixels a
+     * second (320 x 240 at 30 fps). Covered areas have sharp block edges, and a moving one makes the
+     * encoder redraw what it passes over; at the bitrate of a heavily compressed source the encoder
+     * left specks of the old picture inside a moving Black area, and the coverage check rightly
+     * refused the save. A fine checkerboard behind a moving area, the worst case, came out clean at
+     * this rate on the emulator's software encoder and not at half of it. Other sizes scale as
+     * {@link #matchedVideoBitrate} does, to the power 0.75: about 11 Mbps at 1080p30 and 31 at
+     * 4K30, below what phone cameras record, so only sources squeezed hard are lifted.
+     */
+    @VisibleForTesting
+    static final int EDITED_FLOOR_AT_REFERENCE = 921_600;
+    @VisibleForTesting
+    static final double EDITED_FLOOR_REFERENCE_PIXEL_RATE = 320.0 * 240.0 * 30.0;
+
+    /**
+     * {@code matched} (the source's bitrate carried over, or 0 for Media3's own) raised to the
+     * floor a censored export needs ({@link #EDITED_FLOOR_AT_REFERENCE}), within what the hardware
+     * encoder accepts.
+     */
+    private static int editedVideoBitrate(int matched, @NonNull SourceVideo source, @NonNull String outputMime,
+                                          int outputShortSide, int outputFrameRate) {
+        int floor = editedBitrateFloor(source.width, source.height, source.frameRate, outputShortSide, outputFrameRate);
+        int target = Math.max(matched, floor);
+        MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(outputMime);
+        if (target > 0 && caps != null) {
+            target = caps.getBitrateRange().clamp(target);
+        }
+        return target;
+    }
+
+    /**
+     * The floor for a {@code width} x {@code height} source at {@code frameRate} (30 when unknown),
+     * as exported at {@code outputShortSide} (0 for the source's) and {@code outputFrameRate} (0 for
+     * the source's); 0 when the size is unknown.
+     */
+    @VisibleForTesting
+    static int editedBitrateFloor(int width, int height, int frameRate, int outputShortSide, int outputFrameRate) {
+        if (width <= 0 || height <= 0) {
+            return 0;
+        }
+        int sourceShort = Math.min(width, height);
+        int sourceLong = Math.max(width, height);
+        int outShort = outputShortSide > 0 && outputShortSide < sourceShort ? outputShortSide : sourceShort;
+        int outLong = outShort == sourceShort ? sourceLong : scaledLongSide(sourceLong, sourceShort, outShort);
+        int fps = outputFrameRate > 0 ? outputFrameRate : frameRate > 0 ? frameRate : 30;
+        double pixelRate = (double) outLong * outShort * fps;
+        double floor = EDITED_FLOOR_AT_REFERENCE * Math.pow(pixelRate / EDITED_FLOOR_REFERENCE_PIXEL_RATE, 0.75);
+        return (int) Math.min(Integer.MAX_VALUE, Math.round(floor));
+    }
+
+    /**
      * {@code sourceBitrate} carried over to the output: scaled by the change in pixels per second
      * to the power 0.75, as bitrate grows slower than picture size at the same quality, and by how
      * many bits the output codec needs against the source's ({@link #codecBitrateFactor}).
@@ -1092,7 +1143,10 @@ public final class VideoMedia3Converter {
             throw new IllegalArgumentException("Edits need the video to be re-encoded");
         }
         String audioMimeType = copyVideo ? MimeTypes.AUDIO_OPUS : audioMimeTypeForVideoMime(videoMimeType);
-        int videoBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        int matchedBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        // A censored export gets at least the floor its covered areas need (EDITED_MIN_BITS_PER_PIXEL).
+        int videoBitrate = editEffects.isEmpty() ? matchedBitrate
+                : editedVideoBitrate(matchedBitrate, source, videoMimeType, outputShortSide, outputFrameRate);
         int audioBitrate = targetAudioBitrate(source, audioMimeType);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =

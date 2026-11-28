@@ -26,6 +26,10 @@ import java.util.Random;
  * what encoding changes, and nothing more: detail finer than a block cannot pass, so an area left
  * uncovered, or covered in the wrong place, fails.
  *
+ * <p>A moving area is checked at its keyframes and halfway between each pair as well, where it is
+ * most likely to slip. Its blocks move with it, so it is checked on frames picked by their exact
+ * times, read from the saved video, and placed where the effect put it on that very frame.
+ *
  * <p>The check fails closed: a frame that can't be decoded or lined up, or an area with no block
  * large enough to measure, fails it too.
  */
@@ -56,6 +60,10 @@ public final class CensorVerifier {
 
         /** The average time between frames, in microseconds; 0 when unknown. */
         long frameIntervalUs();
+
+        /** Every frame's presentation time, in order; empty when they can't be read. */
+        @NonNull
+        long[] frameTimesUs();
 
         /** The upright frame nearest {@code timeUs}, or null when there is none. */
         @Nullable
@@ -89,20 +97,27 @@ public final class CensorVerifier {
             @NonNull FrameSource frames, int sourceWidth, int sourceHeight,
             @NonNull List<VideoCensorRegion> regions, @Nullable CensorRegion crop,
             @NonNull CensorEffects.Effect defaultEffect, long frameIntervalUs) throws IOException {
-        // Noise doesn't matter here: only where the blocks are.
-        List<VideoCensorLayout.Area> areas = VideoCensorLayout.layOut(
-                regions, defaultEffect, sourceWidth, sourceHeight, new Random(0));
         long duration = frames.durationUs();
         long interval = frames.frameIntervalUs() > 0 ? frames.frameIntervalUs() : frameIntervalUs;
         if (duration <= 0 || interval <= 0) {
             throw fail("the saved video's length or frame rate can't be read");
         }
         // Later areas are left out wherever the effect may have drawn them, which is a little
-        // longer than their ranges.
-        long margin = VideoCensorExporter.frameMarginUs(interval);
-        for (int i = 0; i < areas.size(); i++) {
-            VideoCensorLayout.Area area = areas.get(i);
-            for (long time : sampleTimes(regions.get(area.regionIndex), duration, interval)) {
+        // longer than their ranges. The effect pads moving areas by the same margin.
+        long margin = VideoCensorExporter.frameMarginUs(frameIntervalUs > 0 ? frameIntervalUs : interval);
+        // Noise doesn't matter here: only where the blocks are.
+        List<VideoCensorLayout.Track> tracks = VideoCensorLayout.tracks(
+                regions, defaultEffect, sourceWidth, sourceHeight, margin, new Random(0));
+        long[] frameTimes = frames.frameTimesUs();
+        for (int i = 0; i < tracks.size(); i++) {
+            VideoCensorLayout.Track track = tracks.get(i);
+            VideoCensorRegion region = regions.get(track.regionIndex);
+            if (track.moves() && frameTimes.length == 0) {
+                throw fail("the saved video's frame times can't be read to place a moving area");
+            }
+            for (long wanted : sampleTimes(region, duration, interval)) {
+                long time = track.moves() ? nearest(frameTimes, wanted) : wanted;
+                VideoCensorLayout.Area area = track.at(time);
                 Bitmap frame = frames.frameAt(time);
                 if (frame == null) {
                     throw fail("a frame of the saved video can't be decoded");
@@ -114,10 +129,11 @@ public final class CensorVerifier {
                     frame.getPixels(pixels, 0, width, 0, 0, width, height);
                     Mapping mapping = Mapping.of(sourceWidth, sourceHeight, crop, width, height);
                     List<float[]> above = new ArrayList<>();
-                    for (int j = i + 1; j < areas.size(); j++) {
-                        VideoCensorLayout.Area later = areas.get(j);
+                    for (int j = i + 1; j < tracks.size(); j++) {
+                        VideoCensorLayout.Track later = tracks.get(j);
                         if (regions.get(later.regionIndex).coversFrame(time - margin, 2 * margin)) {
-                            above.add(mapping.rect(later.drawLeft, later.drawTop, later.drawRight, later.drawBottom));
+                            VideoCensorLayout.Area on = later.at(time);
+                            above.add(mapping.rect(on.drawLeft, on.drawTop, on.drawRight, on.drawBottom));
                         }
                     }
                     if (!isCovered(luma(pixels), width, height, mapping, area, above)) {
@@ -143,6 +159,7 @@ public final class CensorVerifier {
      * The times to check {@code region} at: its start, middle and end, kept where the nearest frame
      * is one the effect covers. A frame is covered while it is on screen in the range, so the end
      * is checked a frame early, where the nearest frame cannot be the first one after the range.
+     * A moving area is also checked at each keyframe and halfway between each pair, within its range.
      */
     @VisibleForTesting
     @NonNull
@@ -153,11 +170,47 @@ public final class CensorVerifier {
             return new long[0];
         }
         long end = Math.max(start, Math.min(region.endUs(), lastFrame + frameIntervalUs) - frameIntervalUs);
-        long middle = start + (end - start) / 2;
-        if (end == start) {
-            return new long[] {start};
+        java.util.TreeSet<Long> times = new java.util.TreeSet<>();
+        times.add(start);
+        times.add(start + (end - start) / 2);
+        times.add(end);
+        List<VideoCensorRegion.Keyframe> keyframes = region.keyframes();
+        for (int k = 0; k < keyframes.size(); k++) {
+            long key = keyframes.get(k).timeUs();
+            if (key >= start && key <= end) {
+                times.add(key);
+            }
+            if (k > 0) {
+                long half = keyframes.get(k - 1).timeUs() + (key - keyframes.get(k - 1).timeUs()) / 2;
+                if (half >= start && half <= end) {
+                    times.add(half);
+                }
+            }
         }
-        return middle == start || middle == end ? new long[] {start, end} : new long[] {start, middle, end};
+        long[] out = new long[times.size()];
+        int n = 0;
+        for (long time : times) {
+            out[n++] = time;
+        }
+        return out;
+    }
+
+    /** The time in {@code sorted} nearest {@code wanted}. */
+    @VisibleForTesting
+    static long nearest(@NonNull long[] sorted, long wanted) {
+        int at = java.util.Arrays.binarySearch(sorted, wanted);
+        if (at >= 0) {
+            return sorted[at];
+        }
+        int after = -at - 1;
+        if (after == 0) {
+            return sorted[0];
+        }
+        if (after == sorted.length) {
+            return sorted[sorted.length - 1];
+        }
+        long before = sorted[after - 1];
+        return wanted - before <= sorted[after] - wanted ? before : sorted[after];
     }
 
     /** Where the source frame's pixels land in a decoded frame, after the crop and any downscale. */
@@ -409,9 +462,12 @@ public final class CensorVerifier {
         private final MediaMetadataRetriever retriever;
         private final long durationUs;
         private final long frameIntervalUs;
+        @NonNull
+        private final long[] frameTimesUs;
 
-        private RetrieverFrames(@NonNull MediaMetadataRetriever retriever) {
+        private RetrieverFrames(@NonNull MediaMetadataRetriever retriever, @NonNull long[] frameTimesUs) {
             this.retriever = retriever;
+            this.frameTimesUs = frameTimesUs;
             long durationMs = parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
             long frames = parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT));
             this.durationUs = durationMs * 1000L;
@@ -427,7 +483,46 @@ public final class CensorVerifier {
                 closeQuietly(retriever);
                 throw new CleanFailedException("Censor check failed: the saved video can't be read", e);
             }
-            return new RetrieverFrames(retriever);
+            return new RetrieverFrames(retriever, readFrameTimes(video));
+        }
+
+        /** Every video frame's presentation time in {@code video}, in order; empty when unreadable. */
+        @NonNull
+        static long[] readFrameTimes(@NonNull File video) {
+            android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+            try {
+                extractor.setDataSource(video.getAbsolutePath());
+                for (int i = 0; i < extractor.getTrackCount(); i++) {
+                    String mime = extractor.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);
+                    if (mime != null && mime.startsWith("video/")) {
+                        extractor.selectTrack(i);
+                        break;
+                    }
+                }
+                List<Long> times = new ArrayList<>();
+                while (extractor.getSampleTime() >= 0) {
+                    times.add(extractor.getSampleTime());
+                    if (!extractor.advance()) {
+                        break;
+                    }
+                }
+                long[] sorted = new long[times.size()];
+                for (int i = 0; i < sorted.length; i++) {
+                    sorted[i] = times.get(i);
+                }
+                java.util.Arrays.sort(sorted);
+                return sorted;
+            } catch (IOException | RuntimeException e) {
+                return new long[0];
+            } finally {
+                extractor.release();
+            }
+        }
+
+        @NonNull
+        @Override
+        public long[] frameTimesUs() {
+            return frameTimesUs.clone();
         }
 
         @Override

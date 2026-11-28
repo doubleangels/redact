@@ -121,6 +121,29 @@ public class CensorOnDeviceTest {
         assertDetailed("below it", frame, CensorRegion.rect(0f, 0.55f, 1f, 0.95f));
     }
 
+    /**
+     * An area sliding across the frame, as keyframes make it, is covered wherever it is at each
+     * moment, on its own moving grid, and the frame is left alone where it has moved away from.
+     */
+    @Test
+    public void aMovingArea_isCoveredWhereverItIs() throws Exception {
+        CensorRegion left = CensorRegion.rect(0.05f, 0.3f, 0.35f, 0.7f);
+        CensorRegion right = CensorRegion.rect(0.65f, 0.3f, 0.95f, 0.7f);
+        VideoCensorRegion sliding = VideoCensorRegion.wholeVideo(left).withKeyframes(List.of(
+                new VideoCensorRegion.Keyframe(200_000L, left),
+                new VideoCensorRegion.Keyframe(1_800_000L, right)));
+        for (CensorEffects.Effect effect : new CensorEffects.Effect[] {
+                CensorEffects.Effect.PIXELATE, CensorEffects.Effect.BLACK}) {
+            File saved = censor("detail.mp4", List.of(sliding), null, effect);
+            assertCovered(effect + " at the first keyframe", frameAt(saved, 200_000L), left);
+            assertDetailed(effect + " where it will go", frameAt(saved, 200_000L), right);
+            assertCovered(effect + " halfway", frameAt(saved, 1_000_000L),
+                    CensorRegion.rect(0.35f, 0.3f, 0.65f, 0.7f));
+            assertCovered(effect + " at the last keyframe", frameAt(saved, 1_800_000L), right);
+            assertDetailed(effect + " where it has left", frameAt(saved, 1_800_000L), left);
+        }
+    }
+
     /** The check in the save itself must catch an effect that drew nothing. */
     @Test
     public void aVideoWhoseAreasWereNotDrawn_failsTheCoverageCheck() throws Exception {

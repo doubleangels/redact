@@ -56,13 +56,15 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
             // left, top, right, bottom of the block grid, in image pixels
             + "uniform vec4 uGrid;\n"
             + "uniform float uBlock;\n"
-            + "uniform vec2 uBlocks;\n"
+            + "uniform vec2 uTextureBlocks;\n"
             + "uniform float uNoise;\n"
             + "uniform float uMaxValue;\n"
             + "void main() {\n"
             + "  vec2 cell = floor(gl_FragCoord.xy);\n"
-            + "  vec2 lo = uGrid.xy + cell * uBlock;\n"
-            + "  vec2 hi = min(lo + uBlock, uGrid.zw);\n"
+            // A moving area's grid can start off the frame: only the part on it is averaged.
+            + "  vec2 start = uGrid.xy + cell * uBlock;\n"
+            + "  vec2 lo = max(start, vec2(0.0));\n"
+            + "  vec2 hi = min(start + uBlock, uGrid.zw);\n"
             + "  vec2 step = (hi - lo) / 8.0;\n"
             + "  vec4 sum = vec4(0.0);\n"
             + "  for (int j = 0; j < 8; j++) {\n"
@@ -72,7 +74,7 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
             + "    }\n"
             + "  }\n"
             + "  vec4 average = sum / 64.0;\n"
-            + "  vec3 offset = texture2D(uNoiseSampler, (cell + 0.5) / uBlocks).rgb * 255.0 - uNoise;\n"
+            + "  vec3 offset = texture2D(uNoiseSampler, (cell + 0.5) / uTextureBlocks).rgb * 255.0 - uNoise;\n"
             + "  gl_FragColor = vec4(clamp(average.rgb + offset / 255.0, 0.0, uMaxValue), average.a);\n"
             + "}\n";
 
@@ -84,9 +86,10 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
             + "uniform vec2 uGridOrigin;\n"
             + "uniform float uBlock;\n"
             + "uniform vec2 uBlocks;\n"
+            + "uniform vec2 uTextureBlocks;\n"
             + "uniform int uBlur;\n"
             + "vec4 cellColour(vec2 cell) {\n"
-            + "  return texture2D(uBlockSampler, (cell + 0.5) / uBlocks);\n"
+            + "  return texture2D(uBlockSampler, (cell + 0.5) / uTextureBlocks);\n"
             + "}\n"
             + "void main() {\n"
             + "  vec2 local = vec2(gl_FragCoord.x, uFrameSize.y - gl_FragCoord.y) - uGridOrigin;\n"
@@ -120,7 +123,7 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
     private final GlProgram blockProgram;
     private final GlProgram fillProgram;
 
-    private List<VideoCensorLayout.Area> areas = List.of();
+    private List<VideoCensorLayout.Track> tracks = List.of();
     private int[] blockTextures = new int[0];
     private int[] blockFbos = new int[0];
     private int[] noiseTextures = new int[0];
@@ -152,23 +155,26 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
             deleteAreaTextures();
             width = inputWidth;
             height = inputHeight;
-            areas = effect.layOut(inputWidth, inputHeight);
-            blockTextures = new int[areas.size()];
-            blockFbos = new int[areas.size()];
-            noiseTextures = new int[areas.size()];
-            for (int i = 0; i < areas.size(); i++) {
-                VideoCensorLayout.Area area = areas.get(i);
-                if (area.effect == CensorEffects.Effect.BLACK) {
+            tracks = effect.tracks(inputWidth, inputHeight);
+            blockTextures = new int[tracks.size()];
+            blockFbos = new int[tracks.size()];
+            noiseTextures = new int[tracks.size()];
+            for (int i = 0; i < tracks.size(); i++) {
+                VideoCensorLayout.Track track = tracks.get(i);
+                if (track.effect == CensorEffects.Effect.BLACK
+                        || track.textureCols() <= 0 || track.textureRows() <= 0) {
                     continue;
                 }
-                blockTextures[i] = GlUtil.createTexture(area.cols, area.rows, useHdr);
+                // Sized for the largest grid, which every frame of a moving area fits.
+                blockTextures[i] = GlUtil.createTexture(track.textureCols(), track.textureRows(), useHdr);
                 GlUtil.bindTexture(GLES20.GL_TEXTURE_2D, blockTextures[i], GLES20.GL_NEAREST);
                 blockFbos[i] = GlUtil.createFboForTexture(blockTextures[i]);
                 noiseTextures[i] = GlUtil.generateTexture();
                 GlUtil.bindTexture(GLES20.GL_TEXTURE_2D, noiseTextures[i], GLES20.GL_NEAREST);
                 GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
-                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, area.cols, area.rows, 0,
-                        GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, ByteBuffer.wrap(area.noiseRgba()));
+                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, track.textureCols(),
+                        track.textureRows(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                        ByteBuffer.wrap(track.noiseRgba()));
                 GlUtil.checkGlError();
             }
         } catch (GlUtil.GlException e) {
@@ -187,9 +193,13 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
             copyProgram.setSamplerTexIdUniform("uTexSampler", inputTexId, 0);
             copyProgram.bindAttributesAndUniforms();
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-            for (int i = 0; i < areas.size(); i++) {
-                VideoCensorLayout.Area area = areas.get(i);
-                if (!effect.covers(area, presentationTimeUs)) {
+            for (int i = 0; i < tracks.size(); i++) {
+                VideoCensorLayout.Track track = tracks.get(i);
+                if (!effect.covers(track.regionIndex, presentationTimeUs)) {
+                    continue;
+                }
+                VideoCensorLayout.Area area = track.at(presentationTimeUs);
+                if (area.effect != CensorEffects.Effect.BLACK && (area.cols <= 0 || area.rows <= 0)) {
                     continue;
                 }
                 if (area.effect == CensorEffects.Effect.BLACK) {
@@ -201,6 +211,7 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
                     continue;
                 }
                 float[] blocks = {area.cols, area.rows};
+                float[] textureBlocks = {area.textureCols, area.textureRows};
                 GlUtil.focusFramebufferUsingCurrentContext(blockFbos[i], area.cols, area.rows);
                 averageProgram.use();
                 averageProgram.setSamplerTexIdUniform("uTexSampler", inputTexId, 0);
@@ -209,7 +220,7 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
                 averageProgram.setFloatsUniform("uGrid", new float[] {
                         area.gridLeft, area.gridTop, area.gridRight, area.gridBottom});
                 averageProgram.setFloatUniform("uBlock", area.block);
-                averageProgram.setFloatsUniform("uBlocks", blocks);
+                averageProgram.setFloatsUniform("uTextureBlocks", textureBlocks);
                 averageProgram.setFloatUniform("uNoise", CensorBlocks.NOISE);
                 averageProgram.setFloatUniform("uMaxValue", useHdr ? Float.MAX_VALUE : 1f);
                 averageProgram.bindAttributesAndUniforms();
@@ -224,6 +235,7 @@ final class VideoCensorShaderProgram extends BaseGlShaderProgram {
                 blockProgram.setFloatsUniform("uGridOrigin", new float[] {area.gridLeft, area.gridTop});
                 blockProgram.setFloatUniform("uBlock", area.block);
                 blockProgram.setFloatsUniform("uBlocks", blocks);
+                blockProgram.setFloatsUniform("uTextureBlocks", textureBlocks);
                 blockProgram.setIntUniform("uBlur", area.effect == CensorEffects.Effect.BLUR ? 1 : 0);
                 blockProgram.bindAttributesAndUniforms();
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);

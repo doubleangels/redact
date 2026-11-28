@@ -183,4 +183,16 @@ public class VideoCensorExporterTest {
         assertEquals(MimeTypes.VIDEO_H264, source.mime);
         assertNull(new VideoCensorExporter.Source(0, 0, 0, null).mime);
     }
+    @Test
+    public void aCensoredExport_getsABitrateFloor_scaledWithItsSize() {
+        assertEquals(921_600, VideoMedia3Converter.editedBitrateFloor(320, 240, 30, 0, 0));
+        // Portrait is the same; an unknown frame rate counts as 30.
+        assertEquals(921_600, VideoMedia3Converter.editedBitrateFloor(240, 320, 0, 0, 0));
+        int hd = VideoMedia3Converter.editedBitrateFloor(1920, 1080, 30, 0, 0);
+        assertTrue("1080p30 stays below what cameras record: " + hd, hd > 10_000_000 && hd < 12_000_000);
+        // Exported smaller or at a lower rate: the floor follows the output.
+        assertEquals(hd, VideoMedia3Converter.editedBitrateFloor(3840, 2160, 30, 1080, 0));
+        assertTrue(VideoMedia3Converter.editedBitrateFloor(1920, 1080, 60, 0, 30) == hd);
+        assertEquals(0, VideoMedia3Converter.editedBitrateFloor(0, 1080, 30, 0, 0));
+    }
 }
