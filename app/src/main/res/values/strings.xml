@@ -479,6 +479,8 @@
     <string name="censor_error_open">This photo could not be opened.</string>
     <string name="censor_error_unsupported">This type of image cannot be censored on this device.</string>
     <string name="censor_video_position">Position in Video</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">Time Range of Area %1$d</string>
     <string name="censor_whole_video">Whole Video</string>
     <string name="censor_area_moves">Moves</string>

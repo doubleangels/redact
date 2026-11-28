@@ -480,6 +480,8 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_error_open">Impossible d’ouvrir cette photo.</string>
     <string name="censor_error_unsupported">Ce type d’image ne peut pas être censuré sur cet appareil.</string>
     <string name="censor_video_position">Position dans la Vidéo</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">Plage Horaire de la Zone %1$d</string>
     <string name="censor_whole_video">Vidéo Entière</string>
     <string name="censor_area_moves">Se Déplace</string>

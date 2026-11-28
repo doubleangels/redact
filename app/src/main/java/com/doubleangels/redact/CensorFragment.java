@@ -1015,13 +1015,15 @@ public class CensorFragment extends TabFragment {
     }
 
     private void showVideoTime() {
-        videoTime.setText(DateUtils.formatElapsedTime(viewModel.getPlayheadUs() / 1_000_000L) + " / "
-                + DateUtils.formatElapsedTime(viewModel.getDurationUs() / 1_000_000L));
+        videoTime.setText(getString(R.string.censor_video_time,
+                DateUtils.formatElapsedTime(viewModel.getPlayheadUs() / 1_000_000L),
+                DateUtils.formatElapsedTime(viewModel.getDurationUs() / 1_000_000L)));
     }
 
     private void showAreaTimesLabel(float startMs, float endMs) {
-        areaTimesLabel.setText(DateUtils.formatElapsedTime(Math.round(startMs / 1000f)) + "–"
-                + DateUtils.formatElapsedTime(Math.round(endMs / 1000f)));
+        areaTimesLabel.setText(getString(R.string.censor_area_time_range,
+                DateUtils.formatElapsedTime(Math.round(startMs / 1000f)),
+                DateUtils.formatElapsedTime(Math.round(endMs / 1000f))));
     }
 
     /**

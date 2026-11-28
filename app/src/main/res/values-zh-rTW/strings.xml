@@ -452,6 +452,8 @@
     <string name="censor_error_open">無法開啟此照片。</string>
     <string name="censor_error_unsupported">此裝置無法處理這種類型的圖片。</string>
     <string name="censor_video_position">影片中的位置</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">區域 %1$d 的時間範圍</string>
     <string name="censor_whole_video">整部影片</string>
     <string name="censor_area_moves">會移動</string>

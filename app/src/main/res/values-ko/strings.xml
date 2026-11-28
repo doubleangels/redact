@@ -452,6 +452,8 @@
     <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
     <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
     <string name="censor_video_position">동영상 내 위치</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">영역 %1$d의 시간 범위</string>
     <string name="censor_whole_video">동영상 전체</string>
     <string name="censor_area_moves">움직임</string>

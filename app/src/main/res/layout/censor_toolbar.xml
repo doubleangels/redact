@@ -8,7 +8,8 @@
      The card is placed from the left in every language, as FloatingToolbar offsets it from there;
      its row still mirrors for right-to-left languages. The layer it floats in covers the photo but
      catches no touches, so drawing works wherever the row is not. It sits above the photo card's
-     elevation, so it is drawn, and touched, first. -->
+     elevation, so it is drawn, and touched, first. It cannot be a merge root: it carries the
+     layer's id, elevation and padding. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -19,7 +20,8 @@
     android:elevation="2dp"
     android:paddingHorizontal="2dp"
     android:paddingVertical="@dimen/spacing_small"
-    android:visibility="gone">
+    android:visibility="gone"
+    tools:ignore="MergeRootFrame">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/censorToolbarCard"

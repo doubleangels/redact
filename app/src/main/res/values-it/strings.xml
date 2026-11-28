@@ -480,6 +480,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_error_open">Impossibile aprire questa foto.</string>
     <string name="censor_error_unsupported">Questo tipo di immagine non può essere censurato su questo dispositivo.</string>
     <string name="censor_video_position">Posizione nel Video</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">Intervallo di Tempo dell\'Area %1$d</string>
     <string name="censor_whole_video">Video Intero</string>
     <string name="censor_area_moves">Si Muove</string>

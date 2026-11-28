@@ -480,6 +480,8 @@ Activa esto solo si quieres conservar la ubicación a propósito.</string>
     <string name="censor_error_open">No se pudo abrir esta foto.</string>
     <string name="censor_error_unsupported">Este tipo de imagen no se puede censurar en este dispositivo.</string>
     <string name="censor_video_position">Posición en el Vídeo</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">Intervalo de Tiempo del Área %1$d</string>
     <string name="censor_whole_video">Vídeo Completo</string>
     <string name="censor_area_moves">Se Mueve</string>

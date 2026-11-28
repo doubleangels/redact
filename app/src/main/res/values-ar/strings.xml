@@ -522,6 +522,8 @@
     <string name="censor_error_open">تعذّر فتح هذه الصورة.</string>
     <string name="censor_error_unsupported">لا يمكن إخفاء أجزاء من هذا النوع من الصور على هذا الجهاز.</string>
     <string name="censor_video_position">الموضع في الفيديو</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">المدة الزمنية للمنطقة %1$d</string>
     <string name="censor_whole_video">الفيديو كاملًا</string>
     <string name="censor_area_moves">يتحرك</string>

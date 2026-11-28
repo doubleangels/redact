@@ -453,6 +453,8 @@
     <string name="censor_error_open">この写真を開けませんでした。</string>
     <string name="censor_error_unsupported">この種類の画像は、このデバイスでは編集できません。</string>
     <string name="censor_video_position">動画内の位置</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
     <string name="censor_area_times">範囲 %1$d の時間</string>
     <string name="censor_whole_video">動画全体</string>
     <string name="censor_area_moves">移動する</string>
