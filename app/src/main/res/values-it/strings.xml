@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">Attività</string>
-    <string name="notification_channel_tasks_description">Conversione e pulizia dei file completata</string>
+    <string name="notification_channel_tasks_description">Conversione e pulizia di foto e video completata</string>
     <string name="notification_convert_title">Conversione Completata</string>
     <plurals name="notification_convert_done">
         <item quantity="one">%1$d file salvato nella galleria.</item>
@@ -50,7 +50,7 @@
     <string name="convert_select_files">Seleziona File</string>
     <string name="convert_run">Converti</string>
     <string name="convert_status_hint">Scegli un formato di output qui sotto, poi tocca Converti.</string>
-    <string name="convert_status_ready">Pronto per selezionare file da convertire.</string>
+    <string name="convert_status_ready">Pronto per selezionare foto e video da convertire.</string>
     <plurals name="summary_selected_files">
         <item quantity="one">%1$d file selezionato</item>
         <item quantity="many">%1$d file selezionati</item>
@@ -74,7 +74,7 @@
 
     
     <string name="status_processing">Elaborazione in corso…</string>
-    <string name="status_first_select_media_files">Seleziona prima i file multimediali.</string>
+    <string name="status_first_select_media_files">Seleziona prima delle foto o dei video.</string>
     <string name="status_permissions_required">Autorizzazioni richieste.</string>
     <string name="status_requesting_permissions">Richiesta autorizzazioni…</string>
     <string name="status_analyzing">Analisi metadati in corso…</string>
@@ -89,7 +89,7 @@
     
     <string name="share_processing_title">Elaborazione In Corso…</string>
     <string name="share_chooser_title">Condividi file multimediale pulito tramite…</string>
-    <string name="share_error_unsupported_media">Tipo di media non supportato.</string>
+    <string name="share_error_unsupported_media">Redact funziona solo con foto e video. Questo tipo di file non è supportato.</string>
     <string name="share_error_unsupported_action">Azione non supportata.</string>
 
     
@@ -173,7 +173,7 @@
     <string name="settings_notifications_convert_label">Conversione Completata</string>
     <string name="settings_notifications_convert_subtitle">Avviso quando la conversione formato nella scheda Converti è completata.</string>
     <string name="settings_section_diagnostics">Diagnostica e Feedback</string>
-    <string name="settings_section_diagnostics_subtitle">Report opzionali per correggere i crash. I tuoi media non lasciano mai il dispositivo.</string>
+    <string name="settings_section_diagnostics_subtitle">Report opzionali per correggere i crash. Le tue foto e i tuoi video non lasciano mai il dispositivo.</string>
     <string name="settings_crash_reporting_label">Invia Report di Crash</string>
     <string name="settings_crash_reporting_subtitle">Condivide solo dettagli tecnici anonimi (versione dell\'app, modello del dispositivo, cosa stava facendo l\'app al momento del crash), mai le tue foto o i tuoi video. Inviati via internet al nostro servizio di segnalazione crash, Sentry, quando attivato.</string>
     <string name="settings_update_check_label">Aggiornamenti</string>
@@ -242,7 +242,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Annulla</string>
-    <string name="clean_status_ready">Pronto per selezionare file da pulire.</string>
+    <string name="clean_status_ready">Pronto per selezionare foto e video da pulire.</string>
     <string name="convert_codec_fallback">%1$s non disponibile; salvato come %2$s.</string>
     <string name="video_downscaled">Salvato a %1$dp perché questo telefono non è riuscito a elaborare il video a dimensione piena.</string>
     <string name="notification_clean_failed">Questa volta non è stato possibile pulire alcun file.</string>
@@ -283,7 +283,7 @@
     <string name="status_clean_done_partial">Fatto: %1$d puliti, %2$d non riusciti.</string>
     <string name="status_processing_cancelled">Elaborazione annullata.</string>
     <string name="settings_permission_partial">Parziale</string>
-    <string name="scan_status_ready">Seleziona un file per analizzarne i metadati.</string>
+    <string name="scan_status_ready">Seleziona una foto o un video per analizzarne i metadati.</string>
     <string name="animated_image_warning">Le immagini animate vengono salvate come un singolo fotogramma.</string>
     <string name="processing_warning_low_storage">Memoria insufficiente (%1$s liberi). L\'elaborazione potrebbe fallire. Prova a cancellare i file temporanei in Impostazioni.</string>
     <string name="processing_warning_critical_storage_title">Memoria Insufficiente</string>
@@ -336,13 +336,13 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="clean_empty_state_title">Pulisci e Rimuovi i Metadati</string>
     <string name="clean_empty_state_description">Seleziona foto o video per rimuovere i tag EXIF, la posizione GPS, i dettagli della fotocamera e gli identificatori del dispositivo. Puoi anche condividerli direttamente con Redact da qualsiasi app.</string>
     <string name="clean_selected_hint">Pronto a rimuovere i dati EXIF e di posizione.</string>
-    <string name="convert_empty_state_title">Converti i Formati Multimediali</string>
+    <string name="convert_empty_state_title">Converti Foto e Video</string>
     <string name="convert_empty_state_description">Seleziona foto o video per convertirli nei formati JPEG, PNG, WebP, HEIC o MP4.</string>
     <string name="convert_files_card_title">File da Convertire</string>
     <string name="convert_heic_fallback_jpeg">Questo telefono non può salvare immagini HEIC, quindi verranno salvate come JPEG.</string>
     <string name="convert_item_type_image">Immagine</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="scan_empty_state_title">Ispeziona i Metadati Multimediali</string>
+    <string name="scan_empty_state_title">Ispeziona i Metadati di Foto e Video</string>
     <string name="scan_empty_state_description">Seleziona una foto o un video per vedere i dettagli EXIF, le specifiche della fotocamera, le coordinate GPS e le proprietà tecniche.</string>
     <string name="scan_grant_location_button">Concedi Autorizzazione</string>
     <string name="settings_notifications_permission_denied">L’autorizzazione per le notifiche è necessaria per mostrare gli avvisi.</string>
@@ -578,15 +578,15 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="onboarding_welcome_title">Ti Diamo il Benvenuto in Redact!</string>
     <string name="onboarding_welcome_body">Redact ti aiuta a condividere foto e video senza condividere i tuoi dati privati. Questo breve tour dura circa un minuto.</string>
     <string name="onboarding_welcome_clean">Pulisci rimuove i dettagli nascosti da foto e video.</string>
-    <string name="onboarding_welcome_scan">Scansiona ti mostra esattamente cosa rivela un file prima che tu lo condivida.</string>
+    <string name="onboarding_welcome_scan">Scansiona ti mostra esattamente cosa rivela una foto o un video prima che tu lo condivida.</string>
     <string name="onboarding_welcome_convert">Converti cambia il formato di una foto o di un video e lo mantiene pulito.</string>
-    <string name="onboarding_welcome_censor">Censura copre volti, targhe e qualsiasi altra cosa in una foto che deve restare privata.</string>
+    <string name="onboarding_welcome_censor">Censura copre volti, targhe e qualsiasi altra cosa in una foto o in un video che deve restare privata.</string>
     <string name="onboarding_hidden_title">Le tue foto e i tuoi video possono dire più di quanto pensi.</string>
     <string name="onboarding_hidden_body">Quando scatti una foto o registri un video, il telefono salva di nascosto informazioni extra all\'interno del file. Chiunque riceva il file potrebbe riuscire a leggerle.</string>
     <string name="onboarding_hidden_location">Possono mostrare dove ti trovavi, a volte con una precisione tale da individuare casa tua.</string>
     <string name="onboarding_hidden_time">Possono mostrare la data e l\'ora in cui l\'hai scattata.</string>
     <string name="onboarding_hidden_device">Possono mostrare quale telefono o fotocamera hai usato.</string>
-    <string name="onboarding_private_title">I tuoi file non lasciano mai il telefono.</string>
+    <string name="onboarding_private_title">Le tue foto e i tuoi video non lasciano mai il telefono.</string>
     <string name="onboarding_private_body">Redact fa tutto direttamente sul tuo telefono. Salva una copia pulita da condividere e lascia l\'originale esattamente com\'era.</string>
     <string name="onboarding_private_offline">Non viene caricato nulla, quindi foto e video restano privati.</string>
     <string name="onboarding_private_no_ads">Non ci sono pubblicità e nulla tiene traccia di ciò che fai.</string>

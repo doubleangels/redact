@@ -10,7 +10,7 @@
 
     
     <string name="notification_channel_tasks_name">Tasks</string>
-    <string name="notification_channel_tasks_description">Finished converting and cleaning media</string>
+    <string name="notification_channel_tasks_description">Finished converting and cleaning photos and videos</string>
     <string name="notification_convert_title">Conversion Finished</string>
     <plurals name="notification_convert_done">
         <item quantity="one">Saved %1$d file to the gallery.</item>
@@ -59,7 +59,7 @@
     <string name="settings_notifications_convert_subtitle">Alert when format conversion on the Convert tab completes.</string>
 
     <string name="settings_section_diagnostics">Diagnostics &amp; Feedback</string>
-    <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your media never leaves the device.</string>
+    <string name="settings_section_diagnostics_subtitle">Optional reports to help fix crashes. Your photos and videos never leave the device.</string>
     <string name="settings_crash_reporting_label">Send Crash Reports</string>
     <string name="settings_crash_reporting_subtitle">Shares only anonymized technical details (app version, device model, what the app was doing when it crashed), never your photos or videos. Sent over the internet to our crash-reporting service, Sentry, when enabled.</string>
     <string name="settings_update_check_label">Updates</string>
@@ -164,8 +164,8 @@
     <string name="convert_select_files">Select Files</string>
     <string name="convert_run">Convert</string>
     <string name="convert_status_hint">Choose an output format below, then tap Convert.</string>
-    <string name="convert_status_ready">Ready to select files to convert.</string>
-    <string name="clean_status_ready">Ready to select files to clean.</string>
+    <string name="convert_status_ready">Ready to select photos and videos to convert.</string>
+    <string name="clean_status_ready">Ready to select photos and videos to clean.</string>
     <plurals name="summary_selected_files">
         <item quantity="one">%1$d file selected</item>
         <item quantity="other">%1$d files selected</item>
@@ -181,7 +181,7 @@
     <string name="convert_done_partial" tools:ignore="PluralsCandidate">Done: %1$d succeeded, %2$d failed.</string>
     <string name="convert_done_failed">Conversion failed.</string>
     <string name="convert_saved_to_gallery">Saved to Gallery (Redact folder)</string>
-    <string name="scan_status_ready">Select a file to scan its metadata.</string>
+    <string name="scan_status_ready">Select a photo or video to scan its metadata.</string>
     <string name="animated_image_warning">Animated images are saved as a single still frame.</string>
 
     <string name="processing_warning_low_storage">Low storage (%1$s free). Processing may fail. Try clearing temporary files in Settings.</string>
@@ -208,7 +208,7 @@
     <string name="status_clean_done_partial" tools:ignore="PluralsCandidate">Done: %1$d cleaned, %2$d failed.</string>
     <string name="status_clean_done_failed">Cleaning failed.</string>
     <string name="clean_item_failed">Failed: %1$s</string>
-    <string name="status_first_select_media_files">Please select some media files first.</string>
+    <string name="status_first_select_media_files">Please select some photos or videos first.</string>
     <string name="status_permissions_required">Permission needed to proceed.</string>
     <string name="status_requesting_permissions">Requesting permissions…</string>
     <string name="status_analyzing">Analyzing metadata…</string>
@@ -239,7 +239,7 @@
     <string name="strip_progress_saving_clean_video">Saving cleaned video…</string>
 
     <string name="share_error_too_many_items">Too many items (max %1$d at a time).</string>
-    <string name="share_error_unsupported_media">This media type isn\'t supported.</string>
+    <string name="share_error_unsupported_media">Redact works with photos and videos only. This file type isn\'t supported.</string>
     <string name="share_error_unsupported_action">This action isn\'t supported.</string>
     <string name="share_error_generic">Something went wrong. Please try again.</string>
     <string name="share_error_failed_receive_media">Couldn\'t receive the shared media.</string>
@@ -268,7 +268,7 @@
     <string name="scan_maps_not_available">No maps app is available to open this location.</string>
     <string name="scan_risk_location">Location</string>
     <string name="scan_risk_serial">Device serial</string>
-    <string name="scan_empty_state_title">Inspect Media Metadata</string>
+    <string name="scan_empty_state_title">Inspect Photo &amp; Video Metadata</string>
     <string name="scan_empty_state_description">Select a photo or video to view EXIF details, camera specs, GPS coordinates, and technical properties.</string>
     <string name="scan_grant_location_button">Grant Permission</string>
 
@@ -277,7 +277,7 @@
     <string name="clean_selected_hint">Ready to strip EXIF and location data.</string>
     <string name="clean_clear_selection">Clear</string>
 
-    <string name="convert_empty_state_title">Convert Media Formats</string>
+    <string name="convert_empty_state_title">Convert Photos &amp; Videos</string>
     <string name="convert_empty_state_description">Select photos or videos to convert them into JPEG, PNG, WebP, HEIC, or MP4 formats.</string>
     <string name="convert_files_card_title">Files to Convert</string>
     <string name="convert_item_type_image">Image</string>
@@ -565,15 +565,15 @@
     <string name="onboarding_welcome_title">Welcome to Redact!</string>
     <string name="onboarding_welcome_body">Redact helps you share photos and videos without sharing your private details. This short tour takes about a minute.</string>
     <string name="onboarding_welcome_clean">Clean removes the hidden details from your photos and videos.</string>
-    <string name="onboarding_welcome_scan">Scan shows you exactly what a file reveals before you share it.</string>
+    <string name="onboarding_welcome_scan">Scan shows you exactly what a photo or video reveals before you share it.</string>
     <string name="onboarding_welcome_convert">Convert changes a photo or video to another format and keeps it clean.</string>
-    <string name="onboarding_welcome_censor">Censor covers faces, number plates and anything else in a photo that should stay private.</string>
+    <string name="onboarding_welcome_censor">Censor covers faces, number plates and anything else in a photo or video that should stay private.</string>
     <string name="onboarding_hidden_title">Your photos and videos can say more than you think.</string>
     <string name="onboarding_hidden_body">When you take a photo or video, your phone quietly saves extra information inside the file. Anyone you send the file to may be able to read it.</string>
     <string name="onboarding_hidden_location">It can show where you were, sometimes closely enough to find your home.</string>
     <string name="onboarding_hidden_time">It can show the date and time you took it.</string>
     <string name="onboarding_hidden_device">It can show which phone or camera you used.</string>
-    <string name="onboarding_private_title">Your files never leave your phone.</string>
+    <string name="onboarding_private_title">Your photos and videos never leave your phone.</string>
     <string name="onboarding_private_body">Redact does all of its work right here on your phone. It saves a clean copy for you to share and leaves your original just as it was.</string>
     <string name="onboarding_private_offline">Nothing is uploaded, so your photos and videos stay private.</string>
     <string name="onboarding_private_no_ads">There are no ads, and nothing tracks what you do.</string>

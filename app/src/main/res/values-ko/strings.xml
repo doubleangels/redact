@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">작업</string>
-    <string name="notification_channel_tasks_description">미디어 변환 및 정리 완료</string>
+    <string name="notification_channel_tasks_description">사진 및 동영상 변환과 정리 완료</string>
     <string name="notification_convert_title">변환 완료</string>
     <plurals name="notification_convert_done">
         <item quantity="other">갤러리에 %1$d개의 파일을 저장했습니다.</item>
@@ -46,7 +46,7 @@
     <string name="convert_select_files">파일 선택</string>
     <string name="convert_run">변환</string>
     <string name="convert_status_hint">아래에서 출력 형식을 선택한 다음 변환을 누르세요.</string>
-    <string name="convert_status_ready">변환할 파일을 선택할 준비가 되었습니다.</string>
+    <string name="convert_status_ready">변환할 사진과 동영상을 선택할 준비가 되었습니다.</string>
     <plurals name="summary_selected_files">
         <item quantity="other">%1$d개 파일 선택됨</item>
     </plurals>
@@ -68,7 +68,7 @@
 
     
     <string name="status_processing">처리 중…</string>
-    <string name="status_first_select_media_files">먼저 미디어 파일을 선택하세요.</string>
+    <string name="status_first_select_media_files">먼저 사진이나 동영상을 선택하세요.</string>
     <string name="status_permissions_required">권한이 필요합니다.</string>
     <string name="status_requesting_permissions">권한 요청 중…</string>
     <string name="status_analyzing">메타데이터 분석 중…</string>
@@ -83,7 +83,7 @@
     
     <string name="share_processing_title">처리 중…</string>
     <string name="share_chooser_title">정리된 미디어 파일 공유…</string>
-    <string name="share_error_unsupported_media">지원되지 않는 미디어 유형.</string>
+    <string name="share_error_unsupported_media">Redact는 사진과 동영상만 지원합니다. 이 파일 형식은 지원되지 않습니다.</string>
     <string name="share_error_unsupported_action">지원되지 않는 작업.</string>
 
     
@@ -165,7 +165,7 @@
     <string name="settings_notifications_convert_label">변환 완료</string>
     <string name="settings_notifications_convert_subtitle">변환 탭에서 형식 변환이 완료되면 알림.</string>
     <string name="settings_section_diagnostics">진단 및 피드백</string>
-    <string name="settings_section_diagnostics_subtitle">충돌 수정을 위한 선택적 보고서. 미디어는 기기를 벗어나지 않습니다.</string>
+    <string name="settings_section_diagnostics_subtitle">충돌 수정을 위한 선택적 보고서. 사진과 동영상은 기기를 벗어나지 않습니다.</string>
     <string name="settings_crash_reporting_label">충돌 보고서 보내기</string>
     <string name="settings_crash_reporting_subtitle">익명화된 기술 정보만 공유합니다(앱 버전, 기기 모델, 충돌 당시 앱이 하던 작업). 사진이나 동영상은 절대 공유하지 않습니다. 사용 설정 시 저희 충돌 보고 서비스인 Sentry로 인터넷을 통해 전송됩니다.</string>
     <string name="settings_update_check_label">업데이트</string>
@@ -234,7 +234,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">취소</string>
-    <string name="clean_status_ready">정리할 파일을 선택할 준비가 되었습니다.</string>
+    <string name="clean_status_ready">정리할 사진과 동영상을 선택할 준비가 되었습니다.</string>
     <string name="convert_codec_fallback">%1$s을(를) 사용할 수 없어 %2$s(으)로 저장했습니다.</string>
     <string name="video_downscaled">이 휴대폰에서 원본 크기로 동영상을 처리할 수 없어 %1$dp로 저장했습니다.</string>
     <string name="notification_clean_failed">이번에는 정리할 수 있는 파일이 없습니다.</string>
@@ -269,7 +269,7 @@
     <string name="status_clean_done_partial">완료: %1$d개 정리, %2$d개 실패.</string>
     <string name="status_processing_cancelled">처리가 취소되었습니다.</string>
     <string name="settings_permission_partial">부분</string>
-    <string name="scan_status_ready">메타데이터를 스캔할 파일을 선택하세요.</string>
+    <string name="scan_status_ready">메타데이터를 스캔할 사진이나 동영상을 선택하세요.</string>
     <string name="animated_image_warning">애니메이션 이미지는 단일 정지 프레임으로 저장됩니다.</string>
     <string name="processing_warning_low_storage">저장 공간 부족 (%1$s 여유). 처리가 실패할 수 있습니다. 설정에서 임시 파일을 삭제해 보세요.</string>
     <string name="processing_warning_critical_storage_title">저장 공간 부족</string>
@@ -322,13 +322,13 @@
     <string name="clean_empty_state_title">메타데이터 정리 및 제거</string>
     <string name="clean_empty_state_description">사진이나 동영상을 선택해 EXIF 태그, GPS 위치, 카메라 정보, 기기 식별자를 제거하세요. 어떤 앱에서든 Redact로 바로 공유할 수도 있습니다.</string>
     <string name="clean_selected_hint">EXIF 및 위치 데이터를 제거할 준비가 되었습니다.</string>
-    <string name="convert_empty_state_title">미디어 형식 변환</string>
+    <string name="convert_empty_state_title">사진 및 동영상 변환</string>
     <string name="convert_empty_state_description">사진이나 동영상을 선택해 JPEG, PNG, WebP, HEIC 또는 MP4 형식으로 변환하세요.</string>
     <string name="convert_files_card_title">변환할 파일</string>
     <string name="convert_heic_fallback_jpeg">이 휴대전화는 HEIC 이미지를 저장할 수 없으므로 대신 JPEG로 저장됩니다.</string>
     <string name="convert_item_type_image">이미지</string>
     <string name="convert_item_type_video">동영상</string>
-    <string name="scan_empty_state_title">미디어 메타데이터 검사</string>
+    <string name="scan_empty_state_title">사진 및 동영상 메타데이터 검사</string>
     <string name="scan_empty_state_description">사진이나 동영상을 선택해 EXIF 세부 정보, 카메라 사양, GPS 좌표, 기술 속성을 확인하세요.</string>
     <string name="scan_grant_location_button">권한 허용</string>
     <string name="settings_notifications_permission_denied">알림을 표시하려면 알림 권한이 필요합니다.</string>
@@ -548,15 +548,15 @@
     <string name="onboarding_welcome_title">Redact에 오신 것을 환영합니다!</string>
     <string name="onboarding_welcome_body">Redact를 사용하면 개인 정보를 드러내지 않고 사진과 동영상을 공유할 수 있습니다. 이 짧은 안내는 1분 정도 걸립니다.</string>
     <string name="onboarding_welcome_clean">정리는 사진과 동영상에서 숨겨진 정보를 제거합니다.</string>
-    <string name="onboarding_welcome_scan">스캔은 공유하기 전에 파일에서 무엇이 드러나는지 정확히 보여 줍니다.</string>
+    <string name="onboarding_welcome_scan">스캔은 공유하기 전에 사진이나 동영상에서 무엇이 드러나는지 정확히 보여 줍니다.</string>
     <string name="onboarding_welcome_convert">변환은 사진이나 동영상을 다른 형식으로 바꾸고 깨끗하게 유지합니다.</string>
-    <string name="onboarding_welcome_censor">가리기는 사진 속 얼굴, 번호판 등 비공개로 남겨야 할 모든 것을 가립니다.</string>
+    <string name="onboarding_welcome_censor">가리기는 사진과 동영상 속 얼굴, 번호판 등 비공개로 남겨야 할 모든 것을 가립니다.</string>
     <string name="onboarding_hidden_title">사진과 동영상은 생각보다 많은 것을 알려 줍니다.</string>
     <string name="onboarding_hidden_body">사진이나 동영상을 찍으면 휴대전화가 파일 안에 추가 정보를 조용히 저장합니다. 파일을 받은 사람은 누구나 이 정보를 읽을 수 있습니다.</string>
     <string name="onboarding_hidden_location">어디에 있었는지 보여 줄 수 있으며, 때로는 집을 찾을 수 있을 만큼 정확합니다.</string>
     <string name="onboarding_hidden_time">촬영한 날짜와 시간을 보여 줄 수 있습니다.</string>
     <string name="onboarding_hidden_device">어떤 휴대전화나 카메라를 사용했는지 보여 줄 수 있습니다.</string>
-    <string name="onboarding_private_title">파일은 휴대전화 밖으로 나가지 않습니다.</string>
+    <string name="onboarding_private_title">사진과 동영상은 휴대전화 밖으로 나가지 않습니다.</string>
     <string name="onboarding_private_body">Redact는 모든 작업을 바로 이 휴대전화에서 처리합니다. 공유할 깨끗한 사본을 저장하고 원본은 그대로 둡니다.</string>
     <string name="onboarding_private_offline">아무것도 업로드되지 않으므로 사진과 동영상은 비공개로 유지됩니다.</string>
     <string name="onboarding_private_no_ads">광고가 없으며 사용자의 활동을 추적하지 않습니다.</string>

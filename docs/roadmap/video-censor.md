@@ -6,7 +6,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 |---|---|
 | **Status** | Built (Phases 1 to 6, keyframes without automatic tracking). Still to try: a true 4K export on a phone whose encoder takes 4K |
 | **Branch** | `dev` |
-| **Size** | Large. 6 phases, the biggest of the four media roadmaps |
+| **Size** | Large. 6 phases |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
 
 ## Contents

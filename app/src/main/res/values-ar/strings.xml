@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">المهام</string>
-    <string name="notification_channel_tasks_description">اكتمل تحويل الوسائط وتنظيفها</string>
+    <string name="notification_channel_tasks_description">اكتمل تحويل الصور ومقاطع الفيديو وتنظيفها</string>
     <string name="notification_convert_title">اكتمل التحويل</string>
     <plurals name="notification_convert_done">
         <item quantity="zero">تم حفظ %1$d ملف في المعرض.</item>
@@ -56,7 +56,7 @@
     <string name="convert_select_files">تحديد الملفات</string>
     <string name="convert_run">إجراء التحويل</string>
     <string name="convert_status_hint">اختر صيغة الإخراج أدناه، ثم اضغط على «إجراء التحويل».</string>
-    <string name="convert_status_ready">جاهز لتحديد الملفات للتحويل.</string>
+    <string name="convert_status_ready">جاهز لتحديد الصور ومقاطع الفيديو للتحويل.</string>
     <plurals name="summary_selected_files">
         <item quantity="zero">المحدد: %1$d ملف</item>
         <item quantity="one">المحدد: %1$d ملف</item>
@@ -83,7 +83,7 @@
 
     
     <string name="status_processing">جاري المعالجة…</string>
-    <string name="status_first_select_media_files">يرجى تحديد ملفات الوسائط أولاً.</string>
+    <string name="status_first_select_media_files">يرجى تحديد صور أو مقاطع فيديو أولاً.</string>
     <string name="status_permissions_required">الأذونات مطلوبة.</string>
     <string name="status_requesting_permissions">جاري طلب الأذونات…</string>
     <string name="status_analyzing">جاري تحليل البيانات الوصفية…</string>
@@ -98,7 +98,7 @@
     
     <string name="share_processing_title">جاري المعالجة…</string>
     <string name="share_chooser_title">مشاركة ملف الوسائط النظيف عبر…</string>
-    <string name="share_error_unsupported_media">نوع الوسائط غير مدعوم.</string>
+    <string name="share_error_unsupported_media">يعمل Redact مع الصور ومقاطع الفيديو فقط. نوع الملف هذا غير مدعوم.</string>
     <string name="share_error_unsupported_action">الإجراء غير مدعوم.</string>
 
     
@@ -185,7 +185,7 @@
     <string name="settings_notifications_convert_label">اكتمل التحويل</string>
     <string name="settings_notifications_convert_subtitle">تنبيه عند اكتمال تحويل التنسيق في تبويب التحويل.</string>
     <string name="settings_section_diagnostics">التشخيص والملاحظات</string>
-    <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. وسائطك لا تغادر الجهاز أبداً.</string>
+    <string name="settings_section_diagnostics_subtitle">تقارير اختيارية للمساعدة في إصلاح الأعطال. صورك ومقاطع الفيديو لا تغادر الجهاز أبداً.</string>
     <string name="settings_crash_reporting_label">إرسال تقارير الأعطال</string>
     <string name="settings_crash_reporting_subtitle">يشارك فقط تفاصيل تقنية مجهولة الهوية (إصدار التطبيق، طراز الجهاز، ما كان يفعله التطبيق عند حدوث العطل)، ولا يشارك صورك أو مقاطع الفيديو أبداً. تُرسَل عبر الإنترنت إلى خدمة الإبلاغ عن الأعطال التي نستخدمها، Sentry، عند التفعيل.</string>
     <string name="settings_update_check_label">التحديثات</string>
@@ -254,7 +254,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">إلغاء</string>
-    <string name="clean_status_ready">جاهز لتحديد الملفات للتنظيف.</string>
+    <string name="clean_status_ready">جاهز لتحديد الصور ومقاطع الفيديو للتنظيف.</string>
     <string name="convert_codec_fallback">%1$s غير متاح؛ تم الحفظ كـ %2$s بدلاً من ذلك.</string>
     <string name="video_downscaled">تم الحفظ بدقة %1$dp لأن هذا الهاتف لم يتمكن من معالجة الفيديو بحجمه الكامل.</string>
     <string name="notification_clean_failed">تعذّر تنظيف أي ملفات هذه المرة.</string>
@@ -304,7 +304,7 @@
     <string name="status_clean_done_partial">تم: %1$d تم تنظيفها، %2$d فشلت.</string>
     <string name="status_processing_cancelled">تم إلغاء المعالجة.</string>
     <string name="settings_permission_partial">جزئي</string>
-    <string name="scan_status_ready">اختر ملفاً لفحص بياناته الوصفية.</string>
+    <string name="scan_status_ready">اختر صورة أو فيديو لفحص بياناته الوصفية.</string>
     <string name="animated_image_warning">تُحفظ الصور المتحركة كإطار ثابت واحد.</string>
     <string name="processing_warning_low_storage">مساحة تخزين منخفضة (%1$s متاحة). قد تفشل المعالجة. جرّب مسح الملفات المؤقتة من الإعدادات.</string>
     <string name="processing_warning_critical_storage_title">مساحة تخزين غير كافية</string>
@@ -357,13 +357,13 @@
     <string name="clean_empty_state_title">تنظيف البيانات الوصفية وإزالتها</string>
     <string name="clean_empty_state_description">حدّد صورًا أو مقاطع فيديو لإزالة وسوم EXIF وموقع GPS وتفاصيل الكاميرا ومعرّفات الجهاز. يمكنك أيضًا مشاركتها مباشرةً إلى Redact من أي تطبيق.</string>
     <string name="clean_selected_hint">جاهز لإزالة بيانات EXIF والموقع.</string>
-    <string name="convert_empty_state_title">تحويل صيغ الوسائط</string>
+    <string name="convert_empty_state_title">تحويل الصور ومقاطع الفيديو</string>
     <string name="convert_empty_state_description">حدّد صورًا أو مقاطع فيديو لتحويلها إلى صيغ JPEG وPNG وWebP وHEIC أو MP4.</string>
     <string name="convert_files_card_title">الملفات المراد تحويلها</string>
     <string name="convert_heic_fallback_jpeg">لا يستطيع هذا الهاتف حفظ الصور بصيغة HEIC، لذا ستُحفظ بصيغة JPEG بدلًا من ذلك.</string>
     <string name="convert_item_type_image">صورة</string>
     <string name="convert_item_type_video">فيديو</string>
-    <string name="scan_empty_state_title">فحص البيانات الوصفية للوسائط</string>
+    <string name="scan_empty_state_title">فحص البيانات الوصفية للصور والفيديو</string>
     <string name="scan_empty_state_description">حدّد صورة أو مقطع فيديو لعرض تفاصيل EXIF ومواصفات الكاميرا وإحداثيات GPS والخصائص التقنية.</string>
     <string name="scan_grant_location_button">منح الإذن</string>
     <string name="settings_notifications_permission_denied">إذن الإشعارات مطلوب لعرض التنبيهات.</string>
@@ -623,15 +623,15 @@
     <string name="onboarding_welcome_title">مرحبًا بك في Redact!</string>
     <string name="onboarding_welcome_body">يساعدك Redact على مشاركة الصور ومقاطع الفيديو دون مشاركة تفاصيلك الخاصة. تستغرق هذه الجولة القصيرة دقيقة تقريبًا.</string>
     <string name="onboarding_welcome_clean">تنظيف يزيل التفاصيل المخفية من صورك ومقاطع الفيديو.</string>
-    <string name="onboarding_welcome_scan">مسح يعرض لك بدقة ما يكشفه الملف قبل أن تشاركه.</string>
+    <string name="onboarding_welcome_scan">مسح يعرض لك بدقة ما تكشفه الصورة أو الفيديو قبل أن تشاركه.</string>
     <string name="onboarding_welcome_convert">تحويل يغيّر صيغة الصورة أو الفيديو ويُبقيه نظيفًا.</string>
-    <string name="onboarding_welcome_censor">إخفاء يغطي الوجوه ولوحات السيارات وأي شيء آخر في الصورة يجب أن يبقى خاصًا.</string>
+    <string name="onboarding_welcome_censor">إخفاء يغطي الوجوه ولوحات السيارات وأي شيء آخر في الصورة أو الفيديو يجب أن يبقى خاصًا.</string>
     <string name="onboarding_hidden_title">قد تكشف صورك ومقاطع الفيديو أكثر مما تظن.</string>
     <string name="onboarding_hidden_body">عندما تلتقط صورة أو فيديو، يحفظ هاتفك بصمت معلومات إضافية داخل الملف. وقد يتمكن أي شخص ترسل إليه الملف من قراءتها.</string>
     <string name="onboarding_hidden_location">قد تكشف مكان وجودك، وأحيانًا بدقة تكفي للعثور على منزلك.</string>
     <string name="onboarding_hidden_time">قد تكشف تاريخ التقاطها ووقته.</string>
     <string name="onboarding_hidden_device">قد تكشف الهاتف أو الكاميرا التي استخدمتها.</string>
-    <string name="onboarding_private_title">ملفاتك لا تغادر هاتفك أبدًا.</string>
+    <string name="onboarding_private_title">صورك ومقاطع الفيديو لا تغادر هاتفك أبدًا.</string>
     <string name="onboarding_private_body">يُنجز Redact كل عمله هنا على هاتفك. يحفظ نسخة نظيفة لتشاركها ويترك ملفك الأصلي كما هو تمامًا.</string>
     <string name="onboarding_private_offline">لا يتم تحميل أي شيء، لذا تبقى صورك ومقاطع الفيديو خاصة.</string>
     <string name="onboarding_private_no_ads">لا توجد إعلانات، ولا شيء يتتبع ما تفعله.</string>

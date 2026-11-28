@@ -1,6 +1,6 @@
 <b>Deine Fotos können verraten, wo du wohnst.</b>
 Jedes Foto und Video kann den genauen GPS-Standort, Datum und Uhrzeit sowie Hersteller und Modell deines Handys enthalten. Jeder, dem du die Originaldatei schickst, kann das auslesen.
-Redact entfernt Metadaten und EXIF-Daten. Es zeigt, was eine Datei verrät, und entfernt es, komplett auf deinem Gerät.
+Redact entfernt Metadaten und EXIF-Daten. Es zeigt, was ein Foto oder Video verrät, und entfernt es, komplett auf deinem Gerät.
 Kein Konto, keine Uploads und keine Werbung.
 
 <b>Für wen ist Redact?</b>
