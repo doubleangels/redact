@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
+        <item>Verdecke Teile Eines Videos</item>
+        <item>Verdecke, was Sich Bewegt</item>
         <item>Wähle eine Voreinstellung fürs Bereinigen</item>
         <item>Empfiehl Redact Weiter</item>
         <item>Sieh nach Jedem Update, was Neu Ist</item>
+        <item>Verschieb die Werkzeugleiste</item>
     </string-array>
     <string-array name="whats_new_bodies">
+        <item>Zensieren öffnet jetzt auch Videos. Zieh ein Rechteck über alles Private, leg auf der Zeitleiste fest, wann es beginnt und endet, und speichere eine verpixelte, verwischte oder geschwärzte Kopie ohne Metadaten.</item>
+        <item>Wähle einen Bereich im Video, schalte Bewegt Sich ein und verschieb ihn zu einem anderen Zeitpunkt. Redact gleitet zwischen deinen Positionen, sodass ein Gesicht oder Kennzeichen verdeckt bleibt.</item>
         <item>Sag Redact, wofür die Fotos sind, etwa zum Senden an Bekannte oder um sie für dich zu behalten, und es stellt die Optionen für dich ein. Du findest Voreinstellung oben unter Einstellungen › Metadaten-Bereinigung oder als ersten Chip im Tab Bereinigen.</item>
         <item>Einstellungen › Über › Redact Weiterempfehlen öffnet das Teilen-Menü mit einer kurzen Nachricht und dem Google-Play-Link. Du kannst sie vor dem Senden ändern, und es wird nie ein Foto oder eine Datei angehängt.</item>
         <item>Nach einem Update erklärt dieser Bildschirm einmal, was sich geändert hat. Du kannst ihn jederzeit unter Einstellungen › Über › Neuigkeiten wieder öffnen.</item>
+        <item>Zieh am Griff links in der Werkzeugleiste von Zensieren, um sie irgendwo über das Foto oder Video zu legen. Tippe doppelt auf den Griff, um sie wieder nach unten zu setzen.</item>
     </string-array>
 </resources>

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
+        <item>遮蔽影片的部分內容</item>
+        <item>持續遮蔽移動的內容</item>
         <item>依用途選擇清理預設組合</item>
         <item>向朋友推薦 Redact</item>
         <item>每次更新後了解新功能</item>
+        <item>把工具列移開</item>
     </string-array>
     <string-array name="whats_new_bodies">
+        <item>遮蔽現在除了照片也能開啟影片。在任何隱私內容上畫一個矩形，在時間軸上設定它的開始和結束時間，然後儲存一份加上馬賽克、模糊或塗黑且不含中繼資料的副本。</item>
+        <item>在影片中選取一個區域，開啟「會移動」，然後在另一個時間點移動它。Redact 會在你設定的位置之間平滑移動它，讓人臉或車牌在移動時也維持遮蔽。</item>
         <item>告訴 Redact 這些相片的用途，例如傳給認識的人或留給自己，它就會幫你設定好選項。預設組合位於「設定 › 中繼資料清理」頂端，也可以輕觸「清理」分頁的第一個標籤。</item>
         <item>「設定 › 關於 › 推薦 Redact 給朋友」會開啟分享選單，附上一段簡短訊息和 Google Play 連結。傳送前可以編輯，絕不會附加任何相片或檔案。</item>
         <item>更新後，這個畫面會說明一次有哪些變更。你可以隨時從「設定 › 關於 › 新功能」再次開啟。</item>
+        <item>拖曳遮蔽工具列左側的控點，可把它放在照片或影片上方的任何位置。輕觸兩下控點即可讓它回到底部。</item>
     </string-array>
 </resources>

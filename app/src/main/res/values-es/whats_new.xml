@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="whats_new_titles">
+        <item>Tapa Partes de un Vídeo</item>
+        <item>Sigue Tapando lo que se Mueve</item>
         <item>Elige un Ajuste Predefinido para Limpiar</item>
         <item>Recomienda Redact a un Amigo</item>
         <item>Descubre las Novedades tras Cada Actualización</item>
+        <item>Aparta la Barra de Herramientas</item>
     </string-array>
     <string-array name="whats_new_bodies">
+        <item>Censurar ahora abre vídeos además de fotos. Dibuja un rectángulo sobre lo privado, fija en la línea de tiempo cuándo empieza y termina, y guarda una copia pixelada, desenfocada o tapada en negro, sin metadatos.</item>
+        <item>Elige un área de un vídeo, activa Se Mueve y muévela en otro momento. Redact la desliza suavemente entre los puntos que fijes, para que una cara o una matrícula sigan tapadas mientras se mueven.</item>
         <item>Dile a Redact para qué son las fotos, como enviarlas a gente que conoces o guardarlas para ti, y él ajusta las opciones por ti. Encontrarás Ajuste Predefinido arriba en Configuración › Limpieza de Metadatos, o en el primer chip de la pestaña Limpiar.</item>
         <item>Configuración › Acerca de › Recomendar Redact a un Amigo abre el menú de compartir con un mensaje corto y el enlace de Google Play. Puedes editarlo antes de enviarlo y nunca se adjunta ninguna foto ni archivo.</item>
         <item>Tras una actualización, esta pantalla explica una vez qué ha cambiado. Puedes volver a abrirla cuando quieras en Configuración › Acerca de › Novedades.</item>
+        <item>Arrastra el asa a la izquierda de la barra de Censurar para ponerla en cualquier parte sobre la foto o el vídeo. Toca dos veces el asa para devolverla abajo.</item>
     </string-array>
 </resources>
