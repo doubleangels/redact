@@ -56,26 +56,26 @@ public class VideoCensorEffectTest {
                 CensorRegion.rect(0.5f, 0.5f, 0.9f, 0.9f), 2_000_000L, 3_000_000L);
         VideoCensorEffect effect = new VideoCensorEffect(
                 List.of(first, second), CensorEffects.Effect.BLUR, 33_333L, new Random(1));
-        List<VideoCensorLayout.Area> areas = effect.layOut(1280, 720);
+        List<VideoCensorLayout.Track> areas = effect.tracks(1280, 720);
         assertEquals(2, areas.size());
 
-        assertTrue(effect.covers(areas.get(0), 500_000L));
-        assertFalse(effect.covers(areas.get(1), 500_000L));
+        assertTrue(effect.covers(areas.get(0).regionIndex, 500_000L));
+        assertFalse(effect.covers(areas.get(1).regionIndex, 500_000L));
         // Neither covers the gap between them.
-        assertFalse(effect.covers(areas.get(0), 1_500_000L));
-        assertFalse(effect.covers(areas.get(1), 1_500_000L));
+        assertFalse(effect.covers(areas.get(0).regionIndex, 1_500_000L));
+        assertFalse(effect.covers(areas.get(1).regionIndex, 1_500_000L));
         // The frame on screen when the second range starts is covered.
-        assertTrue(effect.covers(areas.get(1), 1_980_000L));
-        assertTrue(effect.covers(areas.get(1), 3_000_000L));
-        assertFalse(effect.covers(areas.get(1), 3_000_001L));
+        assertTrue(effect.covers(areas.get(1).regionIndex, 1_980_000L));
+        assertTrue(effect.covers(areas.get(1).regionIndex, 3_000_000L));
+        assertFalse(effect.covers(areas.get(1).regionIndex, 3_000_001L));
     }
 
     @Test
     public void layOut_drawsFreshNoiseEachTime() {
         VideoCensorEffect effect = new VideoCensorEffect(
                 List.of(VideoCensorRegion.wholeVideo(RECT)), CensorEffects.Effect.PIXELATE, 33_333L, new Random(2));
-        int[] once = effect.layOut(1280, 720).get(0).noise();
-        int[] again = effect.layOut(1280, 720).get(0).noise();
+        int[] once = effect.tracks(1280, 720).get(0).at(0L).noise();
+        int[] again = effect.tracks(1280, 720).get(0).at(0L).noise();
         assertFalse(java.util.Arrays.equals(once, again));
     }
 
@@ -83,6 +83,6 @@ public class VideoCensorEffectTest {
     public void defaultConstructor_usesSecureNoise() {
         VideoCensorEffect effect = new VideoCensorEffect(
                 List.of(VideoCensorRegion.wholeVideo(RECT)), CensorEffects.Effect.PIXELATE, 33_333L);
-        assertEquals(1, effect.layOut(1280, 720).size());
+        assertEquals(1, effect.tracks(1280, 720).size());
     }
 }

@@ -95,12 +95,10 @@ public class VideoCensorMotionTest {
     }
 
     @Test
-    public void timesAndRounding_keepTheMotion_butANewAreaDropsIt() {
+    public void rounding_keepsTheMotion() {
         VideoCensorRegion region = sliding();
-        assertTrue(region.withTimes(500_000L, 4_000_000L).moves());
-        assertEquals(region.keyframes(), region.withTimes(500_000L, 4_000_000L).keyframes());
         assertEquals(region.keyframes(), region.roundedOutward(33_333L).keyframes());
-        assertFalse(region.withArea(RIGHT).moves());
+        assertTrue(region.roundedOutward(33_333L).moves());
     }
 
     @Test

@@ -102,22 +102,6 @@ public class VideoCensorRegionTest {
     }
 
     @Test
-    public void with_changesOnlyWhatItSays() {
-        VideoCensorRegion region = VideoCensorRegion.of(RECT, 10L, 20L);
-        CensorRegion other = CensorRegion.rect(0.5f, 0.5f, 0.9f, 0.9f);
-        VideoCensorRegion moved = region.withArea(other);
-        assertEquals(other, moved.area());
-        assertEquals(10L, moved.startUs());
-        assertEquals(20L, moved.endUs());
-        assertSame(region, region.withArea(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.3f)));
-
-        VideoCensorRegion retimed = region.withTimes(30L, 40L);
-        assertEquals(RECT, retimed.area());
-        assertEquals(30L, retimed.startUs());
-        assertEquals(40L, retimed.endUs());
-    }
-
-    @Test
     public void equality_coversTheAreaAndTimes() {
         VideoCensorRegion a = VideoCensorRegion.of(RECT, 10L, 20L);
         VideoCensorRegion b = VideoCensorRegion.of(CensorRegion.rect(0.1f, 0.1f, 0.4f, 0.3f), 20L, 10L);

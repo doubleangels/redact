@@ -58,16 +58,19 @@ public final class VideoCensorEffect implements GlEffect {
         this.random = random;
     }
 
+    @VisibleForTesting
     @NonNull
     public List<VideoCensorRegion> regions() {
         return regions;
     }
 
+    @VisibleForTesting
     @NonNull
     public CensorEffects.Effect defaultEffect() {
         return defaultEffect;
     }
 
+    @VisibleForTesting
     public long frameDurationUs() {
         return frameDurationUs;
     }
@@ -90,12 +93,6 @@ public final class VideoCensorEffect implements GlEffect {
         return true;
     }
 
-    /** Lays out the areas for frames of {@code width} x {@code height}, with fresh noise. */
-    @NonNull
-    List<VideoCensorLayout.Area> layOut(int width, int height) {
-        return VideoCensorLayout.layOut(regions, defaultEffect, width, height, random);
-    }
-
     /**
      * Tracks every area over frames of {@code width} x {@code height}, with fresh noise; a moving
      * area is padded by how far it travels while a frame shows.
@@ -103,11 +100,6 @@ public final class VideoCensorEffect implements GlEffect {
     @NonNull
     List<VideoCensorLayout.Track> tracks(int width, int height) {
         return VideoCensorLayout.tracks(regions, defaultEffect, width, height, frameDurationUs, random);
-    }
-
-    /** Whether {@code area} covers the frame at {@code presentationTimeUs}. */
-    boolean covers(@NonNull VideoCensorLayout.Area area, long presentationTimeUs) {
-        return covers(area.regionIndex, presentationTimeUs);
     }
 
     /** Whether the area at {@code regionIndex} covers the frame at {@code presentationTimeUs}. */

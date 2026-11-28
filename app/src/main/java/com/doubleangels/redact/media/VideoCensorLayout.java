@@ -2,6 +2,7 @@ package com.doubleangels.redact.media;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -244,6 +245,7 @@ public final class VideoCensorLayout {
      * order, each with its own effect or {@code defaultEffect}, at the start of the video. Noise
      * comes from {@code random}.
      */
+    @VisibleForTesting
     @NonNull
     public static List<Area> layOut(@NonNull List<VideoCensorRegion> regions,
                                     @NonNull CensorEffects.Effect defaultEffect,

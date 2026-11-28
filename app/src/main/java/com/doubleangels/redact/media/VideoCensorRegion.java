@@ -1,6 +1,7 @@
 package com.doubleangels.redact.media;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,20 +116,9 @@ public final class VideoCensorRegion {
         return endUs;
     }
 
+    @VisibleForTesting
     public boolean coversWholeVideo() {
         return startUs == 0L && endUs == END_OF_VIDEO;
-    }
-
-    /** The same time range over {@code newArea}, staying put there. */
-    @NonNull
-    public VideoCensorRegion withArea(@NonNull CensorRegion newArea) {
-        return newArea.equals(area) && !moves() ? this : of(newArea, startUs, endUs);
-    }
-
-    /** The same area, moving the same way, over a new time range. */
-    @NonNull
-    public VideoCensorRegion withTimes(long newStartUs, long newEndUs) {
-        return of(area, newStartUs, newEndUs).withKeyframes(keyframes);
     }
 
     /**
