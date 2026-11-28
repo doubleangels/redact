@@ -11,6 +11,7 @@ Plans for features that aren't built yet. Each one lists its phases, what's done
 | [Video Tracking](video-tracking.md) | Track a drawn area through a video and suggest faces, on the phone | Large | Planned |
 | [Audio Cleaning](audio-cleaning.md) | Clean and Scan voice memos and music files | Medium | Planned |
 | [PDF Cleaning](pdf-cleaning.md) | Clean or Flatten PDFs, removing names, revisions and image data | Large | Planned |
+| [More Formats](more-formats.md) | Keep DNG raw photos as DNG, open TIFF, and test more video containers | Medium to large | Planned |
 
 Audio Cleaning and PDF Cleaning share the `MediaKind` refactor. Whichever ships first does it.
 
