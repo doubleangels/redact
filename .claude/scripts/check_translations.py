@@ -45,6 +45,8 @@ REVIEWED_SAME_AS_ENGLISH = {
     "de:whats_new_version", "fr:whats_new_version",
     # "Keyframe" is the German video editing term.
     "de:censor_keyframe_count",
+    # "Personal" is the Spanish word too.
+    "es:clean_preset_keeping",
     "de:content_description_selected_video", "it:content_description_selected_video",
     "de:convert_item_type_video", "de:settings_output_videos",
     "de:scan_section_details", "de:settings_about_version",
