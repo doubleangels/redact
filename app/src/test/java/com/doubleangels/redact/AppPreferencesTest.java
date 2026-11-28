@@ -208,6 +208,15 @@ public class AppPreferencesTest {
     }
 
     @Test
+    public void whatsNewSeenVersion_roundTrips_andResetAllKeepsIt() {
+        assertEquals(0, AppPreferences.getWhatsNewSeenVersion(context));
+        AppPreferences.setWhatsNewSeenVersion(context, 45);
+        assertEquals(45, AppPreferences.getWhatsNewSeenVersion(context));
+        AppPreferences.resetAll(context);
+        assertEquals(45, AppPreferences.getWhatsNewSeenVersion(context));
+    }
+
+    @Test
     public void onboarding_isUnseenByDefault_andResetAllKeepsItSeen() {
         assertFalse(AppPreferences.hasSeenOnboarding(context));
 

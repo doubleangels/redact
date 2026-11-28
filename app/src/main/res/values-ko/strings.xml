@@ -122,6 +122,18 @@
     
     <string name="settings_section_advanced_privacy">메타데이터 정리</string>
     <string name="settings_advanced_privacy_subtitle">Redact가 정리 탭에서 위치 및 카메라 세부 정보(EXIF)와 같은 숨겨진 정보를 제거하는 방법. 다른 앱에서 공유된 파일은 전달 전에 항상 이 정보가 제거됩니다.</string>
+    <string name="settings_clean_preset">프리셋</string>
+    <string name="settings_clean_preset_subtitle">파일을 어디에 쓸지에 맞춰 아래 옵션을 한 번에 설정합니다. 설정한 뒤에도 각각 바꿀 수 있어요.</string>
+    <string name="clean_preset_chip_description">프리셋: %1$s. 탭하여 변경합니다.</string>
+    <string name="clean_preset_standard">공개</string>
+    <string name="clean_preset_standard_description">위치, 날짜, 기기 정보 등 사진이 제대로 보이는 데 필요 없는 정보를 모두 지웁니다. SNS, 중고 거래 앱처럼 모르는 사람이 보는 곳에 가장 좋습니다. 기본값입니다.</string>
+    <string name="clean_preset_sending">친구</string>
+    <string name="clean_preset_sending_description">위치와 기기 정보는 지우고 사진을 찍은 날짜만 남겨, 상대방 갤러리에서 제자리에 정리되게 합니다.</string>
+    <string name="clean_preset_keeping">개인</string>
+    <string name="clean_preset_keeping_description">날짜, 카메라 정보, 모션 포토를 남기고 위치는 동네 수준으로 대략 맞춥니다. 백업이나 완전히 믿기 어려운 클라우드 저장소에 알맞습니다.</string>
+    <string name="clean_preset_custom">사용자 지정</string>
+    <string name="clean_preset_custom_description">옵션이 어떤 프리셋과도 맞지 않습니다.</string>
+    <string name="clean_preset_apply">적용</string>
     <string name="settings_auto_clear_temp">시작 시 캐시 지우기</string>
     <string name="settings_auto_clear_temp_subtitle">앱을 열 때 24시간보다 오래된 처리 캐시 파일을 제거합니다.</string>
     <string name="settings_preserve_camera">카메라 설정 유지</string>
@@ -206,6 +218,9 @@
     <string name="settings_about_report_issue">문제 신고</string>
     <string name="settings_about_donate">기부</string>
     <string name="settings_about_rate">Google Play에서 Redact 평가하기</string>
+    <string name="settings_about_tell_friend">친구에게 Redact 알려 주기</string>
+    <string name="tell_friend_chooser_title">Redact 공유</string>
+    <string name="tell_friend_message">사진과 동영상을 공유하기 전에 Redact로 위치나 카메라 모델 같은 숨은 정보를 지워요. 광고도 구독도 없으며 휴대전화 안에서만 작동해요. %1$s</string>
     <string name="settings_link_unavailable">이 링크를 열 앱을 찾을 수 없습니다.</string>
     <string name="settings_progress_notifications_label">진행 중 작업 진행률</string>
     <string name="settings_progress_notifications_subtitle">긴 작업 중 진행 상황을 보여주는 지속 알림. 알림 허용을 켤 때까지 기본적으로 꺼져 있습니다.</string>
@@ -236,6 +251,7 @@
     <string name="scan_clean_this_file">이 파일 정리</string>
     <string name="scan_convert_this_file">이 파일 변환</string>
     <string name="scan_censor_this_photo">이 사진 일부 가리기</string>
+    <string name="scan_censor_this_video">이 동영상 일부 가리기</string>
     <string name="scan_copied_to_clipboard">클립보드에 복사됨</string>
     <string name="scan_copy_value">값 복사</string>
     <string name="scan_copy_all_metadata">모든 메타데이터 복사</string>
@@ -395,8 +411,8 @@
     <string name="settings_reset_all_done">설정을 기본값으로 초기화했습니다.</string>
     <string name="settings_reset_all_busy">처리 중에는 설정을 초기화할 수 없습니다.</string>
     <string name="censor_empty_state_title">비공개로 남겨야 할 부분 가리기</string>
-    <string name="censor_empty_state_description">사진 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
-    <string name="censor_select_photo">사진 선택</string>
+    <string name="censor_empty_state_description">사진이나 동영상 속 얼굴, 번호판, 주소 등 무엇이든 모자이크, 검게 칠하기, 흐리게 하기로 가릴 수 있습니다. Redact는 메타데이터가 전혀 없는 사본을 저장하며, 원본은 그대로 유지됩니다.</string>
+    <string name="censor_select_photo">사진 또는 동영상 선택</string>
     <string name="censor_hint">비공개로 남겨야 할 부분 위에 그린 다음 사본 저장을 탭하세요. 두 손가락으로 확대/축소하고 위치를 옮길 수 있습니다. 사각형을 끌어서 옮기고, 탭하면 핸들로 크기를 바꿀 수 있습니다. 자르기를 사용하면 사진의 일부만 남길 수 있습니다.</string>
     <string name="censor_canvas_description">편집 중인 사진입니다. 한 손가락으로 그려 영역을 가립니다. 두 손가락으로 확대/축소하고 위치를 옮길 수 있습니다.</string>
     <string name="censor_tool_rectangle">사각형</string>
@@ -412,6 +428,9 @@
     <string name="censor_delete_rectangle">사각형 삭제</string>
     <string name="censor_reset_crop">자르기 초기화</string>
     <string name="censor_add_area">영역 추가</string>
+    <string name="censor_toolbar_move">도구 모음 이동</string>
+    <string name="censor_toolbar_move_top">도구 모음을 위로 이동</string>
+    <string name="censor_toolbar_move_bottom">도구 모음을 아래로 이동</string>
     <string name="censor_area_description">가린 영역 %2$d개 중 %1$d번째</string>
     <string name="censor_crop_description">자르기: 사본에 남길 사진 부분</string>
     <string name="censor_crop_whole_description">자르기: 사진 전체</string>
@@ -432,6 +451,18 @@
     <string name="censor_file_name">%1$s (가림)</string>
     <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
     <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
+    <string name="censor_video_position">동영상 내 위치</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">영역 %1$d의 시간 범위</string>
+    <string name="censor_whole_video">동영상 전체</string>
+    <string name="censor_area_moves">움직임</string>
+    <string name="censor_previous_keyframe">이전 키프레임</string>
+    <string name="censor_next_keyframe">다음 키프레임</string>
+    <string name="censor_delete_keyframe">키프레임 삭제</string>
+    <string name="censor_keyframe_count">키프레임: %1$d</string>
+    <string name="censor_error_open_video">이 동영상을 열 수 없습니다.</string>
+    <string name="censor_error_unsupported_video">이 기기에서는 이 유형의 동영상을 검열할 수 없습니다.</string>
     <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>
     <string name="censor_discard_title">변경사항을 삭제할까요?</string>
     <string name="censor_discard_message">가린 영역이 저장되지 않았습니다.</string>
@@ -494,6 +525,13 @@
     </plurals>
     <string name="settings_about_intro">소개 다시 보기</string>
     <string name="settings_about_licenses">오픈 소스 라이선스</string>
+    <string name="settings_about_whats_new">새로운 기능</string>
+    <string name="whats_new_title">새로운 기능</string>
+    <string name="whats_new_version">버전 %1$s</string>
+    <string name="whats_new_section_new">새 기능</string>
+    <string name="whats_new_section_improved">개선</string>
+    <string name="whats_new_section_fixed">수정</string>
+    <string name="whats_new_done">확인</string>
     <string name="licenses_title">오픈 소스 라이선스</string>
     <string name="licenses_intro">Redact는 다음 오픈 소스 라이브러리로 만들어졌습니다. 항목을 탭하면 라이선스를 볼 수 있습니다.</string>
     <string name="licenses_project_page">프로젝트 페이지</string>

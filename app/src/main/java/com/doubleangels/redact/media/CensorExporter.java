@@ -55,6 +55,15 @@ public final class CensorExporter {
             this.downscaled = downscaled;
             this.stats = stats;
         }
+
+        /**
+         * A censored video saved by {@link VideoCensorExporter}: its own export warns when it
+         * had to come out smaller, and it reads no tags to count.
+         */
+        @NonNull
+        public static Result ofVideo(@NonNull Uri uri) {
+            return new Result(uri, false, null);
+        }
     }
 
     private CensorExporter() {

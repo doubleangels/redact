@@ -327,7 +327,22 @@ public class CensorCanvasView extends View {
      * area with another effect, is still there.
      */
     public void setRegions(@NonNull List<CensorRegion> current) {
+        setRegions(current, false);
+    }
+
+    /**
+     * {@link #setRegions(List)}, and with {@code keepSelectedIndex} the selected rectangle stays
+     * selected when it only moved, as a video's moving area does when another frame shows: same
+     * number of areas, and a rectangle at its place in the list.
+     */
+    public void setRegions(@NonNull List<CensorRegion> current, boolean keepSelectedIndex) {
+        int previous = selectedIndex();
+        boolean sameCount = current.size() == regions.size();
         regions = new ArrayList<>(current);
+        if (keepSelectedIndex && sameCount && previous >= 0 && previous < regions.size()
+                && regions.get(previous).shape() == CensorRegion.Shape.RECT) {
+            selectedRegion = regions.get(previous);
+        }
         if (selectedRegion != null && !regions.contains(selectedRegion)) {
             // Its effect may have changed: it stays selected if the same area is still there.
             CensorRegion area = selectedRegion.withEffect(null);

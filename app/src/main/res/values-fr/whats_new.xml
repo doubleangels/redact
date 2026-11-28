@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>Masquez des Parties d\'une Vidéo</item>
+        <item>Masquez ce qui Bouge</item>
+        <item>Choisissez un Préréglage de Nettoyage</item>
+        <item>Recommandez Redact à un Ami</item>
+        <item>Découvrez les Nouveautés après Chaque Mise à Jour</item>
+        <item>Déplacez la Barre d\'Outils</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Censurer ouvre désormais les vidéos comme les photos. Tracez un rectangle sur ce qui est privé, réglez son début et sa fin sur la frise, puis enregistrez une copie pixellisée, floutée ou noircie, sans métadonnées.</item>
+        <item>Sélectionnez une zone d\'une vidéo, activez Se Déplace, puis déplacez-la à un autre moment. Redact la fait glisser entre les positions choisies, pour qu\'un visage ou une plaque reste masqué.</item>
+        <item>Dites à Redact à quoi servent les photos, par exemple les envoyer à des proches ou les garder pour vous, et il règle les options pour vous. Préréglage se trouve en haut de Paramètres › Nettoyage des Métadonnées, ou dans la première puce de l\'onglet Nettoyer.</item>
+        <item>Paramètres › À propos › Recommander Redact à un Ami ouvre le menu de partage avec un court message et le lien Google Play. Vous pouvez le modifier avant l\'envoi, et aucune photo ni aucun fichier n\'est jamais joint.</item>
+        <item>Après une mise à jour, cet écran explique une fois ce qui a changé. Vous pouvez le rouvrir à tout moment depuis Paramètres › À propos › Nouveautés.</item>
+        <item>Faites glisser la poignée à gauche de la barre de Censurer pour la placer n\'importe où sur la photo ou la vidéo. Touchez deux fois la poignée pour la remettre en bas.</item>
+    </string-array>
+</resources>

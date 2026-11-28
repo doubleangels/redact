@@ -122,6 +122,18 @@
     
     <string name="settings_section_advanced_privacy">元数据清理</string>
     <string name="settings_advanced_privacy_subtitle">Redact 如何在清理标签页移除隐藏信息，例如位置和相机详情（EXIF）。从其他应用分享的文件在转发前始终会移除这些信息。</string>
+    <string name="settings_clean_preset">预设</string>
+    <string name="settings_clean_preset_subtitle">根据你要如何使用这些文件，一次设置下方的选项。之后仍可单独更改。</string>
+    <string name="clean_preset_chip_description">预设：%1$s。点按即可更改。</string>
+    <string name="clean_preset_standard">公开</string>
+    <string name="clean_preset_standard_description">移除照片正常显示所不需要的一切，包括位置、日期和设备信息。最适合社交媒体、二手交易平台以及任何陌生人能看到的地方。默认设置。</string>
+    <string name="clean_preset_sending">好友</string>
+    <string name="clean_preset_sending_description">移除位置和设备信息，但保留每张照片的拍摄日期，让照片在对方的图库中排在正确的位置。</string>
+    <string name="clean_preset_keeping">私人</string>
+    <string name="clean_preset_keeping_description">保留日期、相机信息和动态照片，并将位置粗略到城镇。适合备份和不完全信任的云存储。</string>
+    <string name="clean_preset_custom">自定义</string>
+    <string name="clean_preset_custom_description">你的选项与任何预设都不符。</string>
+    <string name="clean_preset_apply">应用</string>
     <string name="settings_auto_clear_temp">启动时清除缓存</string>
     <string name="settings_auto_clear_temp_subtitle">打开应用时删除超过 24 小时的处理缓存文件。</string>
     <string name="settings_preserve_camera">保留相机设置</string>
@@ -206,6 +218,9 @@
     <string name="settings_about_report_issue">报告问题</string>
     <string name="settings_about_donate">捐赠</string>
     <string name="settings_about_rate">在 Google Play 上为 Redact 评分</string>
+    <string name="settings_about_tell_friend">推荐 Redact 给朋友</string>
+    <string name="tell_friend_chooser_title">分享 Redact</string>
+    <string name="tell_friend_message">我在分享照片和视频之前，会用 Redact 去掉位置、相机型号等隐藏信息。它没有广告，也无需订阅，全部在手机上完成。%1$s</string>
     <string name="settings_link_unavailable">未找到可打开此链接的应用。</string>
     <string name="settings_progress_notifications_label">进行中任务进度</string>
     <string name="settings_progress_notifications_subtitle">长时间任务期间显示进度的持续通知。默认关闭，需先开启允许通知。</string>
@@ -236,6 +251,7 @@
     <string name="scan_clean_this_file">清理此文件</string>
     <string name="scan_convert_this_file">转换此文件</string>
     <string name="scan_censor_this_photo">遮挡此照片的部分内容</string>
+    <string name="scan_censor_this_video">遮挡此视频的部分内容</string>
     <string name="scan_copied_to_clipboard">已复制到剪贴板</string>
     <string name="scan_copy_value">复制值</string>
     <string name="scan_copy_all_metadata">复制全部元数据</string>
@@ -395,8 +411,8 @@
     <string name="settings_reset_all_done">设置已恢复为默认值。</string>
     <string name="settings_reset_all_busy">处理过程中无法重置设置。</string>
     <string name="censor_empty_state_title">遮住应保持私密的内容</string>
-    <string name="censor_empty_state_description">为照片中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原图保持不变。</string>
-    <string name="censor_select_photo">选择照片</string>
+    <string name="censor_empty_state_description">为照片或视频中的人脸、车牌、地址等任何内容打码、涂黑或模糊处理。Redact 会保存一份不含任何元数据的遮挡副本，原文件保持不变。</string>
+    <string name="censor_select_photo">选择照片或视频</string>
     <string name="censor_hint">在需要保密的内容上绘制，然后点按“保存副本”。用双指缩放并移动画面。拖动矩形可移动它，点按矩形后可拖动控制点调整大小。选择“裁剪”可只保留照片的一部分。</string>
     <string name="censor_canvas_description">正在遮挡的照片。用一根手指绘制以遮挡区域。用双指缩放并移动画面。</string>
     <string name="censor_tool_rectangle">矩形</string>
@@ -412,6 +428,9 @@
     <string name="censor_delete_rectangle">删除矩形</string>
     <string name="censor_reset_crop">重置裁剪</string>
     <string name="censor_add_area">添加区域</string>
+    <string name="censor_toolbar_move">移动工具栏</string>
+    <string name="censor_toolbar_move_top">将工具栏移到顶部</string>
+    <string name="censor_toolbar_move_bottom">将工具栏移到底部</string>
     <string name="censor_area_description">遮盖区域 %1$d/%2$d</string>
     <string name="censor_crop_description">裁剪：副本保留的照片部分</string>
     <string name="censor_crop_whole_description">裁剪：整张照片</string>
@@ -432,6 +451,18 @@
     <string name="censor_file_name">%1$s（已遮盖）</string>
     <string name="censor_error_open">无法打开此照片。</string>
     <string name="censor_error_unsupported">此设备无法处理这种类型的图片。</string>
+    <string name="censor_video_position">视频中的位置</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">区域 %1$d 的时间范围</string>
+    <string name="censor_whole_video">整个视频</string>
+    <string name="censor_area_moves">会移动</string>
+    <string name="censor_previous_keyframe">上一个关键帧</string>
+    <string name="censor_next_keyframe">下一个关键帧</string>
+    <string name="censor_delete_keyframe">删除关键帧</string>
+    <string name="censor_keyframe_count">关键帧：%1$d</string>
+    <string name="censor_error_open_video">无法打开此视频。</string>
+    <string name="censor_error_unsupported_video">此设备无法遮挡此类视频。</string>
     <string name="censor_error_save">无法保存遮挡副本。</string>
     <string name="censor_discard_title">放弃更改？</string>
     <string name="censor_discard_message">你遮挡的区域尚未保存。</string>
@@ -494,6 +525,13 @@
     </plurals>
     <string name="settings_about_intro">再次查看介绍</string>
     <string name="settings_about_licenses">开源许可</string>
+    <string name="settings_about_whats_new">新功能</string>
+    <string name="whats_new_title">新功能</string>
+    <string name="whats_new_version">版本 %1$s</string>
+    <string name="whats_new_section_new">新增</string>
+    <string name="whats_new_section_improved">改进</string>
+    <string name="whats_new_section_fixed">修复</string>
+    <string name="whats_new_done">知道了</string>
     <string name="licenses_title">开源许可</string>
     <string name="licenses_intro">Redact 使用了以下开源库。点按任意一项即可查看其许可。</string>
     <string name="licenses_project_page">项目主页</string>

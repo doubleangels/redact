@@ -46,6 +46,7 @@ public final class CacheCleanup {
     private static final String GLIDE_DISK_CACHE_DIR = "image_manager_disk_cache";
     private static final String[] TEMP_PREFIXES = {
             "temp_", "verify_", "vid_transform_", "vid_transmux_", InboundSnapshots.PREFIX, "censored_",
+            "vid_censor_",
             // Copies of a picture, video or its tags made on the way to a clean file.
             "vid_keep_", "motion_", "gainmap_", "heif_body_", "heif_exif_", "png16_", "exif_carrier_",
             "xmp_"

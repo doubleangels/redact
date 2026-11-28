@@ -17,9 +17,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- The open photo: its summary card, the photo filling the space left, and its toolbar
-         under it. Not scrollable, so drawing on the photo never scrolls
-         the screen. -->
+    <!-- The open photo: its summary card, then the photo filling the space left with its toolbar
+         floating over it. Not scrollable, so drawing on the photo never scrolls the screen. -->
     <LinearLayout
         android:id="@+id/censorContent"
         android:layout_width="0dp"
@@ -43,13 +42,18 @@
             android:layout_marginTop="@dimen/spacing_small"
             android:layout_marginBottom="@dimen/spacing_medium" />
 
-        <include
-            layout="@layout/censor_canvas_card"
+        <!-- A video's timeline: above the photo, clear of the buttons in the bottom corner. -->
+        <include layout="@layout/censor_video_controls" />
+
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1">
 
-        <include layout="@layout/censor_toolbar" />
+            <include layout="@layout/censor_canvas_card" />
+
+            <include layout="@layout/censor_toolbar" />
+        </FrameLayout>
     </LinearLayout>
 
     <include layout="@layout/censor_actions" />

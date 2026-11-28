@@ -126,6 +126,18 @@
     
     <string name="settings_section_advanced_privacy">मेटाडेटा सफ़ाई</string>
     <string name="settings_advanced_privacy_subtitle">Redact छिपी हुई जानकारी, जैसे स्थान और कैमरा विवरण (EXIF), को साफ़ करें टैब पर कैसे हटाता है। अन्य ऐप्स से साझा की गई फ़ाइलों से यह जानकारी आगे भेजने से पहले हमेशा हटा दी जाती है।</string>
+    <string name="settings_clean_preset">प्रीसेट</string>
+    <string name="settings_clean_preset_subtitle">आप फ़ाइलों के साथ क्या करेंगे, उसके हिसाब से नीचे के विकल्प सेट करता है। आप अब भी इनमें से कोई भी बदल सकते हैं।</string>
+    <string name="clean_preset_chip_description">प्रीसेट: %1$s. बदलने के लिए टैप करें।</string>
+    <string name="clean_preset_standard">सार्वजनिक</string>
+    <string name="clean_preset_standard_description">फ़ोटो को सही दिखने के लिए जिसकी ज़रूरत नहीं, वह सब हटाता है, जिसमें जगह, तारीखें और डिवाइस की जानकारी शामिल है। सोशल मीडिया, मार्केटप्लेस और हर उस जगह के लिए सबसे अच्छा जहां अजनबी इसे देख सकते हैं। डिफ़ॉल्ट।</string>
+    <string name="clean_preset_sending">दोस्त</string>
+    <string name="clean_preset_sending_description">जगह और डिवाइस की जानकारी हटाता है, पर हर फ़ोटो किस दिन ली गई, वह रखता है, ताकि वह उनकी गैलरी में सही जगह दिखे।</string>
+    <string name="clean_preset_keeping">निजी</string>
+    <string name="clean_preset_keeping_description">तारीख, कैमरे की जानकारी और मोशन फ़ोटो रखता है, और जगह को शहर तक सीमित कर देता है। बैकअप और ऐसे क्लाउड स्टोरेज के लिए अच्छा जिस पर आपको पूरा भरोसा नहीं है।</string>
+    <string name="clean_preset_custom">कस्टम</string>
+    <string name="clean_preset_custom_description">आपके विकल्प किसी प्रीसेट से मेल नहीं खाते।</string>
+    <string name="clean_preset_apply">लागू करें</string>
     <string name="settings_auto_clear_temp">शुरू पर कैश साफ़ करें</string>
     <string name="settings_auto_clear_temp_subtitle">ऐप खोलने पर 24 घंटे से पुरानी प्रोसेसिंग कैश फ़ाइलें हटाता है।</string>
     <string name="settings_preserve_camera">कैमरा सेटिंग्स रखें</string>
@@ -210,6 +222,9 @@
     <string name="settings_about_report_issue">समस्या रिपोर्ट करें</string>
     <string name="settings_about_donate">दान करें</string>
     <string name="settings_about_rate">Google Play पर Redact को रेट करें</string>
+    <string name="settings_about_tell_friend">किसी दोस्त को Redact के बारे में बताएं</string>
+    <string name="tell_friend_chooser_title">Redact शेयर करें</string>
+    <string name="tell_friend_message">Redact मेरी फ़ोटो और वीडियो शेयर करने से पहले उनसे जगह और कैमरा मॉडल जैसी छिपी जानकारी हटा देता है। इसमें न विज्ञापन हैं, न सब्सक्रिप्शन और यह सीधे आपके फ़ोन पर काम करता है। %1$s</string>
     <string name="settings_link_unavailable">इस लिंक को खोलने के लिए कोई ऐप नहीं मिला।</string>
     <string name="settings_progress_notifications_label">चल रहे कार्य की प्रगति</string>
     <string name="settings_progress_notifications_subtitle">लंबे कार्यों के दौरान प्रगति वाली स्थायी सूचना। नोटिफ़िकेशन अनुमति चालू होने तक डिफ़ॉल्ट बंद।</string>
@@ -243,6 +258,7 @@
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
     <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>
+    <string name="scan_censor_this_video">इस वीडियो के हिस्से छिपाएँ</string>
     <string name="scan_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="scan_copy_value">मान कॉपी करें</string>
     <string name="scan_copy_all_metadata">सभी मेटाडेटा कॉपी करें</string>
@@ -409,8 +425,8 @@
     <string name="settings_reset_all_done">सेटिंग डिफ़ॉल्ट पर रीसेट हो गईं।</string>
     <string name="settings_reset_all_busy">प्रोसेसिंग चलते समय सेटिंग रीसेट नहीं की जा सकतीं।</string>
     <string name="censor_empty_state_title">जो निजी रहना चाहिए, उसे छिपाएँ</string>
-    <string name="censor_empty_state_description">फ़ोटो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ोटो जैसी है वैसी ही रहती है।</string>
-    <string name="censor_select_photo">फ़ोटो चुनें</string>
+    <string name="censor_empty_state_description">फ़ोटो या वीडियो में चेहरे, नंबर प्लेट, पते और कुछ भी पिक्सेलेट करें, काला करें या धुंधला करें। Redact बिना किसी मेटाडेटा के एक छिपाई गई कॉपी सहेजता है, और आपकी मूल फ़ाइल जैसी है वैसी ही रहती है।</string>
+    <string name="censor_select_photo">फ़ोटो या वीडियो चुनें</string>
     <string name="censor_hint">जो कुछ भी निजी रहना चाहिए उस पर बनाएँ, फिर कॉपी सहेजें पर टैप करें। ज़ूम करने और इधर-उधर जाने के लिए दो उंगलियों से पिंच करें। किसी आयत को खिसकाने के लिए उसे खींचें, और उसके हैंडल से आकार बदलने के लिए उस पर टैप करें। फ़ोटो का सिर्फ़ एक हिस्सा रखने के लिए क्रॉप का इस्तेमाल करें।</string>
     <string name="censor_canvas_description">फ़ोटो जिसके हिस्से छिपाए जा रहे हैं। किसी हिस्से को ढकने के लिए एक उंगली से बनाएँ। ज़ूम करने और इधर-उधर जाने के लिए दो उंगलियों से पिंच करें।</string>
     <string name="censor_tool_rectangle">आयत</string>
@@ -426,6 +442,9 @@
     <string name="censor_delete_rectangle">आयत हटाएँ</string>
     <string name="censor_reset_crop">क्रॉप रीसेट करें</string>
     <string name="censor_add_area">क्षेत्र जोड़ें</string>
+    <string name="censor_toolbar_move">टूलबार खिसकाएँ</string>
+    <string name="censor_toolbar_move_top">टूलबार ऊपर खिसकाएँ</string>
+    <string name="censor_toolbar_move_bottom">टूलबार नीचे खिसकाएँ</string>
     <string name="censor_area_description">छिपाया गया क्षेत्र %2$d में से %1$d</string>
     <string name="censor_crop_description">क्रॉप: फ़ोटो का वह हिस्सा जो कॉपी में रहेगा</string>
     <string name="censor_crop_whole_description">क्रॉप: पूरी फ़ोटो</string>
@@ -446,6 +465,18 @@
     <string name="censor_file_name">%1$s (छिपाया गया)</string>
     <string name="censor_error_open">यह फ़ोटो खोली नहीं जा सकी।</string>
     <string name="censor_error_unsupported">इस प्रकार की इमेज के हिस्से इस डिवाइस पर नहीं छिपाए जा सकते।</string>
+    <string name="censor_video_position">वीडियो में स्थिति</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">क्षेत्र %1$d की समय सीमा</string>
+    <string name="censor_whole_video">पूरा वीडियो</string>
+    <string name="censor_area_moves">चलता है</string>
+    <string name="censor_previous_keyframe">पिछला कीफ़्रेम</string>
+    <string name="censor_next_keyframe">अगला कीफ़्रेम</string>
+    <string name="censor_delete_keyframe">कीफ़्रेम हटाएँ</string>
+    <string name="censor_keyframe_count">कीफ़्रेम: %1$d</string>
+    <string name="censor_error_open_video">यह वीडियो खोला नहीं जा सका।</string>
+    <string name="censor_error_unsupported_video">इस डिवाइस पर इस तरह के वीडियो को सेंसर नहीं किया जा सकता।</string>
     <string name="censor_error_save">छिपाई गई कॉपी सहेजी नहीं जा सकी।</string>
     <string name="censor_discard_title">बदलाव छोड़ दें?</string>
     <string name="censor_discard_message">आपके ढके गए हिस्से सहेजे नहीं गए हैं।</string>
@@ -509,6 +540,13 @@
     </plurals>
     <string name="settings_about_intro">परिचय दिखाएं</string>
     <string name="settings_about_licenses">ओपन सोर्स लाइसेंस</string>
+    <string name="settings_about_whats_new">नया क्या है</string>
+    <string name="whats_new_title">नया क्या है</string>
+    <string name="whats_new_version">वर्शन %1$s</string>
+    <string name="whats_new_section_new">नया</string>
+    <string name="whats_new_section_improved">बेहतर</string>
+    <string name="whats_new_section_fixed">ठीक किया गया</string>
+    <string name="whats_new_done">ठीक है</string>
     <string name="licenses_title">ओपन सोर्स लाइसेंस</string>
     <string name="licenses_intro">Redact इन ओपन सोर्स लाइब्रेरी से बना है। किसी एक पर टैप करके उसका लाइसेंस पढ़ें।</string>
     <string name="licenses_project_page">प्रोजेक्ट पेज</string>

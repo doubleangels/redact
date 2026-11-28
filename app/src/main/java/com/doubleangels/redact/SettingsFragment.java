@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.icu.text.CompactDecimalFormat;
@@ -40,13 +41,18 @@ import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsSnapshot;
 import com.doubleangels.redact.stats.StatsStore;
+import com.doubleangels.redact.ui.CleanPresetConfirm;
 import com.doubleangels.redact.ui.CrashReportingPrompt;
 import com.doubleangels.redact.ui.FoldDialogs;
+import com.doubleangels.redact.ui.KeepLocationConfirm;
 import com.doubleangels.redact.ui.Notice;
 import com.doubleangels.redact.update.UpdateChecker;
+import com.doubleangels.redact.whatsnew.WhatsNew;
+import com.doubleangels.redact.whatsnew.WhatsNewActivity;
 import com.doubleangels.redact.ui.ReviewPrompt;
 import com.doubleangels.redact.ui.SecureWindow;
 import com.doubleangels.redact.ui.SwitchRows;
+import com.doubleangels.redact.ui.TellAFriend;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -110,6 +116,14 @@ public class SettingsFragment extends TabFragment {
     private MaterialSwitch switchAutoClearTemp;
     private MaterialSwitch switchVideoFallback;
     private MaterialAutoCompleteTextView dropdownClipboardClear;
+    /** The preset buttons, in {@link CleanPreset#choices()} order; null before the view exists. */
+    @Nullable
+    private MaterialButton[] presetButtons;
+    @Nullable
+    private TextView textPresetCustom;
+    /** Moves the preset to Custom or a match whenever any option changes, here or elsewhere. */
+    @Nullable
+    private SharedPreferences.OnSharedPreferenceChangeListener presetListener;
 
     private String[] imageFormatLabels;
     private String[] videoFormatLabels;
@@ -147,6 +161,7 @@ public class SettingsFragment extends TabFragment {
             bindStorage(view);
             bindPrivacy(view);
             bindAdvancedSettings();
+            bindCleanPreset(view);
             bindAbout(view);
             SwitchRows.wire(view);
         } catch (Exception e) {
@@ -191,15 +206,80 @@ public class SettingsFragment extends TabFragment {
             switchPreserveCamera.setChecked(AppPreferences.isPreserveCameraSettings(context));
             switchPreserveLocation.setChecked(AppPreferences.isPreserveLocation(context));
             switchPreserveDate.setChecked(AppPreferences.isPreserveDateTaken(context));
+            switchApproximateLocation.setChecked(AppPreferences.isApproximateLocation(context));
+            switchDateOnly.setChecked(AppPreferences.isDateOnly(context));
+            switchPreserveMotion.setChecked(AppPreferences.isPreserveMotionPhoto(context));
             switchRemoveAudio.setChecked(AppPreferences.isRemoveAudio(context));
         } finally {
             suppressPreserveLocationToggleCallback = false;
         }
         updatePreservationTogglesState(AppPreferences.isStrictClean(context));
+        refreshCleanPreset();
+    }
+
+    private static final int[] PRESET_BUTTON_IDS = {
+            R.id.buttonPresetStandard, R.id.buttonPresetSending, R.id.buttonPresetKeeping};
+
+    /**
+     * The preset buttons above the cleaning switches. Tapping one asks first (what it does, and
+     * the location warning for one that keeps a location); Apply writes its options and flips the
+     * switches, Cancel leaves everything as it was.
+     */
+    private void bindCleanPreset(@NonNull View view) {
+        CleanPreset[] choices = CleanPreset.choices();
+        MaterialButton[] buttons = new MaterialButton[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            buttons[i] = view.findViewById(PRESET_BUTTON_IDS[i]);
+            if (buttons[i] == null) {
+                return;
+            }
+            CleanPreset preset = choices[i];
+            // The checked button comes from the preferences, never from a restored state or a tap.
+            buttons[i].setSaveEnabled(false);
+            buttons[i].setOnClickListener(v -> {
+                refreshCleanPreset();
+                pickCleanPreset(preset);
+            });
+        }
+        presetButtons = buttons;
+        textPresetCustom = view.findViewById(R.id.textPresetCustom);
+        refreshCleanPreset();
+        Context context = requireContext();
+        presetListener = (prefs, key) -> refreshCleanPreset();
+        context.getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+                .registerOnSharedPreferenceChangeListener(presetListener);
+    }
+
+    private void pickCleanPreset(@NonNull CleanPreset preset) {
+        Context context = requireContext();
+        if (preset == CleanPresets.current(context)) {
+            return;
+        }
+        CleanPresetConfirm.ask(context, preset, this::refreshCleaningSwitches);
+    }
+
+    /** Checks the button of the preset the saved options match; none, with a note, for Custom. */
+    private void refreshCleanPreset() {
+        if (presetButtons == null || getContext() == null) {
+            return;
+        }
+        CleanPreset current = CleanPresets.current(requireContext());
+        CleanPreset[] choices = CleanPreset.choices();
+        for (int i = 0; i < choices.length; i++) {
+            presetButtons[i].setChecked(choices[i] == current);
+        }
+        if (textPresetCustom != null) {
+            textPresetCustom.setVisibility(current == CleanPreset.CUSTOM ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override
     public void onDestroyView() {
+        if (presetListener != null) {
+            requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+                    .unregisterOnSharedPreferenceChangeListener(presetListener);
+            presetListener = null;
+        }
         if (backgroundExecutor != null) {
             backgroundExecutor.shutdown();
             backgroundExecutor = null;
@@ -410,18 +490,13 @@ public class SettingsFragment extends TabFragment {
                 suppressPreserveLocationToggleCallback = true;
                 switchPreserveLocation.setChecked(false);
                 suppressPreserveLocationToggleCallback = false;
-                FoldDialogs.place(new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.settings_preserve_location_confirm_title)
-                        .setMessage(R.string.settings_preserve_location_confirm_message)
-                        .setPositiveButton(android.R.string.ok, (d, w) -> {
-                            AppPreferences.setPreserveLocation(requireContext(), true);
-                            suppressPreserveLocationToggleCallback = true;
-                            switchPreserveLocation.setChecked(true);
-                            suppressPreserveLocationToggleCallback = false;
-                            updateKeepSubOptions();
-                        })
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show());
+                KeepLocationConfirm.ask(requireContext(), () -> {
+                    AppPreferences.setPreserveLocation(requireContext(), true);
+                    suppressPreserveLocationToggleCallback = true;
+                    switchPreserveLocation.setChecked(true);
+                    suppressPreserveLocationToggleCallback = false;
+                    updateKeepSubOptions();
+                });
             } else {
                 AppPreferences.setPreserveLocation(requireContext(), false);
                 updateKeepSubOptions();
@@ -860,6 +935,12 @@ public class SettingsFragment extends TabFragment {
                 openUrl(getString(R.string.url_privacy_policy)));
         view.findViewById(R.id.rowAboutTerms).setOnClickListener(v ->
                 openUrl(getString(R.string.url_terms_of_use)));
+        // Only while the shipped notes are for this version; others are never shown.
+        boolean notes = WhatsNew.isForThisVersion(requireContext());
+        view.findViewById(R.id.rowAboutWhatsNew).setVisibility(notes ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.dividerAboutWhatsNew).setVisibility(notes ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.rowAboutWhatsNew).setOnClickListener(v ->
+                startActivity(WhatsNewActivity.fromSettings(requireContext())));
         view.findViewById(R.id.rowAboutLicenses).setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), LicensesActivity.class)));
         view.findViewById(R.id.rowAboutIntro).setOnClickListener(v ->
@@ -869,6 +950,8 @@ public class SettingsFragment extends TabFragment {
                 openUrl(getString(R.string.url_report_issue)));
         view.findViewById(R.id.rowAboutRate).setOnClickListener(v ->
                 ReviewPrompt.openStoreListing(requireContext()));
+        view.findViewById(R.id.rowAboutTellFriend).setOnClickListener(v ->
+                TellAFriend.share(requireContext()));
         view.findViewById(R.id.rowAboutDonate).setOnClickListener(v ->
                 openUrl(getString(R.string.url_donate)));
         view.findViewById(R.id.rowResetSettings).setOnClickListener(v ->

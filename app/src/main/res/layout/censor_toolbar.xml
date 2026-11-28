@@ -1,124 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The editor's tools, in one row under the photo so they cover none of it: Rectangle, Brush, Move
-     and Crop, then Pixelate, Blur and Black for the areas covered next (and for the selected
-     rectangle), then Add Area, which shows only while an accessibility service is on. The row
-     scrolls sideways when it does not fit, as with a large font or Add Area on a small phone. -->
+<!-- The editor's tools, in one row that floats over the photo: a square handle on the left that
+     drags it anywhere (FloatingToolbar), then Rectangle, Brush, Move and Crop, then Pixelate, Blur
+     and Black for the areas covered next (and for the selected rectangle), then Add Area, which
+     shows only while an accessibility service is on. The tools scroll sideways when they do not
+     fit, as with Add Area on a small phone; the handle stays put. The layer has almost no side
+     padding, so on a phone like a Pixel 10 Pro the handle and every tool fit without scrolling.
+     The card is placed from the left in every language, as FloatingToolbar offsets it from there;
+     its row still mirrors for right-to-left languages. The layer it floats in covers the photo but
+     catches no touches, so drawing works wherever the row is not. It sits above the photo card's
+     elevation, so it is drawn, and touched, first. It cannot be a merge root: it carries the
+     layer's id, elevation and padding. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/censorToolbar"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="@dimen/spacing_small"
-    android:visibility="gone">
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:elevation="2dp"
+    android:paddingHorizontal="2dp"
+    android:paddingVertical="@dimen/spacing_small"
+    android:visibility="gone"
+    tools:ignore="MergeRootFrame">
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/censorToolbarCard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="top|left"
+        tools:ignore="RtlHardcoded"
         app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
         app:cardCornerRadius="24dp"
-        app:cardElevation="0dp"
+        app:cardElevation="4dp"
         app:strokeWidth="0dp">
 
-        <HorizontalScrollView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fadingEdgeLength="24dp"
-            android:overScrollMode="never"
-            android:requiresFadingEdge="horizontal"
-            android:scrollbars="none">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <LinearLayout
+            <!-- Drag to move the toolbar; double tap to put it back at the bottom. The whole height
+                 of the row can be grabbed; the square shows where. It sits in from the card's
+                 rounded end, so the curve never clips it. -->
+            <FrameLayout
+                android:id="@+id/censorToolbarGrip"
+                android:layout_width="@dimen/censor_toolbar_grip_width"
+                android:layout_height="@dimen/touch_target_min"
+                android:contentDescription="@string/censor_toolbar_move"
+                android:focusable="true"
+                android:paddingStart="8dp"
+                android:paddingEnd="2dp"
+                android:tooltipText="@string/censor_toolbar_move">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_toolbar_grip"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:padding="3dp"
+                    android:src="@drawable/ic_drag_indicator"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+            </FrameLayout>
+
+            <HorizontalScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:fadingEdgeLength="24dp"
+                android:overScrollMode="never"
+                android:requiresFadingEdge="horizontal"
+                android:scrollbars="none">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolRect"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_tool_rectangle"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_tool_rectangle"
-                    app:icon="@drawable/ic_rectangle" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolBrush"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_tool_brush"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_tool_brush"
-                    app:icon="@drawable/ic_brush" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorToolRect"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_tool_rectangle"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_tool_rectangle"
+                        app:icon="@drawable/ic_rectangle" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolMove"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_tool_move"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_tool_move"
-                    app:icon="@drawable/ic_pan" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorToolBrush"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_tool_brush"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_tool_brush"
+                        app:icon="@drawable/ic_brush" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorToolCrop"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_tool_crop"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_tool_crop"
-                    app:icon="@drawable/ic_crop" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorToolMove"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_tool_move"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_tool_move"
+                        app:icon="@drawable/ic_pan" />
 
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="1dp"
-                    android:layout_height="24dp"
-                    android:layout_marginHorizontal="@dimen/spacing_xsmall" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorToolCrop"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_tool_crop"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_tool_crop"
+                        app:icon="@drawable/ic_crop" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorEffectPixelate"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_effect_pixelate"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_effect_pixelate"
-                    app:icon="@drawable/ic_censor" />
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="1dp"
+                        android:layout_height="24dp"
+                        android:layout_marginHorizontal="@dimen/spacing_xsmall" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorEffectBlur"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_effect_blur"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_effect_blur"
-                    app:icon="@drawable/ic_effect_blur" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorEffectPixelate"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_effect_pixelate"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_effect_pixelate"
+                        app:icon="@drawable/ic_censor" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorEffectBlack"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:checkable="true"
-                    android:contentDescription="@string/censor_effect_black"
-                    android:saveEnabled="false"
-                    android:tooltipText="@string/censor_effect_black"
-                    app:icon="@drawable/ic_effect_black" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorEffectBlur"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_effect_blur"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_effect_blur"
+                        app:icon="@drawable/ic_effect_blur" />
 
-                <!-- Drops a rectangle in the middle of the photo, so an area can be covered
-                     without drawing (TalkBack, Switch Access); its actions move and resize it. -->
-                <com.google.android.material.divider.MaterialDivider
-                    android:id="@+id/censorAddAreaDivider"
-                    android:layout_width="1dp"
-                    android:layout_height="24dp"
-                    android:layout_marginHorizontal="@dimen/spacing_xsmall"
-                    android:visibility="gone" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorEffectBlack"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:checkable="true"
+                        android:contentDescription="@string/censor_effect_black"
+                        android:saveEnabled="false"
+                        android:tooltipText="@string/censor_effect_black"
+                        app:icon="@drawable/ic_effect_black" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/censorAddAreaButton"
-                    style="@style/Widget.Redact.Censor.IconButton"
-                    android:contentDescription="@string/censor_add_area"
-                    android:tooltipText="@string/censor_add_area"
-                    android:visibility="gone"
-                    app:icon="@drawable/ic_add" />
-            </LinearLayout>
-        </HorizontalScrollView>
+                    <!-- Drops a rectangle in the middle of the photo, so an area can be covered
+                         without drawing (TalkBack, Switch Access); its actions move and resize it. -->
+                    <com.google.android.material.divider.MaterialDivider
+                        android:id="@+id/censorAddAreaDivider"
+                        android:layout_width="1dp"
+                        android:layout_height="24dp"
+                        android:layout_marginHorizontal="@dimen/spacing_xsmall"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/censorAddAreaButton"
+                        style="@style/Widget.Redact.Censor.IconButton"
+                        android:contentDescription="@string/censor_add_area"
+                        android:tooltipText="@string/censor_add_area"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_add" />
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </FrameLayout>

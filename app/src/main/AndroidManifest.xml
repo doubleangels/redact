@@ -112,8 +112,8 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity-alias>
-        <!-- Redact › Censor in the share sheet: opens one shared photo in the Censor tab.
-             MainActivity only accepts content:// image URIs from other apps. -->
+        <!-- Redact › Censor in the share sheet: opens one shared photo or video in the Censor tab.
+             MainActivity only accepts content:// image and video URIs from other apps. -->
         <activity-alias
             android:name=".CensorShareTarget"
             android:exported="true"
@@ -125,6 +125,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
             </intent-filter>
         </activity-alias>
         <!-- Settings › Statistics. -->
@@ -137,6 +138,12 @@
         <activity
             android:name=".OnboardingActivity"
             android:exported="false" />
+        <!-- What's New after an update, and Settings › About › What's New. -->
+        <activity
+            android:name=".whatsnew.WhatsNewActivity"
+            android:exported="false"
+            android:label="@string/whats_new_title"
+            android:parentActivityName=".MainActivity" />
         <!-- Settings › Open-Source Licenses. -->
         <activity
             android:name=".LicensesActivity"

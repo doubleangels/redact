@@ -130,6 +130,18 @@
     
     <string name="settings_section_advanced_privacy">Pulizia Metadati</string>
     <string name="settings_advanced_privacy_subtitle">Come Redact rimuove le informazioni nascoste, come posizione e dettagli della fotocamera (EXIF), nella scheda Pulisci. I file condivisi da altre app vengono sempre ripuliti da queste informazioni prima dell\'inoltro.</string>
+    <string name="settings_clean_preset">Preimpostazione</string>
+    <string name="settings_clean_preset_subtitle">Imposta le opzioni qui sotto in base a cosa farai con i file. Puoi comunque cambiarne una qualsiasi.</string>
+    <string name="clean_preset_chip_description">Preimpostazione: %1$s. Tocca per cambiarla.</string>
+    <string name="clean_preset_standard">Pubblico</string>
+    <string name="clean_preset_standard_description">Rimuove tutto ciò che non serve a una foto per essere vista correttamente, compresi posizione, date e dettagli del dispositivo. Ideale per social, siti di annunci e ovunque possano vederla degli sconosciuti. L\'impostazione predefinita.</string>
+    <string name="clean_preset_sending">Amici</string>
+    <string name="clean_preset_sending_description">Rimuove posizione e dettagli del dispositivo ma mantiene il giorno in cui è stata scattata ogni foto, così finisce al posto giusto nella loro galleria.</string>
+    <string name="clean_preset_keeping">Personale</string>
+    <string name="clean_preset_keeping_description">Mantiene data, dettagli della fotocamera e foto in movimento, e arrotonda la posizione alla città. Utile per backup e archiviazione cloud di cui non ti fidi del tutto.</string>
+    <string name="clean_preset_custom">Personalizzata</string>
+    <string name="clean_preset_custom_description">Le tue opzioni non corrispondono a nessuna preimpostazione.</string>
+    <string name="clean_preset_apply">Applica</string>
     <string name="settings_auto_clear_temp">Svuota Cache all\'Avvio</string>
     <string name="settings_auto_clear_temp_subtitle">Rimuove file cache di elaborazione più vecchi di 24 ore all\'apertura dell\'app.</string>
     <string name="settings_preserve_camera">Mantieni Impostazioni Fotocamera</string>
@@ -214,6 +226,9 @@
     <string name="settings_about_report_issue">Segnala un Problema</string>
     <string name="settings_about_donate">Fai una Donazione</string>
     <string name="settings_about_rate">Valuta Redact su Google Play</string>
+    <string name="settings_about_tell_friend">Consiglia Redact a un Amico</string>
+    <string name="tell_friend_chooser_title">Condividi Redact</string>
+    <string name="tell_friend_message">Uso Redact per togliere dettagli nascosti come posizione e modello della fotocamera da foto e video prima di condividerli. Senza pubblicità né abbonamenti, e funziona direttamente sul telefono. %1$s</string>
     <string name="settings_link_unavailable">Nessuna app trovata per aprire questo link.</string>
     <string name="settings_progress_notifications_label">Progresso Attività in Corso</string>
     <string name="settings_progress_notifications_subtitle">Notifica persistente con avanzamento per lavori lunghi. Disattivata di default finché non abiliti le notifiche.</string>
@@ -250,6 +265,7 @@
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
     <string name="scan_censor_this_photo">Censura Questa Foto</string>
+    <string name="scan_censor_this_video">Censura Questo Video</string>
     <string name="scan_copied_to_clipboard">Copiato negli appunti</string>
     <string name="scan_copy_value">Copia Valore</string>
     <string name="scan_copy_all_metadata">Copia Tutti i Metadati</string>
@@ -423,8 +439,8 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="settings_reset_all_done">Impostazioni ripristinate ai valori predefiniti.</string>
     <string name="settings_reset_all_busy">Impossibile ripristinare le impostazioni durante l\'elaborazione.</string>
     <string name="censor_empty_state_title">Copri Ciò Che Deve Restare Privato</string>
-    <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
-    <string name="censor_select_photo">Seleziona Foto</string>
+    <string name="censor_empty_state_description">Pixela, oscura o sfoca volti, targhe, indirizzi e qualsiasi altra cosa in una foto o in un video. Redact salva una copia censurata senza metadati, e l’originale resta com’è.</string>
+    <string name="censor_select_photo">Seleziona Foto o Video</string>
     <string name="censor_hint">Disegna su tutto ciò che deve restare privato, poi tocca Salva Copia. Avvicina o allontana due dita per ingrandire e spostarti. Trascina un rettangolo per spostarlo e toccalo per ridimensionarlo con le maniglie. Usa Ritaglia per tenere solo una parte della foto.</string>
     <string name="censor_canvas_description">Foto da censurare. Disegna con un dito per coprire un’area. Avvicina o allontana due dita per ingrandire e spostarti.</string>
     <string name="censor_tool_rectangle">Rettangolo</string>
@@ -440,6 +456,9 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_delete_rectangle">Elimina Rettangolo</string>
     <string name="censor_reset_crop">Reimposta Ritaglio</string>
     <string name="censor_add_area">Aggiungi Area</string>
+    <string name="censor_toolbar_move">Sposta Barra degli Strumenti</string>
+    <string name="censor_toolbar_move_top">Sposta Barra degli Strumenti in Alto</string>
+    <string name="censor_toolbar_move_bottom">Sposta Barra degli Strumenti in Basso</string>
     <string name="censor_area_description">Area censurata %1$d di %2$d</string>
     <string name="censor_crop_description">Ritaglio: la parte della foto che la copia conserva</string>
     <string name="censor_crop_whole_description">Ritaglio: tutta la foto</string>
@@ -460,6 +479,18 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_file_name">%1$s (censurata)</string>
     <string name="censor_error_open">Impossibile aprire questa foto.</string>
     <string name="censor_error_unsupported">Questo tipo di immagine non può essere censurato su questo dispositivo.</string>
+    <string name="censor_video_position">Posizione nel Video</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">Intervallo di Tempo dell\'Area %1$d</string>
+    <string name="censor_whole_video">Video Intero</string>
+    <string name="censor_area_moves">Si Muove</string>
+    <string name="censor_previous_keyframe">Fotogramma Chiave Precedente</string>
+    <string name="censor_next_keyframe">Fotogramma Chiave Successivo</string>
+    <string name="censor_delete_keyframe">Elimina Fotogramma Chiave</string>
+    <string name="censor_keyframe_count">Fotogrammi chiave: %1$d</string>
+    <string name="censor_error_open_video">Impossibile aprire questo video.</string>
+    <string name="censor_error_unsupported_video">Questo tipo di video non può essere censurato su questo dispositivo.</string>
     <string name="censor_error_save">Impossibile salvare la copia censurata.</string>
     <string name="censor_discard_title">Annullare le Modifiche?</string>
     <string name="censor_discard_message">Le aree che hai coperto non sono state salvate.</string>
@@ -524,6 +555,13 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     </plurals>
     <string name="settings_about_intro">Mostra Introduzione</string>
     <string name="settings_about_licenses">Licenze Open Source</string>
+    <string name="settings_about_whats_new">Novità</string>
+    <string name="whats_new_title">Novità</string>
+    <string name="whats_new_version">Versione %1$s</string>
+    <string name="whats_new_section_new">Nuovo</string>
+    <string name="whats_new_section_improved">Migliorato</string>
+    <string name="whats_new_section_fixed">Corretto</string>
+    <string name="whats_new_done">Ho Capito</string>
     <string name="licenses_title">Licenze Open Source</string>
     <string name="licenses_intro">Redact è realizzato con queste librerie open source. Toccane una per leggerne la licenza.</string>
     <string name="licenses_project_page">Pagina del Progetto</string>

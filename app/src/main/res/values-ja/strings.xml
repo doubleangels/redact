@@ -122,6 +122,18 @@
     
     <string name="settings_section_advanced_privacy">メタデータのクリーン</string>
     <string name="settings_advanced_privacy_subtitle">Redact がクリーンタブで、位置情報やカメラの詳細(EXIF)などの隠れた情報をどのように削除するか。他アプリから共有されたファイルは、転送前に必ずこれらの情報が削除されます。</string>
+    <string name="settings_clean_preset">プリセット</string>
+    <string name="settings_clean_preset_subtitle">ファイルの使い道に合わせて下のオプションをまとめて設定します。設定後もそれぞれ変更できます。</string>
+    <string name="clean_preset_chip_description">プリセット: %1$s。タップして変更します。</string>
+    <string name="clean_preset_standard">公開</string>
+    <string name="clean_preset_standard_description">位置情報、日付、端末の情報など、写真を正しく表示するのに不要なものをすべて削除します。SNS やフリマアプリなど、知らない人が見る場所に最適です。初期設定です。</string>
+    <string name="clean_preset_sending">友だち</string>
+    <string name="clean_preset_sending_description">位置情報と端末の情報は削除し、撮影した日だけを残します。相手のギャラリーで正しい場所に並びます。</string>
+    <string name="clean_preset_keeping">自分用</string>
+    <string name="clean_preset_keeping_description">日付、カメラの情報、モーションフォトを残し、位置情報は市町村程度に丸めます。バックアップや、完全には信頼できないクラウドストレージ向けです。</string>
+    <string name="clean_preset_custom">カスタム</string>
+    <string name="clean_preset_custom_description">オプションがどのプリセットにも当てはまりません。</string>
+    <string name="clean_preset_apply">適用</string>
 
     <string name="settings_auto_clear_temp">起動時にキャッシュをクリア</string>
     <string name="settings_auto_clear_temp_subtitle">アプリ起動時に24時間より古い処理キャッシュを削除します。</string>
@@ -207,6 +219,9 @@
     <string name="settings_about_report_issue">問題を報告</string>
     <string name="settings_about_donate">寄付</string>
     <string name="settings_about_rate">Google Play で Redact を評価</string>
+    <string name="settings_about_tell_friend">Redact を友だちに教える</string>
+    <string name="tell_friend_chooser_title">Redact を共有</string>
+    <string name="tell_friend_message">写真や動画を共有する前に、Redact で位置情報やカメラの機種などの隠れた情報を消しています。広告もサブスクリプションもなく、スマホの中だけで動きます。%1$s</string>
     <string name="settings_link_unavailable">このリンクを開くアプリが見つかりません。</string>
     <string name="settings_progress_notifications_label">進行中のタスクの進捗</string>
     <string name="settings_progress_notifications_subtitle">長時間ジョブの進行を表示する常駐通知。通知を許可するまでデフォルトでオフです。</string>
@@ -237,6 +252,7 @@
     <string name="scan_clean_this_file">このファイルをクリーン</string>
     <string name="scan_convert_this_file">このファイルを変換</string>
     <string name="scan_censor_this_photo">この写真の一部を隠す</string>
+    <string name="scan_censor_this_video">この動画の一部を隠す</string>
     <string name="scan_copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="scan_copy_value">値をコピー</string>
     <string name="scan_copy_all_metadata">すべてのメタデータをコピー</string>
@@ -396,8 +412,8 @@
     <string name="settings_reset_all_done">設定を初期値に戻しました。</string>
     <string name="settings_reset_all_busy">処理中は設定をリセットできません。</string>
     <string name="censor_empty_state_title">見せたくないものを隠す</string>
-    <string name="censor_empty_state_description">写真の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元の写真はそのまま残ります。</string>
-    <string name="censor_select_photo">写真を選択</string>
+    <string name="censor_empty_state_description">写真や動画の顔、ナンバープレート、住所などをモザイク、黒塗り、ぼかしで隠せます。Redact はメタデータを一切含まないコピーを保存し、元のファイルはそのまま残ります。</string>
+    <string name="censor_select_photo">写真や動画を選択</string>
     <string name="censor_hint">見せたくない部分をなぞってから、「コピーを保存」をタップします。2 本の指でピンチすると拡大や表示位置の移動ができます。四角形はドラッグで移動でき、タップするとハンドルでサイズを変更できます。「切り抜き」では写真の一部だけを残せます。</string>
     <string name="censor_canvas_description">編集中の写真。1 本の指でなぞると範囲を隠します。2 本の指でピンチすると拡大や表示位置の移動ができます。</string>
     <string name="censor_tool_rectangle">四角形</string>
@@ -413,6 +429,9 @@
     <string name="censor_delete_rectangle">四角形を削除</string>
     <string name="censor_reset_crop">切り抜きをリセット</string>
     <string name="censor_add_area">範囲を追加</string>
+    <string name="censor_toolbar_move">ツールバーを移動</string>
+    <string name="censor_toolbar_move_top">ツールバーを上へ移動</string>
+    <string name="censor_toolbar_move_bottom">ツールバーを下へ移動</string>
     <string name="censor_area_description">隠した範囲 %1$d/%2$d</string>
     <string name="censor_crop_description">切り抜き: コピーに残す範囲</string>
     <string name="censor_crop_whole_description">切り抜き: 写真全体</string>
@@ -433,6 +452,18 @@
     <string name="censor_file_name">%1$s（加工済み）</string>
     <string name="censor_error_open">この写真を開けませんでした。</string>
     <string name="censor_error_unsupported">この種類の画像は、このデバイスでは編集できません。</string>
+    <string name="censor_video_position">動画内の位置</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">範囲 %1$d の時間</string>
+    <string name="censor_whole_video">動画全体</string>
+    <string name="censor_area_moves">移動する</string>
+    <string name="censor_previous_keyframe">前のキーフレーム</string>
+    <string name="censor_next_keyframe">次のキーフレーム</string>
+    <string name="censor_delete_keyframe">キーフレームを削除</string>
+    <string name="censor_keyframe_count">キーフレーム: %1$d</string>
+    <string name="censor_error_open_video">この動画を開けませんでした。</string>
+    <string name="censor_error_unsupported_video">この種類の動画はこのデバイスでは検閲できません。</string>
     <string name="censor_error_save">一部を隠したコピーを保存できませんでした。</string>
     <string name="censor_discard_title">変更を破棄しますか？</string>
     <string name="censor_discard_message">隠した範囲はまだ保存されていません。</string>
@@ -495,6 +526,13 @@
     </plurals>
     <string name="settings_about_intro">紹介を表示</string>
     <string name="settings_about_licenses">オープンソースライセンス</string>
+    <string name="settings_about_whats_new">新機能</string>
+    <string name="whats_new_title">新機能</string>
+    <string name="whats_new_version">バージョン %1$s</string>
+    <string name="whats_new_section_new">新機能</string>
+    <string name="whats_new_section_improved">改善</string>
+    <string name="whats_new_section_fixed">修正</string>
+    <string name="whats_new_done">OK</string>
     <string name="licenses_title">オープンソースライセンス</string>
     <string name="licenses_intro">Redactは以下のオープンソースライブラリを使用しています。タップするとライセンスを表示します。</string>
     <string name="licenses_project_page">プロジェクトページ</string>

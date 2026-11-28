@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape: the photo on the left at full height with its toolbar under it, as in portrait, and
+<!-- Landscape: the photo on the left at full height (less a video's timeline under it) with its
+     toolbar floating over it, as in portrait, and
      its card in a column on the right, which ends above the buttons in the bottom right so they
      never cover it. The photo uses the width the other tabs leave as margin. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -27,25 +28,37 @@
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_small"
         android:layout_marginEnd="@dimen/spacing_medium"
-        app:layout_constraintBottom_toTopOf="@id/censorToolbar"
+        android:layout_marginBottom="@dimen/spacing_small"
+        app:layout_constraintBottom_toTopOf="@id/censorVideoControls"
         app:layout_constraintEnd_toStartOf="@id/censorColumn"
-        app:layout_goneMarginBottom="8dp"
+        app:layout_goneMarginBottom="@dimen/spacing_small"
         app:layout_goneMarginEnd="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- The tools, under the photo; gone (with the photo reaching the bottom) until one is open. -->
+    <!-- A video's timeline, under the photo on the left rather than in the column, so it stays in
+         full screen, which hides the column; gone for a photo, and the photo then reaches the
+         bottom. -->
     <include
-        layout="@layout/censor_toolbar"
+        layout="@layout/censor_video_controls"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/censorColumn"
         app:layout_goneMarginEnd="16dp"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- The tools, floating over the photo (exactly its bounds); gone until one is open. -->
+    <include
+        layout="@layout/censor_toolbar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/censorCanvasCard"
+        app:layout_constraintEnd_toEndOf="@id/censorCanvasCard"
+        app:layout_constraintStart_toStartOf="@id/censorCanvasCard"
+        app:layout_constraintTop_toTopOf="@id/censorCanvasCard" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/censorColumn"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>遮挡视频的部分内容</item>
+        <item>持续遮挡移动的内容</item>
+        <item>按用途选择清理预设</item>
+        <item>向朋友推荐 Redact</item>
+        <item>每次更新后了解新功能</item>
+        <item>把工具栏移开</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>遮挡现在除了照片也能打开视频。在任何隐私内容上画一个矩形，在时间轴上设置它的开始和结束时间，然后保存一份打码、模糊或涂黑且不含元数据的副本。</item>
+        <item>在视频中选择一个区域，打开“会移动”，然后在另一个时间点移动它。Redact 会在你设置的位置之间平滑移动它，让人脸或车牌在移动时也保持遮挡。</item>
+        <item>告诉 Redact 这些照片的用途，比如发给认识的人或留给自己，它就会替你设置好选项。预设位于“设置 › 元数据清理”顶部，也可以点按“清理”标签页的第一个标签。</item>
+        <item>“设置 › 关于 › 推荐 Redact 给朋友”会打开分享面板，附上一段简短消息和 Google Play 链接。发送前可以编辑，绝不会附带任何照片或文件。</item>
+        <item>更新后，此页面会介绍一次有哪些变化。你可以随时在“设置 › 关于 › 新功能”中再次打开。</item>
+        <item>拖动遮挡工具栏左侧的手柄，可把它放在照片或视频上方的任意位置。双击手柄即可让它回到底部。</item>
+    </string-array>
+</resources>

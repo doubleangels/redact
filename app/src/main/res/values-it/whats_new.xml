@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="whats_new_titles">
+        <item>Copri Parti di un Video</item>
+        <item>Continua a Coprire Ciò che si Muove</item>
+        <item>Scegli una Preimpostazione per la Pulizia</item>
+        <item>Consiglia Redact a un Amico</item>
+        <item>Scopri le Novità dopo Ogni Aggiornamento</item>
+        <item>Sposta la Barra degli Strumenti</item>
+    </string-array>
+    <string-array name="whats_new_bodies">
+        <item>Censura ora apre anche i video, oltre alle foto. Disegna un rettangolo su ciò che è privato, imposta sulla linea temporale quando inizia e finisce e salva una copia pixelata, sfocata o annerita, senza metadati.</item>
+        <item>Seleziona un\'area in un video, attiva Si Muove e spostala in un altro momento. Redact la fa scorrere tra le posizioni scelte, così un volto o una targa restano coperti mentre si muovono.</item>
+        <item>Di\' a Redact a cosa servono le foto, ad esempio inviarle a persone che conosci o tenerle per te, e imposterà le opzioni per te. Trovi Preimpostazione in cima a Impostazioni › Pulizia Metadati, oppure nel primo chip della scheda Pulisci.</item>
+        <item>Impostazioni › Informazioni › Consiglia Redact a un Amico apre il menu di condivisione con un breve messaggio e il link di Google Play. Puoi modificarlo prima di inviarlo e non viene mai allegata nessuna foto o file.</item>
+        <item>Dopo un aggiornamento, questa schermata spiega una volta cosa è cambiato. Puoi riaprirla quando vuoi da Impostazioni › Informazioni › Novità.</item>
+        <item>Trascina la maniglia a sinistra della barra di Censura per metterla dove vuoi sopra la foto o il video. Tocca due volte la maniglia per riportarla in basso.</item>
+    </string-array>
+</resources>

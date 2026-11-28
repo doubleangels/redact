@@ -20,5 +20,6 @@ Read `versionCode` and `versionName` from `app/build.gradle`. If `fastlane/metad
 1. The previewed English text and its character count, the range it covers, and the version it is for.
 2. Anything in the commit history that should not be public (internal names, private data, unreleased plans) and would reach the notes.
 3. Any user-visible change the preview misses because its commit message does not say what changed.
+4. How the preview compares with the in-app What's New notes in `app/src/main/res/values/whats_new.xml`: whether they are for this `versionCode` at all, and any change the Play preview mentions that the in-app notes leave out, or the reverse. The two are written differently on purpose (the in-app notes say more, in plainer words), but they should cover the same changes. Fix a gap with `/whatsnew` or a clearer commit message.
 
 For either problem, the fix is a clearer commit message or a hand-written `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`, never an edit to `whatsnew/`. Offer to write the changelog file, but do not write it without being asked.

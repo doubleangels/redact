@@ -72,6 +72,10 @@ public class AppStateTagsTest {
         assertEquals("true", tags.get("setting.strict_clean"));
         assertEquals("approximate", tags.get("setting.keep_gps"));
         assertEquals("off", tags.get("setting.keep_date_taken"));
+        assertEquals("standard", tags.get("setting.clean_preset"));
+
+        AppPreferences.setStrictClean(app, false);
+        assertEquals("custom", AppStateTags.collect(app).get("setting.clean_preset"));
     }
 
     @Test

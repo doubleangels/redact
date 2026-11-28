@@ -32,7 +32,7 @@ Ou compartilhe com Escanear com Redact para conferir antes.
 • Converta HEIC para JPG, além de imagens PNG e WebP
 • Converta vídeos H.264, H.265, VP9 e AV1
 • Cada arquivo convertido é limpo e verificado
-• Censurar pixeliza, cobre de preto ou desfoca rostos, placas e endereços, e corta fotos
+• Censurar pixeliza, cobre de preto ou desfoca rostos, placas e endereços em fotos e vídeos, e os corta
 
 <b>Privado desde a concepção</b>
 • Tudo acontece no seu celular, sem precisar de internet
@@ -47,6 +47,7 @@ Ou compartilhe com Escanear com Redact para conferir antes.
 • Bloco nas Configurações rápidas e atalhos na tela inicial
 • Pastas de saída personalizadas e Manter Nomes Originais
 • Limpeza Rigorosa
+• Predefinições de limpeza: para postar, enviar a conhecidos ou guardar para você
 • Ocultar o Redact em capturas de tela e recentes
 • Limpeza automática dos metadados copiados
 • Estatísticas contadas só no seu celular

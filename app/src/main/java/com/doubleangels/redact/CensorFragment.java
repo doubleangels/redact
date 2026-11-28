@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
@@ -27,10 +29,14 @@ import androidx.lifecycle.ViewModelProvider;
 import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
+import com.doubleangels.redact.media.VideoCensorRegion;
+import com.doubleangels.redact.media.ProcessingResourceWarnings;
+import com.doubleangels.redact.media.MediaItem;
 import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.FloatingToolbar;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.Notice;
@@ -44,9 +50,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.slider.LabelFormatter;
+import com.google.android.material.slider.RangeSlider;
 import com.google.android.material.slider.Slider;
 
 import java.text.NumberFormat;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -120,6 +130,27 @@ public class CensorFragment extends TabFragment {
     private boolean immersive;
     /** The rectangle selected on the canvas, which Delete removes, or minus one. */
     private int selectedRectangle = -1;
+
+    /** A video's timeline under the photo, gone for a photo. */
+    private View videoControls;
+    private TextView videoTime;
+    private Slider videoPosition;
+    /** When the selected area covers the video, shown while a rectangle is selected. */
+    private View areaTimes;
+    private TextView areaTimesLabel;
+    private RangeSlider areaTimesSlider;
+    private View wholeVideoButton;
+    /** Whether the selected area moves, and its keyframes, shown while a rectangle is selected. */
+    private View areaMotion;
+    private MaterialSwitch areaMovesSwitch;
+    private TextView keyframeCount;
+    private View previousKeyframeButton;
+    private View nextKeyframeButton;
+    private View deleteKeyframeButton;
+    /** Whether a thumb of {@link #areaTimesSlider} is being dragged; its range is set when it is let go. */
+    private boolean draggingAreaTimes;
+    /** The area's range as the slider last showed it, in milliseconds, to tell which end moved. */
+    private float[] shownAreaTimes = {0f, 0f};
 
     /** Asks before Back throws away covered areas that have not been saved. */
     private final OnBackPressedCallback unsavedEditsCallback = new OnBackPressedCallback(false) {
@@ -200,6 +231,9 @@ public class CensorFragment extends TabFragment {
         fileName.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         historyControls = view.findViewById(R.id.censorHistoryControls);
         toolbar = view.findViewById(R.id.censorToolbar);
+        // Dragged over the photo by its grip, and left where it was put.
+        FloatingToolbar.attach((ViewGroup) toolbar,
+                view.findViewById(R.id.censorToolbarCard), view.findViewById(R.id.censorToolbarGrip));
         fullScreenButton = view.findViewById(R.id.censorFullScreenButton);
         brushSizeBar = view.findViewById(R.id.censorBrushSizeContainer);
         brushSizeDot = view.findViewById(R.id.censorBrushSizeDot);
@@ -221,6 +255,19 @@ public class CensorFragment extends TabFragment {
         shareButton = view.findViewById(R.id.shareResultsButton);
         scanResultButton = view.findViewById(R.id.scanResultButton);
         openResultButton = view.findViewById(R.id.openResultButton);
+        videoControls = view.findViewById(R.id.censorVideoControls);
+        videoTime = view.findViewById(R.id.censorVideoTime);
+        videoPosition = view.findViewById(R.id.censorVideoPosition);
+        areaTimes = view.findViewById(R.id.censorAreaTimes);
+        areaTimesLabel = view.findViewById(R.id.censorAreaTimesLabel);
+        areaTimesSlider = view.findViewById(R.id.censorAreaTimesSlider);
+        wholeVideoButton = view.findViewById(R.id.censorWholeVideoButton);
+        areaMotion = view.findViewById(R.id.censorAreaMotion);
+        areaMovesSwitch = view.findViewById(R.id.censorAreaMovesSwitch);
+        keyframeCount = view.findViewById(R.id.censorKeyframeCount);
+        previousKeyframeButton = view.findViewById(R.id.censorPreviousKeyframe);
+        nextKeyframeButton = view.findViewById(R.id.censorNextKeyframe);
+        deleteKeyframeButton = view.findViewById(R.id.censorDeleteKeyframe);
 
         view.findViewById(R.id.emptyStateSelectButton).setOnClickListener(v -> pickPhoto());
         view.findViewById(R.id.selectButton).setOnClickListener(v -> pickPhoto());
@@ -252,7 +299,13 @@ public class CensorFragment extends TabFragment {
             Haptics.tick(v);
             viewModel.redo();
         });
-        saveButton.setOnClickListener(v -> viewModel.save());
+        saveButton.setOnClickListener(v -> {
+            if (viewModel.isVideo()) {
+                saveVideoAfterWarnings();
+            } else {
+                viewModel.save();
+            }
+        });
         shareButton.setOnClickListener(v -> {
             CensorExporter.Result saved = viewModel.getLastSaved();
             if (saved != null) {
@@ -272,6 +325,7 @@ public class CensorFragment extends TabFragment {
         });
         setUpTools(view);
         setUpEffects();
+        setUpVideoControls();
         // The photo's size changes with full screen and rotation, and the actions placed on it move.
         canvas.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
             if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
@@ -308,6 +362,7 @@ public class CensorFragment extends TabFragment {
                 selectedRectangle = index;
                 selectionBounds = canvas.selectedBoundsInView();
                 updateContextActions();
+                updateVideoControls();
                 // The effect buttons show the selected rectangle's effect, which they change.
                 updateEffectButtons();
             }
@@ -344,11 +399,16 @@ public class CensorFragment extends TabFragment {
             SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
         });
         viewModel.getHistoryVersion().observe(getViewLifecycleOwner(), v -> {
-            canvas.setRegions(viewModel.regions());
+            // A video's moving area moves when another frame shows; it stays selected.
+            canvas.setRegions(viewModel.regions(), viewModel.isVideo());
             canvas.setCrop(viewModel.getCrop());
+            // Delete follows the selected rectangle, which a moving area moves between frames.
+            selectionBounds = canvas.selectedBoundsInView();
             updateControls();
             updateEffectButtons();
+            updateVideoControls();
         });
+        viewModel.getSaveProgress().observe(getViewLifecycleOwner(), percent -> updateControls());
         viewModel.getState().observe(getViewLifecycleOwner(), this::render);
         viewModel.getPendingReplacement().observe(getViewLifecycleOwner(), this::askToReplace);
     }
@@ -403,7 +463,7 @@ public class CensorFragment extends TabFragment {
 
     private void pickPhoto() {
         try {
-            photoPickerLauncher.launch(new String[] {"image/*"});
+            photoPickerLauncher.launch(new String[] {"image/*", "video/*"});
         } catch (ActivityNotFoundException e) {
             AppMetrics.externalAppMissing(AppMetrics.EXTERNAL_FILE_PICKER);
             Notice.show(requireContext(), R.string.status_media_picker_fail, false);
@@ -561,6 +621,7 @@ public class CensorFragment extends TabFragment {
         }
         fullScreenCallback.setEnabled(on);
         setImmersive(on);
+        fitTimelineBesideActions();
     }
 
     private void setImmersive(boolean immersive) {
@@ -674,11 +735,14 @@ public class CensorFragment extends TabFragment {
                 || state == CensorViewModel.State.UNSUPPORTED;
         message.setVisibility(failedToOpen ? View.VISIBLE : View.GONE);
         if (failedToOpen) {
+            boolean video = viewModel.isSourceVideo();
             message.setText(state == CensorViewModel.State.UNSUPPORTED
-                    ? R.string.censor_error_unsupported : R.string.censor_error_open);
+                    ? (video ? R.string.censor_error_unsupported_video : R.string.censor_error_unsupported)
+                    : (video ? R.string.censor_error_open_video : R.string.censor_error_open));
         }
         canvas.setEnabled(state == CensorViewModel.State.READY);
         updateControls();
+        updateVideoControls();
         applyFullScreen();
     }
 
@@ -759,7 +823,10 @@ public class CensorFragment extends TabFragment {
         openResultButton.setVisibility(savedMatches ? View.VISIBLE : View.GONE);
 
         if (saving) {
-            showStatus(getString(R.string.status_processing));
+            Integer percent = viewModel.getSaveProgress().getValue();
+            showStatus(viewModel.isVideo()
+                    ? getString(R.string.progress_transcoding_percent, percent != null ? percent : 0)
+                    : getString(R.string.status_processing));
         } else if (viewModel.isLastSaveFailed()) {
             showStatus(getString(R.string.censor_error_save));
         } else if (savedMatches && saved.downscaled) {
@@ -769,6 +836,7 @@ public class CensorFragment extends TabFragment {
         }
 
         unsavedEditsCallback.setEnabled(!isHidden() && unsaved);
+        fitTimelineBesideActions();
 
         // The hint explains how to start; once something is covered it only takes the photo's room.
         if (viewModel.hasEdits()) {
@@ -776,6 +844,255 @@ public class CensorFragment extends TabFragment {
         } else {
             SummaryCard.refreshHint(summaryCard, AppPreferences.HINT_CENSOR);
         }
+    }
+
+    private void setUpVideoControls() {
+        LabelFormatter time = value -> DateUtils.formatElapsedTime(Math.round(value / 1000f));
+        videoPosition.setLabelFormatter(time);
+        areaTimesSlider.setLabelFormatter(time);
+        areaTimesSlider.setValues(0f, 1f);
+        videoPosition.addOnChangeListener((slider, value, fromUser) -> {
+            if (fromUser) {
+                viewModel.setPlayhead(Math.round(value) * 1000L);
+                showVideoTime();
+            }
+        });
+        areaTimesSlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull RangeSlider slider) {
+                draggingAreaTimes = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull RangeSlider slider) {
+                draggingAreaTimes = false;
+                applyAreaTimes();
+            }
+        });
+        areaTimesSlider.addOnChangeListener((slider, value, fromUser) -> {
+            if (!fromUser) {
+                return;
+            }
+            List<Float> values = slider.getValues();
+            // The frame at the end being moved shows, so the area's edge can be set exactly.
+            float moved = values.get(0) != shownAreaTimes[0] ? values.get(0) : values.get(1);
+            shownAreaTimes = new float[] {values.get(0), values.get(1)};
+            viewModel.setPlayhead(Math.round(moved) * 1000L);
+            showAreaTimesLabel(values.get(0), values.get(1));
+            if (!draggingAreaTimes) {
+                // Moved by keys or an accessibility action: no touch to wait for.
+                applyAreaTimes();
+            }
+        });
+        wholeVideoButton.setOnClickListener(v -> {
+            if (selectedRectangle >= 0) {
+                Haptics.tick(v);
+                viewModel.setRegionTimes(selectedRectangle, 0L, VideoCensorRegion.END_OF_VIDEO);
+            }
+        });
+        areaMovesSwitch.setOnCheckedChangeListener((button, checked) -> {
+            if (button.isPressed() || button.isFocused()) {
+                Haptics.tick(button);
+            }
+            if (selectedRectangle >= 0 && checked != viewModel.isMoving(selectedRectangle)) {
+                viewModel.setMoving(selectedRectangle, checked);
+            }
+        });
+        previousKeyframeButton.setOnClickListener(v -> stepToKeyframe(false));
+        nextKeyframeButton.setOnClickListener(v -> stepToKeyframe(true));
+        deleteKeyframeButton.setOnClickListener(v -> {
+            if (selectedRectangle >= 0) {
+                Haptics.tick(v);
+                viewModel.removeKeyframeAtPlayhead(selectedRectangle);
+            }
+        });
+    }
+
+    /** Shows the selected area's next keyframe, or its previous one. */
+    private void stepToKeyframe(boolean forward) {
+        if (selectedRectangle < 0) {
+            return;
+        }
+        long time = viewModel.adjacentKeyframe(selectedRectangle, forward);
+        if (time >= 0) {
+            Haptics.tick(forward ? nextKeyframeButton : previousKeyframeButton);
+            viewModel.setPlayhead(time);
+            updateVideoControls();
+        }
+    }
+
+    /** Gives the selected area the range on the slider, as an edit that can be undone. */
+    private void applyAreaTimes() {
+        if (selectedRectangle < 0) {
+            return;
+        }
+        List<Float> values = areaTimesSlider.getValues();
+        viewModel.setRegionTimes(selectedRectangle, Math.round(values.get(0)) * 1000L,
+                Math.round(values.get(1)) * 1000L);
+    }
+
+    /**
+     * Shows the timeline for a video (and only Rectangle among the drawing tools, as a video has
+     * no brush), with the selected area's time range while one is selected.
+     */
+    private void updateVideoControls() {
+        boolean video = viewModel.isVideo();
+        View brush = toolbar.findViewById(R.id.censorToolBrush);
+        brush.setVisibility(video ? View.GONE : View.VISIBLE);
+        if (video && currentTool == CensorCanvasView.Tool.BRUSH) {
+            // Not saved: the brush comes back for the next photo.
+            currentTool = CensorCanvasView.Tool.RECT;
+            applyTool();
+        }
+        boolean shown = video && isPhotoShown();
+        videoControls.setVisibility(shown ? View.VISIBLE : View.GONE);
+        if (!shown) {
+            return;
+        }
+        boolean ready = viewModel.getState().getValue() == CensorViewModel.State.READY;
+        float durationMs = Math.max(1f, viewModel.getDurationUs() / 1000f);
+        setRange(videoPosition, durationMs);
+        videoPosition.setValue(clamp(viewModel.getPlayheadUs() / 1000f, 0f, durationMs));
+        videoPosition.setEnabled(ready);
+        showVideoTime();
+        boolean selected = selectedRectangle >= 0 && selectedRectangle < viewModel.regions().size();
+        areaTimes.setVisibility(selected ? View.VISIBLE : View.GONE);
+        areaMotion.setVisibility(selected ? View.VISIBLE : View.GONE);
+        if (selected) {
+            showMotion(ready);
+        }
+        if (!selected || draggingAreaTimes) {
+            return;
+        }
+        CensorViewModel.Span span = viewModel.regionTimes(selectedRectangle);
+        setRange(areaTimesSlider, durationMs);
+        float start = clamp(span.startUs() / 1000f, 0f, durationMs);
+        float end = span.endUs() == VideoCensorRegion.END_OF_VIDEO
+                ? durationMs : clamp(span.endUs() / 1000f, start, durationMs);
+        areaTimesSlider.setValues(start, end);
+        shownAreaTimes = new float[] {start, end};
+        areaTimesSlider.setContentDescription(getString(R.string.censor_area_times, selectedRectangle + 1));
+        areaTimesSlider.setEnabled(ready);
+        showAreaTimesLabel(start, end);
+        wholeVideoButton.setEnabled(ready && !span.isWhole());
+    }
+
+    /**
+     * Shows whether the selected area moves and, when it does, how many keyframes it has and
+     * which of the step and delete buttons apply at the playhead.
+     */
+    private void showMotion(boolean ready) {
+        boolean moving = viewModel.isMoving(selectedRectangle);
+        if (areaMovesSwitch.isChecked() != moving) {
+            areaMovesSwitch.setChecked(moving);
+        }
+        areaMovesSwitch.setEnabled(ready);
+        int keyframes = viewModel.keyframeTimes(selectedRectangle).size();
+        keyframeCount.setVisibility(moving ? View.VISIBLE : View.INVISIBLE);
+        keyframeCount.setText(getString(R.string.censor_keyframe_count, keyframes));
+        previousKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        nextKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        deleteKeyframeButton.setVisibility(moving ? View.VISIBLE : View.GONE);
+        previousKeyframeButton.setEnabled(ready && viewModel.adjacentKeyframe(selectedRectangle, false) >= 0);
+        nextKeyframeButton.setEnabled(ready && viewModel.adjacentKeyframe(selectedRectangle, true) >= 0);
+        deleteKeyframeButton.setEnabled(ready && viewModel.hasKeyframeAtPlayhead(selectedRectangle));
+    }
+
+    /** Sets {@code slider}'s range to 0 to {@code max}, moving its value into it first. */
+    private static void setRange(@NonNull Slider slider, float max) {
+        if (slider.getValueTo() != max) {
+            slider.setValue(0f);
+            slider.setValueTo(max);
+        }
+    }
+
+    /** Sets {@code slider}'s range to 0 to {@code max}, moving its values into it first. */
+    private static void setRange(@NonNull RangeSlider slider, float max) {
+        if (slider.getValueTo() != max) {
+            slider.setValues(0f, Math.min(max, slider.getValueTo()));
+            slider.setValueTo(max);
+        }
+    }
+
+    private void showVideoTime() {
+        videoTime.setText(getString(R.string.censor_video_time,
+                DateUtils.formatElapsedTime(viewModel.getPlayheadUs() / 1_000_000L),
+                DateUtils.formatElapsedTime(viewModel.getDurationUs() / 1_000_000L)));
+    }
+
+    private void showAreaTimesLabel(float startMs, float endMs) {
+        areaTimesLabel.setText(getString(R.string.censor_area_time_range,
+                DateUtils.formatElapsedTime(Math.round(startMs / 1000f)),
+                DateUtils.formatElapsedTime(Math.round(endMs / 1000f))));
+    }
+
+    /**
+     * Saves a censored video after the same storage and memory warnings Clean gives, since the
+     * whole video is encoded again. The checks read the file's size, so they run off the main thread.
+     */
+    private void saveVideoAfterWarnings() {
+        Uri source = viewModel.getSource();
+        if (source == null) {
+            return;
+        }
+        Context app = requireContext().getApplicationContext();
+        WeakReference<CensorFragment> screen = new WeakReference<>(this);
+        new Thread(() -> {
+            List<ProcessingResourceWarnings.Warning> warnings;
+            try {
+                warnings = ProcessingResourceWarnings.assess(app, List.of(new MediaItem(source, true, null)));
+            } catch (RuntimeException e) {
+                // The checks only warn; when they can't run, save without them.
+                SentryManager.recordException(e);
+                warnings = List.of();
+            }
+            List<ProcessingResourceWarnings.Warning> found = warnings;
+            CensorFragment fragment = screen.get();
+            Activity activity = fragment != null ? fragment.getActivity() : null;
+            if (activity != null) {
+                activity.runOnUiThread(() -> {
+                    if (fragment.isAdded()) {
+                        ProcessingResourceWarnings.runWithWarnings(
+                                fragment.requireActivity(), found, fragment.viewModel::save);
+                    }
+                });
+            }
+        }, "redact-censor-checks").start();
+    }
+
+    /**
+     * In landscape full screen the column is hidden and the timeline reaches the right edge, where
+     * Save Copy, Share, Scan Result and Open sit: it ends before the first of them that shows.
+     * Otherwise it ends at the column (or the edge, in portrait) as laid out.
+     */
+    private void fitTimelineBesideActions() {
+        if (column == null || videoControls == null) {
+            return;
+        }
+        videoControls.post(() -> {
+            if (getView() == null) {
+                return;
+            }
+            View root = getView();
+            int clear = 0;
+            if (column.getVisibility() != View.VISIBLE && videoControls.getVisibility() == View.VISIBLE) {
+                for (View action : new View[] {saveButton, shareButton, scanResultButton, openResultButton}) {
+                    if (action.getVisibility() == View.VISIBLE && action.getWidth() > 0) {
+                        clear = Math.max(clear, root.getWidth() - action.getLeft());
+                    }
+                }
+            }
+            if (!(videoControls.getLayoutParams() instanceof ConstraintLayout.LayoutParams lp)) {
+                return;
+            }
+            // The column is gone in full screen, so the margin that applies is the gone one.
+            float density = getResources().getDisplayMetrics().density;
+            int end = clear > 0 ? clear + Math.round(8 * density) : Math.round(16 * density);
+            if (lp.goneEndMargin != end) {
+                lp.goneEndMargin = end;
+                videoControls.setLayoutParams(lp);
+            }
+        });
     }
 
     /** Shows "2×" while zoomed in, so the way back to the whole photo is one tap away. */
@@ -800,8 +1117,8 @@ public class CensorFragment extends TabFragment {
 
     /**
      * After a save with Delete Originals After Cleaning on, asks Android (with its own confirmation,
-     * the same one Clean uses) to move the uncensored original to the trash, when it is a photo in
-     * the phone's media library. Returns whether the request was made.
+     * the same one Clean uses) to move the uncensored original to the trash, when it is a photo or
+     * video in the phone's media library. Returns whether the request was made.
      */
     private boolean requestTrashOriginal() {
         if (!AppPreferences.isDeleteOriginalsAfterClean(requireContext())) {
@@ -831,7 +1148,8 @@ public class CensorFragment extends TabFragment {
             } else {
                 media = MediaStore.getMediaUri(requireContext(), source);
             }
-            return media != null ? CleanFragment.trashableMediaUri(media, "image/*") : null;
+            return media != null
+                    ? CleanFragment.trashableMediaUri(media, viewModel.isVideo() ? "video/*" : "image/*") : null;
         } catch (Exception notMedia) {
             // A photo from another app's provider: leave it alone.
             return null;

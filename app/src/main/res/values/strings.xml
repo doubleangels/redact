@@ -125,6 +125,9 @@
     <string name="settings_about_report_issue">Report an Issue</string>
     <string name="settings_about_donate">Donate</string>
     <string name="settings_about_rate">Rate Redact on Google Play</string>
+    <string name="settings_about_tell_friend">Tell a Friend About Redact</string>
+    <string name="tell_friend_chooser_title">Share Redact</string>
+    <string name="tell_friend_message">I use Redact to remove hidden details like location and camera model from my photos and videos before I share them. It has no ads or subscriptions and works right on your phone. %1$s</string>
     <string name="settings_link_unavailable">No app found to open this link.</string>
 
     <string name="settings_progress_notifications_label">Ongoing Task Progress</string>
@@ -256,6 +259,7 @@
     <string name="scan_clean_this_file">Clean This File</string>
     <string name="scan_convert_this_file">Convert This File</string>
     <string name="scan_censor_this_photo">Censor This Photo</string>
+    <string name="scan_censor_this_video">Censor This Video</string>
     <string name="scan_copied_to_clipboard">Copied to clipboard</string>
     <string name="scan_copy_value">Copy Value</string>
     <string name="scan_maps_consent_title">Open in Maps</string>
@@ -311,6 +315,18 @@
     
     <string name="settings_section_advanced_privacy">Metadata Cleaning</string>
     <string name="settings_advanced_privacy_subtitle">How Redact removes hidden info, like location and camera details (EXIF), on the Clean tab. Files shared in from other apps always have this stripped before forwarding.</string>
+    <string name="settings_clean_preset">Preset</string>
+    <string name="settings_clean_preset_subtitle">Sets the options below for what you\'ll do with the files. You can still change any of them.</string>
+    <string name="clean_preset_chip_description">Preset: %1$s. Tap to change.</string>
+    <string name="clean_preset_standard">Public</string>
+    <string name="clean_preset_standard_description">Removes everything a photo doesn\'t need to look right, including location, dates and device details. Best for social media, marketplaces and anywhere strangers can see it. The default.</string>
+    <string name="clean_preset_sending">Friends</string>
+    <string name="clean_preset_sending_description">Removes location and device details but keeps the day each photo was taken, so it lands in the right place in their gallery.</string>
+    <string name="clean_preset_keeping">Personal</string>
+    <string name="clean_preset_keeping_description">Keeps the date, camera details and Motion Photos, and rounds the location to the town. Good for backups and cloud storage you don\'t fully trust.</string>
+    <string name="clean_preset_custom">Custom</string>
+    <string name="clean_preset_custom_description">Your options don\'t match any preset.</string>
+    <string name="clean_preset_apply">Apply</string>
     <string name="settings_auto_clear_temp">Clear Cache on Startup</string>
     <string name="settings_auto_clear_temp_subtitle">Remove processing cache files older than 24 hours when you open the app.</string>
     <string name="settings_preserve_camera">Keep Camera Settings</string>
@@ -422,8 +438,8 @@
 
     <!-- Censor: cover parts of a photo -->
     <string name="censor_empty_state_title">Cover What Should Stay Private</string>
-    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
-    <string name="censor_select_photo">Select Photo</string>
+    <string name="censor_empty_state_description">Pixelate, black out or blur faces, number plates, addresses and anything else in a photo or video. Redact saves a censored copy without any metadata, and your original stays as it is.</string>
+    <string name="censor_select_photo">Select Photo or Video</string>
     <string name="censor_hint">Draw over anything that should stay private, then tap Save Copy. Pinch with two fingers to zoom and move around. Drag a rectangle to move it, and tap it to resize it from its handles. Use Crop to keep only part of the photo.</string>
     <string name="censor_canvas_description">Photo being censored. Draw with one finger to cover an area. Pinch with two fingers to zoom and move around.</string>
     <string name="censor_tool_rectangle">Rectangle</string>
@@ -439,6 +455,9 @@
     <string name="censor_delete_rectangle">Delete Rectangle</string>
     <string name="censor_reset_crop">Reset Crop</string>
     <string name="censor_add_area">Add Area</string>
+    <string name="censor_toolbar_move">Move Toolbar</string>
+    <string name="censor_toolbar_move_top">Move Toolbar to Top</string>
+    <string name="censor_toolbar_move_bottom">Move Toolbar to Bottom</string>
     <string name="censor_area_description">Censored area %1$d of %2$d</string>
     <string name="censor_crop_description">Crop: the part of the photo the copy keeps</string>
     <string name="censor_crop_whole_description">Crop: the whole photo</string>
@@ -459,6 +478,18 @@
     <string name="censor_file_name">%1$s (censored)</string>
     <string name="censor_error_open">This photo could not be opened.</string>
     <string name="censor_error_unsupported">This type of image cannot be censored on this device.</string>
+    <string name="censor_video_position">Position in Video</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">Time Range of Area %1$d</string>
+    <string name="censor_whole_video">Whole Video</string>
+    <string name="censor_area_moves">Moves</string>
+    <string name="censor_previous_keyframe">Previous Keyframe</string>
+    <string name="censor_next_keyframe">Next Keyframe</string>
+    <string name="censor_delete_keyframe">Delete Keyframe</string>
+    <string name="censor_keyframe_count">Keyframes: %1$d</string>
+    <string name="censor_error_open_video">This video could not be opened.</string>
+    <string name="censor_error_unsupported_video">This type of video cannot be censored on this device.</string>
     <string name="censor_error_save">The censored copy could not be saved.</string>
     <string name="censor_discard_title">Discard Your Changes?</string>
     <string name="censor_discard_message">The areas you covered have not been saved.</string>
@@ -599,6 +630,13 @@
 
     <!-- Settings › Open-Source Licenses -->
     <string name="settings_about_licenses">Open-Source Licenses</string>
+    <string name="settings_about_whats_new">What\'s New</string>
+    <string name="whats_new_title">What\'s New</string>
+    <string name="whats_new_version">Version %1$s</string>
+    <string name="whats_new_section_new">New</string>
+    <string name="whats_new_section_improved">Improved</string>
+    <string name="whats_new_section_fixed">Fixed</string>
+    <string name="whats_new_done">Got It</string>
     <string name="licenses_title">Open-Source Licenses</string>
     <string name="licenses_intro">Redact is built with these open-source libraries. Tap one to read its license.</string>
     <string name="licenses_project_page">Project Page</string>

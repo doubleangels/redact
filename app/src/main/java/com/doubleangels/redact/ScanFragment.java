@@ -978,11 +978,10 @@ public class ScanFragment extends TabFragment {
                     v -> openInCleanTab(currentMediaItem));
             addScanActionCard(R.drawable.ic_convert, getString(R.string.scan_convert_this_file),
                     v -> openInConvertTab(currentMediaItem));
-            if (!currentMediaItem.isVideo()) {
-                MediaItem photo = currentMediaItem;
-                addScanActionCard(R.drawable.ic_censor, getString(R.string.scan_censor_this_photo),
-                        v -> openInCensorTab(photo));
-            }
+            MediaItem censorable = currentMediaItem;
+            addScanActionCard(R.drawable.ic_censor, getString(censorable.isVideo()
+                            ? R.string.scan_censor_this_video : R.string.scan_censor_this_photo),
+                    v -> openInCensorTab(censorable));
             added = true;
         }
 

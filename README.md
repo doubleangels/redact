@@ -85,7 +85,7 @@ Most apps and websites do not show you this, but anyone who receives the origina
 |---|---|
 | **Clean** | Removes the location, device details, dates and other hidden information from photos and videos, including extra preview images and the short video inside a Motion Photo (or, with **Keep Motion Photos**, just that video's own hidden information). **Strict Clean** gives the most thorough clean, and **Faster Video Cleaning** speeds up videos that allow it. When a clean finishes, Redact tells you what it removed, and a **Share** button sends the clean copies on. |
 | **Scan** | Shows a file's metadata in an organized, readable list *before* you decide what to do. Rows that reveal where a file was taken carry a **Location** badge. Search the list, copy values, share the whole list as text, send the file to Clean or Convert, or open the location in your maps app. Pick several files to see at a glance how many have a location, a date, a phone's name or a person's name. |
-| **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, and crop away what shouldn't be in it at all, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
+| **Censor** | Pixelate, black out or blur faces, number plates, addresses and anything else in a photo with a rectangle or brush, or in a video with rectangles that each cover the seconds you choose, and crop away what shouldn't be in it at all, with undo, redo and pinch-zoom. The censored copy is saved without metadata, and the original stays as it is. |
 | **Statistics** | **Your Privacy Stats** at the top of Settings, and the **Statistics** screen it opens, show how many metadata fields and locations Redact has removed, which kinds of personal details your files carried, and your activity over the last 30 days. Counted only on your device and never sent anywhere. |
 | **Convert** | Converts images between JPEG, PNG, WebP and HEIC (on supported devices), and videos between H.264, H.265, VP9 and AV1. Converted files are checked for hidden information before they're saved, so they don't carry the original's location or device details. |
 | **Share into Redact** | Share a photo or video from any other app. Redact cleans it and reopens the share sheet with the clean copy, with an optional confirmation step and a progress dialog you can cancel. |
@@ -132,7 +132,7 @@ Your originals are never modified.
 
 Removes hidden information and saves a new copy to `Pictures/Redact` (images) or `Movies/Redact` (videos). You can choose up to 100 files at a time. The location is always removed unless you turn on **Keep Location** in Settings, which asks you to confirm and is ignored by Strict Clean. Settings can also keep the camera details, the date taken and the video in a Motion Photo; see [Settings](#settings).
 
-Above the files, chips for **Strict Clean**, **Keep Location**, **Keep Date Taken**, **Keep Camera Settings** and **Remove Audio** change those settings without a trip to Settings. They are the same settings, so a change stays for the next batch, and Keep Location asks first as it does in Settings.
+Above the files, a chip shows the **Preset** your options match and opens a menu of presets, and chips for **Strict Clean**, **Keep Location**, **Keep Date Taken**, **Keep Camera Settings** and **Remove Audio** change those settings without a trip to Settings. They are the same settings, so a change stays for the next batch, and Keep Location asks first as it does in Settings.
 
 When the clean finishes, Redact sums up what it removed, such as *"Removed 24 metadata fields, including location"* for one file, or the total and how many files had a location for a batch. Anything you chose to keep isn't counted. If notifications are on, the same summary appears there too. Two buttons then appear above **Clean Metadata**:
 
@@ -163,7 +163,7 @@ Pick **one** file to see everything embedded in it, grouped into sections such a
 
 - **Open with Redact:** when you open a photo or video from your gallery or file manager and choose Redact, it opens in Scan so you can check it before doing anything else.
 - **Scan with Redact:** the share sheet also lists **Scan with Redact** next to Redact. It opens the shared photo or video in Scan instead of cleaning it.
-- **Convert with Redact / Censor with Redact:** the share sheet also lists these. Shared files open in Convert, or a shared photo opens in Censor.
+- **Convert with Redact / Censor with Redact:** the share sheet also lists these. Shared files open in Convert, or a shared photo or video opens in Censor.
 - **Drag and drop, and paste:** drag photos or videos from another app onto Clean, Scan, Convert or Censor, or copy them in another app and tap **Paste** (shown while the clipboard holds a photo or video) or press Ctrl+V. They get the same checks as a share, so only another app's files are taken.
 - **App shortcuts:** long-press the Redact icon on your home screen to go straight to Clean, Scan, Convert or Censor.
 - **Quick Settings tiles:** add the **Clean**, **Scan** or **Censor** tile to open that tab from anywhere.
@@ -174,17 +174,20 @@ Choose a format (images: JPEG, PNG, WebP, or HEIC where supported; videos: H.264
 
 ### Censor
 
-Pick one photo and cover anything that should stay private.
+Pick one photo or video and cover anything that should stay private.
 
 - **Rectangle:** drag to cover an area. Drag a rectangle to move it, or tap it to resize it from its corner and edge handles or delete it.
 - **Brush:** paint over irregular shapes, with an adjustable brush size.
 - **Zoom:** pinch with two fingers to zoom and pan with any tool. **Move** also pans with one finger and zooms on a double-tap. **Full Screen** gives the photo the whole screen.
 - **Crop:** drag a corner or an edge of the frame to keep only part of the photo, drag inside it to move it, or drag outside it to draw a new one. What the crop leaves out is dimmed and is not saved, not even in an Ultra HDR photo's HDR layer. **Reset Crop** puts the whole photo back, and a crop can be undone like any other change.
 - **Effect:** Pixelate, Blur or Black, for each area: new areas get the effect selected in the toolbar, and choosing an effect with a rectangle selected changes that rectangle. Your tool, effect and brush size are remembered.
+- **Toolbar:** floats over the photo. Drag its handle to put it anywhere, and double-tap the handle to send it back to the bottom; it stays where you leave it.
+- **Video:** a timeline above the video picks the frame you see and edit. Rectangles only (no brush). A new area covers the whole video; select it to set when it starts and ends on its own slider, which shows the frame at the end you move, or tap **Whole Video**. The preview covers only the areas active at that moment.
+- **Moving areas:** turn on **Moves** for a selected area in a video, then move or resize it at another moment: that sets a keyframe there, and the area slides smoothly between its keyframes. The arrows step between keyframes and the bin deletes the one at the playhead. A moving area is padded by how far it travels while each frame shows, and its blocks move with it rather than staying on a fixed grid, so the frames can't be combined to sharpen what it covers.
 - **Undo / Redo**, and a prompt before discarding unsaved changes.
-- **Save Copy** writes a censored copy to your output folder at full resolution and in the photo's own format, keeping only the tags your Clean settings keep (never the original's small preview image, depth map or Motion Photo clip, which could still show what you covered), and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
+- **Save Copy** writes a censored copy to your output folder at full resolution and in the photo's own format, keeping only the tags your Clean settings keep (never the original's small preview image, depth map or Motion Photo clip, which could still show what you covered), and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash. A video is always encoded again, as an MP4 (H.265 when the original is, otherwise H.264), with every frame of each area covered for its whole time range, rounded out to whole frames. Before it is saved, Redact decodes frames from each area's start, middle and end and checks the area really is covered; if it can't show that, nothing is saved. It then gets the same metadata checks as a converted video.
 
-You can also reach Censor from Scan (**Censor This Photo**), from the icon that appears after cleaning a single photo, or by sharing a photo to **Censor with Redact**.
+You can also reach Censor from Scan (**Censor This Photo** or **Censor This Video**), from the icon that appears after cleaning a single photo, or by sharing a photo or video to **Censor with Redact**.
 
 ### Share into Redact
 
@@ -228,6 +231,7 @@ Redact keeps as much of the original as it can. Where possible, it rebuilds a fi
 | **Convert** an image | Any image Android can open | JPEG, PNG, WebP or HEIC, as you choose | Full resolution. A JPEG made from a JPEG is never saved below the original's quality on High. WebP made from PNG, GIF, BMP or lossless WebP is lossless. A 16-bit PNG, or a 10-bit HEIC or AVIF, converted to PNG is saved at 16 bits | Converting decodes the picture and saves it in the new format, which is then rebuilt and checked like a clean before it is saved. Android only saves 8-bit pictures, so Redact writes those PNGs itself: a 16-bit PNG sample for sample, and anything else decoded at more than 8 bits from its decoded values, tagged with its color space (sRGB, Display P3, or BT.2020 HLG or PQ). Transparent areas become white in JPEG and HEIC, which can't store transparency. Animations keep their first frame. HEIC needs Android 14, and JPEG is used before that. |
 | **Convert** a video | Any video Android can play | MP4 in H.264, H.265, VP9 or AV1, as you choose | The same as Clean | If the phone can't encode the codec you chose, Redact uses H.265, then H.264. |
 | **Censor** a photo | JPEG, PNG, WebP | The same format | Full resolution, or the part you cropped. WebP stays lossless if it was. A 16-bit PNG keeps all 16 bits, its original samples outside the censored areas, even when it has to be turned upright. On Android 14 and newer an Ultra HDR photo can keep its HDR layer, with the censored areas blanked in it too | The censored picture has to be encoded again. A 16-bit PNG is the exception, since Android would save it at 8 bits: Redact keeps the original samples and replaces only the censored pixels. The HDR layer is a small picture of where the scene is bright, so Redact censors it as well, or it could still show the outline of what you covered. |
+| **Censor** a video | Any video the phone can play | MP4, H.265 for an H.265 video and H.264 for anything else | The video's own size and frame rate, or the part you cropped, unless the phone's encoder can't take them (as with Convert). HDR stays HDR in H.265 | Every frame has to be encoded again to cover the areas, so a video is never copied as it is, and the sound is encoded again too (or removed with **Remove Audio**). A heavily compressed video is given a little more bitrate (about 11 Mbps at 1080p30 at least), since covered areas need it to stay clean. |
 | | HEIC | HEIC on Android 14 and newer, JPEG before | Full resolution | HEIC can only be saved on Android 14 and newer. |
 | | GIF or BMP | PNG | Full resolution, first frame | PNG keeps every pixel exactly. |
 | | AVIF and anything else | JPEG at High quality | Full resolution | Android can't save AVIF. |
@@ -270,6 +274,14 @@ Developers can find the technical version of these steps under [How a clean work
 The Settings tab puts the settings you use every day first: cleaning, sharing, Convert, output folders, privacy and notifications. Below them are the ones you rarely need (permissions, large files, storage, diagnostics and Reset All Settings), and About with its links comes last. It is grouped the same way as the tables below.
 
 **Metadata Cleaning**: what the Clean tab removes.
+
+**Preset** sets the options below for what you'll do with the files, in one choice: three buttons side by side, **Public**, **Friends** and **Personal**. Tapping one shows what it does and asks before applying it; for **Personal**, which keeps a location, the same question carries the Keep Location warning. It isn't a mode: it sets the same switches, they stay visible and changeable, and when they match no preset none of the buttons is selected (the Clean tab's chip reads **Custom**). Remove Audio and Keep Original File Names are left as they are.
+
+| Preset | Sets |
+|---|---|
+| **Public** (the default) | Strict Clean on, so every keep option is off. Best for social media, marketplaces and anywhere strangers can see the files |
+| **Friends** | Strict Clean off, Keep Date Taken with Date Only on, everything else off, so photos land on the right day in someone's gallery |
+| **Personal** | Strict Clean off, Keep Location with Approximate Location, Keep Date Taken (with the time), Keep Camera Settings and Keep Motion Photos on. For backups and cloud storage you don't fully trust |
 
 | Setting | What it does |
 |---|---|
@@ -340,7 +352,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 **Reset All Settings** puts every setting back to its default and forgets the chosen output folders. Your files are not touched.
 
-**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction** and **Rate Redact on Google Play**.
+**About**: version, **Check for Updates** (asks GitHub for the newest version number when you tap it and offers the store page when a newer one is out; it never runs on its own), links, **Open-Source Licenses** (every library Redact ships, with its full license text, readable offline), **Show Introduction**, **Rate Redact on Google Play** and **Tell a Friend About Redact** (opens the share sheet with a short message and the Play link, which you can edit before sending; no file is shared and Redact sends nothing itself).
 
 Open the Settings tab in the app for the full list.
 
@@ -381,12 +393,12 @@ Nothing in this section is sent unless you turn on **Send Crash Reports**. Until
 | Device and app details | Manufacturer, brand and model; CPU type, cores and speed; screen size and density; total and free memory and storage; battery level, charging and temperature; orientation; connection type; language; whether it's an emulator; Android version and build; app version | With each report |
 | Screen layout | Each view's type, internal ID, position, size and visibility. Never any text or picture in it. | With each error |
 | Trail of app events | The last 200 of: the app's own log messages (scrubbed), screens opened, buttons tapped (by internal name), the app moving to the background or foreground, system events by name (battery, screen on or off, airplane mode, language or time zone changed, low memory, rotation), and network type, VPN on or off, bandwidth and signal | With each error |
-| Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none) | With each error |
+| Diagnostic tags | Job type, success, error type, verification results, permission states, theme, notification settings, how the app was opened (share or launcher), the phone's temperature state and Battery Saver; the settings that change how files are cleaned or converted (such as Strict Clean, Keep Date Taken, Remove Audio, which Clean preset they match, the default formats and image quality, and whether a custom output folder was chosen, never which one); the phone's media performance class, whether it is a low-memory phone and how much memory Android gives each app; whether Android restricts the app in the background and its standby bucket; and where the app was installed from (Google Play, another store, sideloaded or none) | With each error |
 | Sessions | Start, end, duration, whether it crashed, and the error count | Every app session |
 | Performance | App start, screen and tab load times (first frame, and when the content is fully shown), slow and frozen frames, how long each tap, job and file took, and how long each step of a file took (such as copying, transcoding, checking and saving it), plus the update check and background cleanups. Every step has a fixed name from [Names in Sentry](#names-in-sentry), never anything about the file. | Every app session |
 | Code profiles | Sampled call stacks of the app's own code, thread names, frame rate, CPU and memory | About 1 in 4 app sessions |
 | Logs | The app's own log messages, scrubbed | While the app runs |
-| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo covers and whether Censor loaded the photo or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, buttons that found no other app to hand off to (no maps app, browser, Play Store, share target, file picker, file manager or system settings), Android refusing to keep access to a chosen output folder, video details or encoder limits that couldn't be read, how many old working files and unfinished copies the background cleanups removed, and why Android ended the app's process and how much memory it held | While the app runs |
+| Counters and timings | Per file: the outcome and duration of Clean, Share, Convert, Scan and Censor, and for a file that fails, the kind of error (an exception's class name, such as `IOException`, never its message). Per job: how many files and how it ended. Conversion output formats and codec fallbacks, verification passes and failures, parts dropped from files, unsupported formats, already-clean check results, update check results, answers to permission requests, low memory, the phone's temperature at the start of a job, foreground service and notification failures, secure delete timing and fallbacks, how many areas a censored photo or video covers and whether Censor loaded the file or had to save it smaller, whether the introduction was finished or skipped, the chosen output folder having to be replaced by the default, large-job and low-storage warnings shown, the resolution a video was reduced to, retries at a smaller size and codec failures, which way a file was cleaned (rebuilt, copied or re-encoded), working files left over from an earlier run, shared items that couldn't be copied in, buttons that found no other app to hand off to (no maps app, browser, Play Store, share target, file picker, file manager or system settings), Android refusing to keep access to a chosen output folder, video details or encoder limits that couldn't be read, how many old working files and unfinished copies the background cleanups removed, and why Android ended the app's process and how much memory it held | While the app runs |
 | File facts | Format (such as `image/heic`) and the format it was written in, video codec (such as `video/hevc`) and the codec chosen for the output, size class (such as `4k`), length class, frame rate class (such as `up_to_60`), whether a video has sound, rotation, whether a photo had location data, how many metadata tags were removed, and the names of tags kept or found (such as `GPSLatitude`), never their values | With jobs and errors |
 | A note you write | What you type after **Add Details**, with paths, file names and GPS coordinates removed, up to 1,000 characters | Only if you send one |
 
@@ -424,7 +436,7 @@ Every tag, counter, timing, breadcrumb, transaction and span the app sends follo
 | Checks | What the clean and its checks found | `verify.image_passed`, `verify.video_passed`, `verify.failed_check`, `scan.extraction_failed`, `scan.section_count`, `clean.kept_exif_count`, `clean.removed_exif_count` |
 | Permissions | Whether each permission is granted and whether Android will still ask; `permission.<type>` is one of images, videos, selected_media, media_gps, notifications, storage or other, and is true when granted | `permission.type`, `permission.request_code`, `permission.request_needed`, `permission.all_granted`, `permission.images`, `permission.videos`, `permission.selected_media`, `permission.storage`, `permission.media_gps`, `permission.partial_media_access`, `permission.persisted_grant`, `permission.rationale_shown`, `permission.gps_rationale_shown`, `permission.settings_needed`, `permission.gps_settings_needed`, `permission.images_can_ask`, `permission.videos_can_ask`, `permission.storage_can_ask`, `permission.gps_can_ask` |
 | App | How the app was opened and what it was doing | `intent.action`, `intent.mime_type`, `intent.unsupported_mime_type`, `intent.unsupported_action`, `ui.theme`, `clean.screen_state`, `clean.selected_count`, `clean.processing_count`, `clean.processed_count`, `share.file_count`, `app.process_importance`, `app.background_restricted`, `app.standby_bucket`, `app.installer` |
-| Settings | The settings that change how files are processed or what the app shows, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality`, `setting.notifications`, `setting.clean_notifications`, `setting.convert_notifications` |
+| Settings | The settings that change how files are processed or what the app shows, with every error; a folder is only `chosen` or `default` | `setting.strict_clean`, `setting.clean_preset` (`standard`, `sending_to_people`, `keeping_for_myself` or `custom`), `setting.keep_camera_settings`, `setting.keep_date_taken`, `setting.keep_motion_photos`, `setting.keep_gps`, `setting.remove_audio`, `setting.faster_video_cleaning`, `setting.delete_originals`, `setting.keep_original_names`, `setting.auto_clear_temp`, `setting.image_folder`, `setting.video_folder`, `setting.default_image_format`, `setting.default_video_codec`, `setting.image_quality`, `setting.notifications`, `setting.clean_notifications`, `setting.convert_notifications` |
 | Phone | What the phone offers for media work, and its state | `device.media_performance_class`, `device.low_ram`, `device.heap_mb`, `device.large_heap_mb`, `device.thermal_status`, `device.battery_saver_on` |
 
 | Counter or timing | What it measures | Broken down by |
@@ -448,7 +460,7 @@ Every tag, counter, timing, breadcrumb, transaction and span the app sends follo
 | `video.smaller_size_retry` | A transcode tried again at a smaller size | `file.media_type`, `outcome` |
 | `video.transcode_attempt_failure` | One transcode attempt failing | `video.output_codec`, `reason` |
 | `video.source_probe_failure` | Facts about a source video or the phone's encoders that couldn't be read, so a transcode used safe defaults | `reason`, `error_type` |
-| `censor.photo_open` | A photo opened in Censor: loaded, unsupported or failed | `outcome` |
+| `censor.photo_open` | A photo or video opened in Censor: loaded, unsupported or failed | `outcome` |
 | `censor.copy_save.region_count` | How many areas a saved censored copy covers | nothing |
 | `censor.downscaled_save` | A censored copy that had to be saved smaller than the photo | `outcome`, `reason` |
 | `share.inbound_copy_failure` | A shared item that couldn't be copied in | `error_type` |
@@ -492,6 +504,7 @@ Every tag, counter, timing, breadcrumb, transaction and span the app sends follo
 | `convert.image_encode` | Converting one photo to another format |
 | `verify.image_metadata_check` | Checking a cleaned photo has no identifying metadata left |
 | `verify.video_metadata_check` | Checking a cleaned video has no identifying metadata left |
+| `verify.censor_coverage` | Checking every area of a censored video is really covered |
 | `verify.saved_bytes_check` | Checking the saved file holds exactly the bytes that were checked |
 | `output.file_save` | Writing a finished file to the output folder |
 | `secure_delete.overwrite` | Overwriting and deleting one working copy |
@@ -501,14 +514,14 @@ Every tag, counter, timing, breadcrumb, transaction and span the app sends follo
 | `scan.location_reread` | Reading a file's location again after location access is allowed |
 | `scan.multi_file_summary` | Scanning several files for the summary |
 | `scan.file_survey` | Surveying one file in that summary |
-| `censor.photo_open` | Opening a photo in Censor |
+| `censor.photo_open` | Opening a photo or video in Censor |
 | `censor.copy_save` | Saving a censored copy |
 | `update.release_check` | Check for Updates asking GitHub for the newest release |
 | `cache.stale_file_cleanup` | The automatic cleanup of working files older than a day |
 | `cache.leftover_file_sweep` | Deleting working files an earlier run left behind |
 | `output.unfinished_file_sweep` | Deleting unfinished copies an earlier run left in a chosen folder |
 
-Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
+Breadcrumb categories: `clean`, `share`, `convert`, `scan`, `censor`, `verify`, `image`, `video`, `media`, `metadata`, `output`, `storage`, `permission`, `notification`, `update`, `ui`, `whatsnew`, `app.lifecycle`. The SDK adds its own, such as `ui.click`, `navigation` and `device.event`.
 
 | Your maps app | **Open in Maps** in Scan, after you agree | Shows a photo's location; the maps app decides what it loads |
 

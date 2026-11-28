@@ -39,3 +39,5 @@ Show me the classified commit list (features / fixes / ignored), the level you c
 End with: the old and new `versionName`/`versionCode`, the level and the reason, the one-line reason for the level, test and translation results, and the reminder that the `v<new versionName>` tag and GitHub release are created by CI when this reaches `main`.
 
 Then commit to the current branch without asking (skip it if nothing changed or a check is still failing, and say so): stage `app/build.gradle` only, and commit with the message `Bump version to <new versionName>`. Never push, and never create tags.
+
+Run `/whatsnew` next: the in-app What's New notes must be written for the new `versionCode`, or `WhatsNewContentTest` fails the build.

@@ -233,6 +233,89 @@ public class SettingsFragmentTest {
         assertEquals(0.38f, settings.findViewById(R.id.rowPreserveCamera).getAlpha(), 0.001f);
     }
 
+    private boolean presetChecked(int id) {
+        return ((com.google.android.material.button.MaterialButton) settings.findViewById(id)).isChecked();
+    }
+
+    @Test
+    public void cleanPreset_buttons_askFirst_andStayInSyncWithTheSwitches() {
+        assertTrue("a fresh install is Public", presetChecked(R.id.buttonPresetStandard));
+        assertFalse(presetChecked(R.id.buttonPresetSending));
+        assertEquals(View.GONE, settings.findViewById(R.id.textPresetCustom).getVisibility());
+        assertEquals(activity.getString(R.string.clean_preset_standard),
+                ((TextView) settings.findViewById(R.id.buttonPresetStandard)).getText().toString());
+
+        // Tapping asks; Cancel changes nothing and leaves the old button checked.
+        settings.findViewById(R.id.buttonPresetSending).performClick();
+        idle();
+        AlertDialog ask = latestDialog();
+        assertEquals(activity.getString(R.string.clean_preset_apply),
+                ask.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString());
+        ask.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+        assertEquals(CleanPreset.STANDARD, CleanPresets.current(activity));
+        assertTrue(presetChecked(R.id.buttonPresetStandard));
+        assertFalse(presetChecked(R.id.buttonPresetSending));
+
+        // Apply writes the options and flips the switches.
+        settings.findViewById(R.id.buttonPresetSending).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertFalse(sw(R.id.switchStrictClean).isChecked());
+        assertTrue(sw(R.id.switchPreserveDate).isChecked());
+        assertTrue(sw(R.id.switchDateOnly).isChecked());
+        assertEquals(CleanPreset.SENDING_TO_PEOPLE, CleanPresets.current(activity));
+        assertTrue(presetChecked(R.id.buttonPresetSending));
+
+        // Tapping the current preset asks nothing.
+        int dialogs = ShadowDialog.getShownDialogs().size();
+        settings.findViewById(R.id.buttonPresetSending).performClick();
+        idle();
+        assertEquals(dialogs, ShadowDialog.getShownDialogs().size());
+        assertTrue(presetChecked(R.id.buttonPresetSending));
+
+        // Flipping a switch to a mix no preset has checks none and shows the note.
+        sw(R.id.switchPreserveCamera).setChecked(true);
+        idle();
+        assertFalse(presetChecked(R.id.buttonPresetStandard));
+        assertFalse(presetChecked(R.id.buttonPresetSending));
+        assertFalse(presetChecked(R.id.buttonPresetKeeping));
+        assertEquals(View.VISIBLE, settings.findViewById(R.id.textPresetCustom).getVisibility());
+        sw(R.id.switchPreserveCamera).setChecked(false);
+        idle();
+        assertTrue(presetChecked(R.id.buttonPresetSending));
+        sw(R.id.switchStrictClean).setChecked(true);
+        idle();
+        assertTrue(presetChecked(R.id.buttonPresetStandard));
+    }
+
+    @Test
+    public void cleanPreset_keepingLocation_warnsAboutLocationInTheSameDialog() {
+        settings.findViewById(R.id.buttonPresetKeeping).performClick();
+        idle();
+        assertTrue("one dialog says what the preset does and that it keeps a location",
+                org.robolectric.shadows.ShadowDialog.getLatestDialog().isShowing());
+        TextView message = latestDialog().findViewById(android.R.id.message);
+        assertTrue(message.getText().toString().contains(
+                activity.getString(R.string.settings_preserve_location_confirm_message)));
+        assertTrue("the old choice shows until the user says yes", presetChecked(R.id.buttonPresetStandard));
+        latestDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+        assertFalse(AppPreferences.isPreserveLocation(activity));
+        assertTrue(AppPreferences.isStrictClean(activity));
+
+        settings.findViewById(R.id.buttonPresetKeeping).performClick();
+        idle();
+        latestDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue(AppPreferences.isPreserveLocation(activity));
+        assertTrue(sw(R.id.switchPreserveLocation).isChecked());
+        assertTrue(sw(R.id.switchPreserveMotion).isChecked());
+        assertTrue(sw(R.id.switchApproximateLocation).isChecked());
+        assertTrue(presetChecked(R.id.buttonPresetKeeping));
+    }
+
     @Test
     public void preserveLocation_requiresConfirmation() {
         sw(R.id.switchStrictClean).setChecked(false);
@@ -491,6 +574,20 @@ public class SettingsFragmentTest {
             settings.findViewById(row).performClick();
             assertNotNull(nextIntentWithAction(Intent.ACTION_VIEW));
         }
+        settings.findViewById(R.id.rowAboutWhatsNew).performClick();
+        Intent whatsNew = shadowOf(activity).getNextStartedActivity();
+        assertEquals(com.doubleangels.redact.whatsnew.WhatsNewActivity.class.getName(),
+                whatsNew.getComponent().getClassName());
+        assertTrue(whatsNew.getBooleanExtra(
+                com.doubleangels.redact.whatsnew.WhatsNewActivity.EXTRA_FROM_SETTINGS, false));
+        settings.findViewById(R.id.rowAboutTellFriend).performClick();
+        Intent chooser = nextIntentWithAction(Intent.ACTION_CHOOSER);
+        assertNotNull(chooser);
+        @SuppressWarnings("deprecation")
+        Intent shared = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertNotNull(shared);
+        assertEquals(Intent.ACTION_SEND, shared.getAction());
+        assertEquals("text/plain", shared.getType());
         TextView version = settings.findViewById(R.id.textAboutVersion);
         assertTrue(version.getText().toString().contains(BuildConfig.VERSION_NAME));
     }

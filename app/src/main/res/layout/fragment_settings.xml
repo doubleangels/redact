@@ -228,6 +228,105 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
+                <!-- Clean preset: sets the switches below for a purpose. Worked out from them,
+                     so it shows Custom when they match none. -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_clean_preset"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/settings_clean_preset_subtitle"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- One button per preset, all in one row; tapping one asks before it applies. -->
+                <LinearLayout
+                    android:id="@+id/rowCleanPresets"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetStandard"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="80dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="12dp"
+                        android:text="@string/clean_preset_standard"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_shield"
+                        app:iconGravity="top"
+                        app:iconPadding="6dp" />
+
+                    <Space
+                        android:layout_width="@dimen/spacing_small"
+                        android:layout_height="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetSending"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="80dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="12dp"
+                        android:text="@string/clean_preset_sending"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_send"
+                        app:iconGravity="top"
+                        app:iconPadding="6dp" />
+
+                    <Space
+                        android:layout_width="@dimen/spacing_small"
+                        android:layout_height="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPresetKeeping"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checkable="true"
+                        android:minHeight="80dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="12dp"
+                        android:text="@string/clean_preset_keeping"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        app:icon="@drawable/ic_lock"
+                        app:iconGravity="top"
+                        app:iconPadding="6dp" />
+                </LinearLayout>
+
+                <!-- Shown only while the options match no preset. -->
+                <TextView
+                    android:id="@+id/textPresetCustom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:text="@string/clean_preset_custom_description"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    android:background="?attr/colorOutlineVariant" />
+
                 <!-- Strict Clean Toggle -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -499,7 +598,6 @@
 
                 <!-- Remove Audio Toggle -->
                 <LinearLayout
-                    android:id="@+id/rowRemoveAudio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -2110,6 +2208,41 @@
                     android:background="?attr/colorOutlineVariant" />
 
                 <LinearLayout
+                    android:id="@+id/rowAboutWhatsNew"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_about_whats_new"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageView
+                        android:contentDescription="@null"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/dividerAboutWhatsNew"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <LinearLayout
                     android:id="@+id/rowAboutLicenses"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -2229,6 +2362,40 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/settings_about_rate"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageView
+                        android:contentDescription="@null"
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <LinearLayout
+                    android:id="@+id/rowAboutTellFriend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_about_tell_friend"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorPrimary" />
 

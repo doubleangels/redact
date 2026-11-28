@@ -38,7 +38,8 @@ public class SentryNamingTest {
     static final Set<String> AREAS = Set.of(
             "app", "already_clean", "cache", "censor", "clean", "convert", "image", "job", "media",
             "memory", "metadata", "notification", "onboarding", "output", "permission", "scan",
-            "secure_delete", "service", "share", "storage", "ui", "update", "verify", "video");
+            "secure_delete", "service", "share", "storage", "ui", "update", "verify", "video",
+            "whatsnew");
 
     /** The groups a state key belongs to: the areas, and what describes a file, phone or launch. */
     static final Set<String> GROUPS;

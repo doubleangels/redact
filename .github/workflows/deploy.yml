@@ -85,7 +85,7 @@ jobs:
 
       - name: Write the release notes from the commits since the last release
         if: steps.notes.outputs.handwritten == 'false'
-        uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
+        uses: anthropics/claude-code-action@4411a9e9b0283becf4b924f7bce360fd7756c78c # v1.0.290
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
@@ -276,14 +276,30 @@ jobs:
           name: unsigned-bundle
           path: bundle
 
+      # Signed with the JDK's own jarsigner, as an app bundle is, so no third-party code ever sees
+      # the upload key. The passwords reach jarsigner through the environment, never its command
+      # line, and the keystore lives in the runner's temp folder only while this step runs.
       - name: Sign bundle for Google Play release
-        uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
-        with:
-          releaseDirectory: bundle
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          AAB_PATH="bundle/app-release.aab"
+          if [ ! -f "${AAB_PATH}" ]; then
+            echo "::error::${AAB_PATH} is missing from the unsigned-bundle artifact."
+            exit 1
+          fi
+          KEYSTORE="${RUNNER_TEMP}/upload-key.jks"
+          trap 'rm -f "${KEYSTORE}"' EXIT
+          (umask 077 && printf '%s' "${SIGNING_KEY}" | base64 --decode > "${KEYSTORE}")
+          "${JAVA_HOME:+${JAVA_HOME}/bin/}jarsigner" \
+            -keystore "${KEYSTORE}" \
+            -storepass:env KEY_STORE_PASSWORD \
+            -keypass:env KEY_PASSWORD \
+            "${AAB_PATH}" "${ALIAS}"
 
       - name: Verify signed bundle's certificate fingerprint
         env:
@@ -336,9 +352,14 @@ jobs:
           whatsNewDirectory: whatsnew
 
       - name: Record published version point
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # The token reaches git through a credential helper that reads it from the environment,
+        # so it is never part of a URL or a command line.
         run: |
           git tag -f last-published-version
-          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-published-version --force
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' \
+            push "https://github.com/$GITHUB_REPOSITORY.git" last-published-version --force
 
       - name: Check whether the store listing changed
         id: metadata_diff
@@ -362,9 +383,9 @@ jobs:
 
       - name: Set up Ruby for Fastlane
         if: steps.metadata_diff.outputs.changed == 'true'
-        uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
+        uses: ruby/setup-ruby@145243922b4465b78e04dd66294782c7de45901f # v1.345.0
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.4"
           bundler-cache: true
 
       - name: Push Fastlane metadata to Play Store
@@ -372,9 +393,14 @@ jobs:
         run: bundle exec fastlane supply --skip_upload_apk true --skip_upload_aab true --skip_upload_changelogs true --json_key service_account.json --package_name com.doubleangels.redact --track production
 
       - name: Record metadata publish point
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # The token reaches git through a credential helper that reads it from the environment,
+        # so it is never part of a URL or a command line.
         run: |
           git tag -f last-metadata-publish
-          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" last-metadata-publish --force
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' \
+            push "https://github.com/$GITHUB_REPOSITORY.git" last-metadata-publish --force
 
       - name: Finalize Sentry release
         uses: getsentry/action-release@2e505a70ff06dac263413242aa3617fec90134e5 # v3.9.1
@@ -386,9 +412,10 @@ jobs:
           environment: production
           release: com.doubleangels.redact@${{ needs.check-version.outputs.name }}+${{ needs.check-version.outputs.code }}
 
-      - name: Remove service account and signing credentials
+      # The signing step removes its own keystore from the runner's temp folder.
+      - name: Remove service account credentials
         if: always()
-        run: rm -f service_account.json bundle/*.jks bundle/*.keystore
+        run: rm -f service_account.json
 
   github-release:
     needs: ["check-version", "publish", "release-notes"]

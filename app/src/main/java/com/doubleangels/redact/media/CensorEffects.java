@@ -28,24 +28,11 @@ import java.util.Random;
  * <p>Block sizes scale with the image, so the small preview and the full-size photo look alike.
  * They also scale with each covered area, so an area that fills much of the photo (a close-up of
  * a number plate, say) is never more than a few blocks across, however large its letters are.
+ * The sizes and the noise come from {@link CensorBlocks}, which video censoring shares.
  */
 public final class CensorEffects {
 
     public enum Effect { PIXELATE, BLUR, BLACK }
-
-    /** Blocks per longer side: large, so faces and text cannot be read. */
-    private static final float BLOCKS_PER_SIDE = 48f;
-    private static final int MIN_BLOCK = 8;
-    /**
-     * Blocks across the shorter side of a covered area, at most. Large text in a close-up stays
-     * readable on the image-wide grid alone; at this size a letter that fills the area is only a
-     * few blocks tall.
-     */
-    @VisibleForTesting
-    static final int MAX_BLOCKS_PER_AREA = 6;
-    /** Random change to each block's colour, per channel, of up to this much either way. */
-    @VisibleForTesting
-    static final int NOISE = 10;
 
     private static final Random SECURE_RANDOM = new SecureRandom();
 
@@ -71,7 +58,7 @@ public final class CensorEffects {
         Paint black = new Paint();
         black.setColor(Color.BLACK);
         black.setStyle(Paint.Style.FILL);
-        int imageBlock = blockSize(width, height);
+        int imageBlock = CensorBlocks.imageBlock(width, height);
         for (CensorRegion region : regions) {
             if (region.isEmpty()) {
                 continue;
@@ -84,7 +71,7 @@ public final class CensorEffects {
             }
             RectF bounds = new RectF();
             path.computeBounds(bounds, true);
-            int block = blockSize(imageBlock, bounds);
+            int block = CensorBlocks.areaBlock(imageBlock, bounds.width(), bounds.height());
             // Whole blocks on the image's own grid, so overlapping regions share one grid and
             // every block's colour comes from the full block.
             Rect area = new Rect(
@@ -114,25 +101,10 @@ public final class CensorEffects {
         }
     }
 
-    @VisibleForTesting
-    static int blockSize(int width, int height) {
-        return Math.max(MIN_BLOCK, Math.round(Math.max(width, height) / BLOCKS_PER_SIDE));
-    }
-
-    /**
-     * The block size for one covered area: the image's own, or larger when the area is big enough
-     * that the image's blocks would leave more than {@link #MAX_BLOCKS_PER_AREA} across its
-     * shorter side.
-     */
-    @VisibleForTesting
-    static int blockSize(int imageBlock, @NonNull RectF area) {
-        float shorter = Math.min(area.width(), area.height());
-        return Math.max(imageBlock, (int) Math.ceil(shorter / MAX_BLOCKS_PER_AREA));
-    }
-
     /**
      * One colour per {@code block} x {@code block} square, row by row: its average with up to
-     * {@link #NOISE} added to or taken from each colour channel. Alpha is averaged without noise.
+     * {@link CensorBlocks#NOISE} added to or taken from each colour channel. Alpha is averaged
+     * without noise.
      */
     @VisibleForTesting
     @NonNull
@@ -161,15 +133,12 @@ public final class CensorEffects {
                 }
                 int n = (bottom - top) * (right - left);
                 colours[row * cols + col] = (int) (a / n) << 24
-                        | noisy(r / n, random) << 16 | noisy(g / n, random) << 8 | noisy(b / n, random);
+                        | CensorBlocks.noisy((int) (r / n), random) << 16
+                        | CensorBlocks.noisy((int) (g / n), random) << 8
+                        | CensorBlocks.noisy((int) (b / n), random);
             }
         }
         return colours;
-    }
-
-    private static int noisy(long channel, @NonNull Random random) {
-        int value = (int) channel + random.nextInt(2 * NOISE + 1) - NOISE;
-        return Math.max(0, Math.min(255, value));
     }
 
     /** Pixelate: every pixel takes its block's colour. */

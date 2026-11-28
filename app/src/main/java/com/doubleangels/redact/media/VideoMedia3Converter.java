@@ -424,10 +424,43 @@ public final class VideoMedia3Converter {
             long ownerId,
             @Nullable double[] keepLocation)
             throws IOException, InterruptedException {
+        return transcodeTraced(context, sourceUri, outputPath, formatIndex, progressListener, ownerId,
+                keepLocation, ImmutableList.of());
+    }
+
+    /**
+     * Re-encodes {@code sourceUri} to {@code outputPath} (MP4) with {@code editEffects} applied to
+     * every frame, after any frame dropping and before any downscale: Censor's areas and crop.
+     * The video is always re-encoded, and no metadata of the source is written.
+     */
+    public static int transcodeEditedToPath(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @NonNull List<Effect> editEffects,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId)
+            throws IOException, InterruptedException {
+        return transcodeTraced(context, sourceUri, outputPath, formatIndex, progressListener, ownerId,
+                null, ImmutableList.copyOf(editEffects));
+    }
+
+    /** A transcode inside its video.transcode span. */
+    private static int transcodeTraced(
+            @NonNull Context context,
+            @NonNull Uri sourceUri,
+            @NonNull String outputPath,
+            int formatIndex,
+            @Nullable TranscodeProgressListener progressListener,
+            long ownerId,
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
+            throws IOException, InterruptedException {
         SentryManager.Span span = SentryManager.span("video.transcode");
         try {
-            return transcodeToPathUntraced(
-                    context, sourceUri, outputPath, formatIndex, progressListener, ownerId, keepLocation);
+            return transcodeToPathUntraced(context, sourceUri, outputPath, formatIndex, progressListener,
+                    ownerId, keepLocation, editEffects);
         } catch (IOException | InterruptedException | RuntimeException | Error e) {
             span.failed(e);
             throw e;
@@ -444,7 +477,8 @@ public final class VideoMedia3Converter {
             int formatIndex,
             @Nullable TranscodeProgressListener progressListener,
             long ownerId,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -477,7 +511,8 @@ public final class VideoMedia3Converter {
                         ownerId,
                         hasAudio,
                         source,
-                        keepLocation);
+                        keepLocation,
+                        editEffects);
                 return attemptIndex;
             } catch (UnsupportedMediaException e) {
                 // The source itself can't be read; another output codec won't change that.
@@ -509,7 +544,7 @@ public final class VideoMedia3Converter {
         Context app = context.getApplicationContext();
         transcodeToPathOnce(app, sourceUri, outputPath, null, Composition.HDR_MODE_KEEP_HDR, null, ownerId,
                 0, 0, sourceHasAudio(app, sourceUri), readSourceVideo(app, sourceUri), keepLocation,
-                vp9Config);
+                vp9Config, ImmutableList.of());
     }
 
     /**
@@ -532,7 +567,8 @@ public final class VideoMedia3Converter {
             long ownerId,
             boolean hasAudio,
             @NonNull SourceVideo source,
-            @Nullable double[] keepLocation)
+            @Nullable double[] keepLocation,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
         @Nullable SizeRateSupport support = hardwareEncoderSupport(videoMimeType);
         int[] plan = support != null
@@ -548,7 +584,7 @@ public final class VideoMedia3Converter {
         try {
             transcodeToPathOnce(
                     app, sourceUri, outputPath, videoMimeType, hdrMode, progressListener, ownerId,
-                    plan[0], plan[1], hasAudio, source, keepLocation, null);
+                    plan[0], plan[1], hasAudio, source, keepLocation, null, editEffects);
             if (plan[0] > 0) {
                 warnDownscaled(app, plan[0]);
             }
@@ -574,7 +610,8 @@ public final class VideoMedia3Converter {
                             hasAudio,
                             source,
                             keepLocation,
-                            null);
+                            null,
+                            editEffects);
                     warnDownscaled(app, shortSide);
                     countSmallerSizeRetry("recovered");
                     return;
@@ -784,6 +821,57 @@ public final class VideoMedia3Converter {
     }
 
     /**
+     * The least a censored export is given, at {@link #EDITED_FLOOR_REFERENCE_PIXEL_RATE} pixels a
+     * second (320 x 240 at 30 fps). Covered areas have sharp block edges, and a moving one makes the
+     * encoder redraw what it passes over; at the bitrate of a heavily compressed source the encoder
+     * left specks of the old picture inside a moving Black area, and the coverage check rightly
+     * refused the save. A fine checkerboard behind a moving area, the worst case, came out clean at
+     * this rate on the emulator's software encoder and not at half of it. Other sizes scale as
+     * {@link #matchedVideoBitrate} does, to the power 0.75: about 11 Mbps at 1080p30 and 31 at
+     * 4K30, below what phone cameras record, so only sources squeezed hard are lifted.
+     */
+    @VisibleForTesting
+    static final int EDITED_FLOOR_AT_REFERENCE = 921_600;
+    @VisibleForTesting
+    static final double EDITED_FLOOR_REFERENCE_PIXEL_RATE = 320.0 * 240.0 * 30.0;
+
+    /**
+     * {@code matched} (the source's bitrate carried over, or 0 for Media3's own) raised to the
+     * floor a censored export needs ({@link #EDITED_FLOOR_AT_REFERENCE}), within what the hardware
+     * encoder accepts.
+     */
+    private static int editedVideoBitrate(int matched, @NonNull SourceVideo source, @NonNull String outputMime,
+                                          int outputShortSide, int outputFrameRate) {
+        int floor = editedBitrateFloor(source.width, source.height, source.frameRate, outputShortSide, outputFrameRate);
+        int target = Math.max(matched, floor);
+        MediaCodecInfo.VideoCapabilities caps = hardwareEncoderCapabilities(outputMime);
+        if (target > 0 && caps != null) {
+            target = caps.getBitrateRange().clamp(target);
+        }
+        return target;
+    }
+
+    /**
+     * The floor for a {@code width} x {@code height} source at {@code frameRate} (30 when unknown),
+     * as exported at {@code outputShortSide} (0 for the source's) and {@code outputFrameRate} (0 for
+     * the source's); 0 when the size is unknown.
+     */
+    @VisibleForTesting
+    static int editedBitrateFloor(int width, int height, int frameRate, int outputShortSide, int outputFrameRate) {
+        if (width <= 0 || height <= 0) {
+            return 0;
+        }
+        int sourceShort = Math.min(width, height);
+        int sourceLong = Math.max(width, height);
+        int outShort = outputShortSide > 0 && outputShortSide < sourceShort ? outputShortSide : sourceShort;
+        int outLong = outShort == sourceShort ? sourceLong : scaledLongSide(sourceLong, sourceShort, outShort);
+        int fps = outputFrameRate > 0 ? outputFrameRate : frameRate > 0 ? frameRate : 30;
+        double pixelRate = (double) outLong * outShort * fps;
+        double floor = EDITED_FLOOR_AT_REFERENCE * Math.pow(pixelRate / EDITED_FLOOR_REFERENCE_PIXEL_RATE, 0.75);
+        return (int) Math.min(Integer.MAX_VALUE, Math.round(floor));
+    }
+
+    /**
      * {@code sourceBitrate} carried over to the output: scaled by the change in pixels per second
      * to the power 0.75, as bitrate grows slower than picture size at the same quality, and by how
      * many bits the output codec needs against the source's ({@link #codecBitrateFactor}).
@@ -983,7 +1071,8 @@ public final class VideoMedia3Converter {
             boolean hasAudio,
             @NonNull SourceVideo source,
             @Nullable double[] keepLocation,
-            @Nullable byte[] vp9Config)
+            @Nullable byte[] vp9Config,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         File outFile = new File(outputPath);
@@ -1018,7 +1107,8 @@ public final class VideoMedia3Converter {
                     hasAudio,
                     source,
                     keepLocation,
-                    vp9Config);
+                    vp9Config,
+                    editEffects);
         } finally {
             WAITERS.remove(waiter);
             if (locked) {
@@ -1041,14 +1131,22 @@ public final class VideoMedia3Converter {
             boolean hasAudio,
             @NonNull SourceVideo source,
             @Nullable double[] keepLocation,
-            @Nullable byte[] vp9Config)
+            @Nullable byte[] vp9Config,
+            @NonNull ImmutableList<Effect> editEffects)
             throws IOException, InterruptedException {
 
         activeTranscodeOwner.set(ownerId);
         // No video type: the video is copied as it is, and only the sound is encoded, to Opus.
         boolean copyVideo = videoMimeType == null;
+        if (copyVideo && !editEffects.isEmpty()) {
+            // A copied video is never decoded, so its edits could not be applied.
+            throw new IllegalArgumentException("Edits need the video to be re-encoded");
+        }
         String audioMimeType = copyVideo ? MimeTypes.AUDIO_OPUS : audioMimeTypeForVideoMime(videoMimeType);
-        int videoBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        int matchedBitrate = copyVideo ? 0 : targetVideoBitrate(source, videoMimeType, outputShortSide, outputFrameRate);
+        // A censored export gets at least the floor its covered areas need (EDITED_MIN_BITS_PER_PIXEL).
+        int videoBitrate = editEffects.isEmpty() ? matchedBitrate
+                : editedVideoBitrate(matchedBitrate, source, videoMimeType, outputShortSide, outputFrameRate);
         int audioBitrate = targetAudioBitrate(source, audioMimeType);
         MediaItem mediaItem = MediaItem.fromUri(sourceUri);
         EditedMediaItem.Builder editedMediaItemBuilder =
@@ -1058,6 +1156,8 @@ public final class VideoMedia3Converter {
             // Dropped on the GPU before the encoder, which is configured for this rate too.
             videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(outputFrameRate));
         }
+        // On the upright frame at full size, so their fractions land where the user put them.
+        videoEffects.addAll(editEffects);
         if (outputShortSide > 0) {
             videoEffects.add(Presentation.createForShortSide(outputShortSide));
         }
@@ -1759,12 +1859,29 @@ public final class VideoMedia3Converter {
     @NonNull
     private static Uri copyToMoviesRedactUntraced(Context context, File file, String originalFileName)
             throws IOException {
-        ContentResolver resolver = context.getContentResolver();
         boolean webm = file.getName().toLowerCase(Locale.ROOT).endsWith(".webm");
         String ext = webm ? ".webm" : ".mp4";
         String mime = webm ? "video/webm" : "video/mp4";
-        String outName = MediaFileNames.outputBaseName(context, originalFileName) + ext;
+        return saveToOutputUntraced(context, file,
+                MediaFileNames.outputBaseName(context, originalFileName) + ext, mime);
+    }
 
+    /**
+     * Saves a finished, verified MP4 to the output folder as {@code outName}, which carries its
+     * extension, the same way {@link #copyToMoviesRedact} does.
+     */
+    @NonNull
+    public static Uri saveMp4ToOutput(@NonNull Context context, @NonNull File file, @NonNull String outName)
+            throws IOException {
+        return SentryManager.inSpan("output.file_save",
+                () -> saveToOutputUntraced(context, file, outName, "video/mp4"));
+    }
+
+    @NonNull
+    private static Uri saveToOutputUntraced(@NonNull Context context, @NonNull File file,
+                                            @NonNull String outName, @NonNull String mime)
+            throws IOException {
+        ContentResolver resolver = context.getContentResolver();
         Uri outUri = OutputDestination.create(context, true, outName, mime);
 
         try {

@@ -142,6 +142,18 @@
     
     <string name="settings_section_advanced_privacy">تنظيف البيانات الوصفية</string>
     <string name="settings_advanced_privacy_subtitle">كيف يزيل Redact المعلومات المخفية، مثل الموقع وتفاصيل الكاميرا (EXIF)، في تبويب التنظيف. الملفات المشارَكة من تطبيقات أخرى تتم إزالة هذه المعلومات منها دائماً قبل إعادة إرسالها.</string>
+    <string name="settings_clean_preset">الإعداد المسبق</string>
+    <string name="settings_clean_preset_subtitle">يضبط الخيارات أدناه حسب ما ستفعله بالملفات. لا يزال بإمكانك تغيير أي منها.</string>
+    <string name="clean_preset_chip_description">الإعداد المسبق: %1$s. انقر للتغيير.</string>
+    <string name="clean_preset_standard">عام</string>
+    <string name="clean_preset_standard_description">يزيل كل ما لا تحتاجه الصورة لتظهر بشكل صحيح، بما في ذلك الموقع والتواريخ وتفاصيل الجهاز. الأفضل لوسائل التواصل الاجتماعي والأسواق وأي مكان يراه الغرباء. الإعداد الافتراضي.</string>
+    <string name="clean_preset_sending">الأصدقاء</string>
+    <string name="clean_preset_sending_description">يزيل الموقع وتفاصيل الجهاز لكنه يحتفظ بيوم التقاط كل صورة، لتظهر في مكانها الصحيح في معرض صورهم.</string>
+    <string name="clean_preset_keeping">شخصي</string>
+    <string name="clean_preset_keeping_description">يحتفظ بالتاريخ وتفاصيل الكاميرا والصور المتحركة، ويقرّب الموقع إلى مستوى المدينة. مناسب للنسخ الاحتياطية والتخزين السحابي الذي لا تثق به تمامًا.</string>
+    <string name="clean_preset_custom">مخصص</string>
+    <string name="clean_preset_custom_description">خياراتك لا تطابق أي إعداد مسبق.</string>
+    <string name="clean_preset_apply">تطبيق</string>
     <string name="settings_auto_clear_temp">مسح الذاكرة عند البدء</string>
     <string name="settings_auto_clear_temp_subtitle">يزيل ملفات ذاكرة المعالجة الأقدم من 24 ساعة عند فتح التطبيق.</string>
     <string name="settings_preserve_camera">الاحتفاظ بإعدادات الكاميرا</string>
@@ -226,6 +238,9 @@
     <string name="settings_about_report_issue">الإبلاغ عن مشكلة</string>
     <string name="settings_about_donate">تبرع</string>
     <string name="settings_about_rate">قيّم Redact على Google Play</string>
+    <string name="settings_about_tell_friend">أخبر صديقًا عن Redact</string>
+    <string name="tell_friend_chooser_title">مشاركة Redact</string>
+    <string name="tell_friend_message">أستخدم Redact لإزالة التفاصيل المخفية مثل الموقع وطراز الكاميرا من صوري وفيديوهاتي قبل مشاركتها. بلا إعلانات ولا اشتراكات، ويعمل على هاتفك مباشرةً. %1$s</string>
     <string name="settings_link_unavailable">لم يُعثر على تطبيق لفتح هذا الرابط.</string>
     <string name="settings_progress_notifications_label">تقدم المهمة الجارية</string>
     <string name="settings_progress_notifications_subtitle">إشعار دائم يعرض التقدم في المهام الطويلة. معطّل افتراضياً حتى تفعّل السماح بالإشعارات.</string>
@@ -271,6 +286,7 @@
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
     <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>
+    <string name="scan_censor_this_video">إخفاء أجزاء من هذا الفيديو</string>
     <string name="scan_copied_to_clipboard">تم النسخ إلى الحافظة</string>
     <string name="scan_copy_value">نسخ القيمة</string>
     <string name="scan_copy_all_metadata">نسخ كل البيانات الوصفية</string>
@@ -465,8 +481,8 @@
     <string name="settings_reset_all_done">تمت إعادة الإعدادات إلى قيمها الافتراضية.</string>
     <string name="settings_reset_all_busy">لا يمكن إعادة ضبط الإعدادات أثناء المعالجة.</string>
     <string name="censor_empty_state_title">أخفِ ما يجب أن يبقى خاصًا</string>
-    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
-    <string name="censor_select_photo">تحديد صورة</string>
+    <string name="censor_empty_state_description">حوّل الوجوه ولوحات السيارات والعناوين وأي شيء آخر في الصورة أو الفيديو إلى بكسلات، أو غطِّها بالأسود، أو اجعلها ضبابية. يحفظ Redact نسخة مخفية الأجزاء بلا أي بيانات وصفية، ويبقى الأصل كما هو.</string>
+    <string name="censor_select_photo">تحديد صورة أو فيديو</string>
     <string name="censor_hint">ارسم فوق كل ما يجب أن يبقى خاصًا، ثم انقر على حفظ نسخة. قرّب إصبعين أو باعد بينهما للتكبير والتنقل. اسحب مستطيلًا لتحريكه، وانقر عليه لتغيير حجمه من مقابضه. استخدم قص للاحتفاظ بجزء من الصورة فقط.</string>
     <string name="censor_canvas_description">الصورة التي يتم إخفاء أجزاء منها. ارسم بإصبع واحد لتغطية منطقة. قرّب إصبعين أو باعد بينهما للتكبير والتنقل.</string>
     <string name="censor_tool_rectangle">مستطيل</string>
@@ -482,6 +498,9 @@
     <string name="censor_delete_rectangle">حذف المستطيل</string>
     <string name="censor_reset_crop">إعادة ضبط القص</string>
     <string name="censor_add_area">إضافة منطقة</string>
+    <string name="censor_toolbar_move">تحريك شريط الأدوات</string>
+    <string name="censor_toolbar_move_top">تحريك شريط الأدوات للأعلى</string>
+    <string name="censor_toolbar_move_bottom">تحريك شريط الأدوات للأسفل</string>
     <string name="censor_area_description">المنطقة المخفية %1$d من %2$d</string>
     <string name="censor_crop_description">القص: الجزء الذي تحتفظ به النسخة من الصورة</string>
     <string name="censor_crop_whole_description">القص: الصورة كاملة</string>
@@ -502,6 +521,18 @@
     <string name="censor_file_name">%1$s (محجوبة)</string>
     <string name="censor_error_open">تعذّر فتح هذه الصورة.</string>
     <string name="censor_error_unsupported">لا يمكن إخفاء أجزاء من هذا النوع من الصور على هذا الجهاز.</string>
+    <string name="censor_video_position">الموضع في الفيديو</string>
+    <string name="censor_video_time">%1$s / %2$s</string>
+    <string name="censor_area_time_range">%1$s–%2$s</string>
+    <string name="censor_area_times">المدة الزمنية للمنطقة %1$d</string>
+    <string name="censor_whole_video">الفيديو كاملًا</string>
+    <string name="censor_area_moves">يتحرك</string>
+    <string name="censor_previous_keyframe">الإطار الرئيسي السابق</string>
+    <string name="censor_next_keyframe">الإطار الرئيسي التالي</string>
+    <string name="censor_delete_keyframe">حذف الإطار الرئيسي</string>
+    <string name="censor_keyframe_count">الإطارات الرئيسية: %1$d</string>
+    <string name="censor_error_open_video">تعذّر فتح هذا الفيديو.</string>
+    <string name="censor_error_unsupported_video">لا يمكن إخفاء أجزاء من هذا النوع من الفيديو على هذا الجهاز.</string>
     <string name="censor_error_save">تعذّر حفظ النسخة المخفية الأجزاء.</string>
     <string name="censor_discard_title">هل تريد تجاهل التغييرات؟</string>
     <string name="censor_discard_message">لم يتم حفظ المناطق التي غطيتها.</string>
@@ -569,6 +600,13 @@
     </plurals>
     <string name="settings_about_intro">عرض المقدمة</string>
     <string name="settings_about_licenses">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="settings_about_whats_new">ما الجديد</string>
+    <string name="whats_new_title">ما الجديد</string>
+    <string name="whats_new_version">الإصدار %1$s</string>
+    <string name="whats_new_section_new">جديد</string>
+    <string name="whats_new_section_improved">تحسينات</string>
+    <string name="whats_new_section_fixed">إصلاحات</string>
+    <string name="whats_new_done">حسنًا</string>
     <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
     <string name="licenses_intro">Redact مبني باستخدام هذه المكتبات مفتوحة المصدر. انقر على أي منها لقراءة ترخيصها.</string>
     <string name="licenses_project_page">صفحة المشروع</string>
