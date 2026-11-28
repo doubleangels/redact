@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The photo being censored; the parent sizes it to take the space that is left. The tools are in
-     the toolbar under it (censor_toolbar), so only what has to sit on the photo is over it: undo,
+     the toolbar floating over it (censor_toolbar); also over it: undo,
      redo and full screen in a pill at its top end, the brush size while Brush is the tool, the
      actions for the selected rectangle or the crop, and the zoom level. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"

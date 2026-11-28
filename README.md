@@ -181,6 +181,7 @@ Pick one photo and cover anything that should stay private.
 - **Zoom:** pinch with two fingers to zoom and pan with any tool. **Move** also pans with one finger and zooms on a double-tap. **Full Screen** gives the photo the whole screen.
 - **Crop:** drag a corner or an edge of the frame to keep only part of the photo, drag inside it to move it, or drag outside it to draw a new one. What the crop leaves out is dimmed and is not saved, not even in an Ultra HDR photo's HDR layer. **Reset Crop** puts the whole photo back, and a crop can be undone like any other change.
 - **Effect:** Pixelate, Blur or Black, for each area: new areas get the effect selected in the toolbar, and choosing an effect with a rectangle selected changes that rectangle. Your tool, effect and brush size are remembered.
+- **Toolbar:** floats over the photo. Drag its handle to put it anywhere, and double-tap the handle to send it back to the bottom; it stays where you leave it.
 - **Undo / Redo**, and a prompt before discarding unsaved changes.
 - **Save Copy** writes a censored copy to your output folder at full resolution and in the photo's own format, keeping only the tags your Clean settings keep (never the original's small preview image, depth map or Motion Photo clip, which could still show what you covered), and a **Share** button sends it on. With **Delete Originals After Cleaning** on, Redact also asks Android to move the original to trash.
 

@@ -455,6 +455,9 @@ Attiva solo se vuoi mantenere la posizione intenzionalmente.</string>
     <string name="censor_delete_rectangle">Elimina Rettangolo</string>
     <string name="censor_reset_crop">Reimposta Ritaglio</string>
     <string name="censor_add_area">Aggiungi Area</string>
+    <string name="censor_toolbar_move">Sposta Barra degli Strumenti</string>
+    <string name="censor_toolbar_move_top">Sposta Barra degli Strumenti in Alto</string>
+    <string name="censor_toolbar_move_bottom">Sposta Barra degli Strumenti in Basso</string>
     <string name="censor_area_description">Area censurata %1$d di %2$d</string>
     <string name="censor_crop_description">Ritaglio: la parte della foto che la copia conserva</string>
     <string name="censor_crop_whole_description">Ritaglio: tutta la foto</string>

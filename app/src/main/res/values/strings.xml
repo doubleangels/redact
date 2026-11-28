@@ -454,6 +454,9 @@
     <string name="censor_delete_rectangle">Delete Rectangle</string>
     <string name="censor_reset_crop">Reset Crop</string>
     <string name="censor_add_area">Add Area</string>
+    <string name="censor_toolbar_move">Move Toolbar</string>
+    <string name="censor_toolbar_move_top">Move Toolbar to Top</string>
+    <string name="censor_toolbar_move_bottom">Move Toolbar to Bottom</string>
     <string name="censor_area_description">Censored area %1$d of %2$d</string>
     <string name="censor_crop_description">Crop: the part of the photo the copy keeps</string>
     <string name="censor_crop_whole_description">Crop: the whole photo</string>

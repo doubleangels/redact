@@ -53,6 +53,8 @@ public final class AppPreferences {
     private static final String KEY_CENSOR_TOOL = "censor_tool";
     private static final String KEY_CENSOR_EFFECT = "censor_effect";
     private static final String KEY_CENSOR_BRUSH_SIZE = "censor_brush_size";
+    private static final String KEY_CENSOR_TOOLBAR_X = "censor_toolbar_x";
+    private static final String KEY_CENSOR_TOOLBAR_Y = "censor_toolbar_y";
     private static final String KEY_SUMMARY_HINT_LEARNED_PREFIX = "summary_hint_learned_";
 
     /** The tabs whose summary card shows a how-to line until a job there succeeds once. */
@@ -441,6 +443,20 @@ public final class AppPreferences {
 
     public static void setCensorBrushSize(@NonNull Context context, float size) {
         prefs(context).edit().putFloat(KEY_CENSOR_BRUSH_SIZE, size).apply();
+    }
+
+    /**
+     * Where the Censor toolbar floats, as {x, y} fractions of the room it can move in: 0 is the
+     * left or top edge, 1 the right or bottom. The bottom centre, {0.5, 1}, until it is moved.
+     */
+    @NonNull
+    public static float[] getCensorToolbarPosition(@NonNull Context context) {
+        SharedPreferences p = prefs(context);
+        return new float[] {p.getFloat(KEY_CENSOR_TOOLBAR_X, 0.5f), p.getFloat(KEY_CENSOR_TOOLBAR_Y, 1f)};
+    }
+
+    public static void setCensorToolbarPosition(@NonNull Context context, float x, float y) {
+        prefs(context).edit().putFloat(KEY_CENSOR_TOOLBAR_X, x).putFloat(KEY_CENSOR_TOOLBAR_Y, y).apply();
     }
 
     /**

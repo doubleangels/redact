@@ -455,6 +455,9 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_delete_rectangle">Supprimer le Rectangle</string>
     <string name="censor_reset_crop">Réinitialiser le Rognage</string>
     <string name="censor_add_area">Ajouter une Zone</string>
+    <string name="censor_toolbar_move">Déplacer la Barre d\'Outils</string>
+    <string name="censor_toolbar_move_top">Déplacer la Barre d\'Outils en Haut</string>
+    <string name="censor_toolbar_move_bottom">Déplacer la Barre d\'Outils en Bas</string>
     <string name="censor_area_description">Zone masquée %1$d sur %2$d</string>
     <string name="censor_crop_description">Rognage : la partie de la photo que garde la copie</string>
     <string name="censor_crop_whole_description">Rognage : la photo entière</string>

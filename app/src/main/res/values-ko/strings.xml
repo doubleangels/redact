@@ -427,6 +427,9 @@
     <string name="censor_delete_rectangle">사각형 삭제</string>
     <string name="censor_reset_crop">자르기 초기화</string>
     <string name="censor_add_area">영역 추가</string>
+    <string name="censor_toolbar_move">도구 모음 이동</string>
+    <string name="censor_toolbar_move_top">도구 모음을 위로 이동</string>
+    <string name="censor_toolbar_move_bottom">도구 모음을 아래로 이동</string>
     <string name="censor_area_description">가린 영역 %2$d개 중 %1$d번째</string>
     <string name="censor_crop_description">자르기: 사본에 남길 사진 부분</string>
     <string name="censor_crop_whole_description">자르기: 사진 전체</string>

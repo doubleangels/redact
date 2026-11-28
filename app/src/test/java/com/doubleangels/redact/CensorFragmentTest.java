@@ -142,8 +142,11 @@ public class CensorFragmentTest {
         assertNotNull(root.findViewById(R.id.censorCanvasCard));
         View toolbar = root.findViewById(R.id.censorToolbar);
         assertEquals(View.VISIBLE, toolbar.getVisibility());
-        // Under the photo, not over it.
-        assertFalse(isInside(toolbar, root.findViewById(R.id.censorCanvasCard)));
+        // Floating over the photo: a layer beside it, raised above it so it is drawn and touched first.
+        View canvasCard = root.findViewById(R.id.censorCanvasCard);
+        assertFalse(isInside(toolbar, canvasCard));
+        assertEquals(canvasCard.getParent(), toolbar.getParent());
+        assertTrue(toolbar.getZ() > canvasCard.getZ());
 
         TextView fileName = root.findViewById(R.id.summaryTitle);
         assertNotNull(fileName);

@@ -440,6 +440,9 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_delete_rectangle">Rechteck Löschen</string>
     <string name="censor_reset_crop">Zuschnitt Zurücksetzen</string>
     <string name="censor_add_area">Bereich Hinzufügen</string>
+    <string name="censor_toolbar_move">Werkzeugleiste Verschieben</string>
+    <string name="censor_toolbar_move_top">Werkzeugleiste nach Oben Verschieben</string>
+    <string name="censor_toolbar_move_bottom">Werkzeugleiste nach Unten Verschieben</string>
     <string name="censor_area_description">Verdeckter Bereich %1$d von %2$d</string>
     <string name="censor_crop_description">Zuschnitt: der Teil des Fotos, den die Kopie behält</string>
     <string name="censor_crop_whole_description">Zuschnitt: das ganze Foto</string>

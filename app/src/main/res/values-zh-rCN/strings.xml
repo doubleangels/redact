@@ -427,6 +427,9 @@
     <string name="censor_delete_rectangle">删除矩形</string>
     <string name="censor_reset_crop">重置裁剪</string>
     <string name="censor_add_area">添加区域</string>
+    <string name="censor_toolbar_move">移动工具栏</string>
+    <string name="censor_toolbar_move_top">将工具栏移到顶部</string>
+    <string name="censor_toolbar_move_bottom">将工具栏移到底部</string>
     <string name="censor_area_description">遮盖区域 %1$d/%2$d</string>
     <string name="censor_crop_description">裁剪：副本保留的照片部分</string>
     <string name="censor_crop_whole_description">裁剪：整张照片</string>

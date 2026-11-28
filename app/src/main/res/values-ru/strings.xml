@@ -469,6 +469,9 @@
     <string name="censor_delete_rectangle">Удалить Прямоугольник</string>
     <string name="censor_reset_crop">Сбросить Обрезку</string>
     <string name="censor_add_area">Добавить Область</string>
+    <string name="censor_toolbar_move">Переместить Панель</string>
+    <string name="censor_toolbar_move_top">Переместить Панель Вверх</string>
+    <string name="censor_toolbar_move_bottom">Переместить Панель Вниз</string>
     <string name="censor_area_description">Скрытая область %1$d из %2$d</string>
     <string name="censor_crop_description">Обрезка: часть фото, которая останется в копии</string>
     <string name="censor_crop_whole_description">Обрезка: всё фото</string>

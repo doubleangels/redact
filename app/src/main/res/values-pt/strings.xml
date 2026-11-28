@@ -455,6 +455,9 @@ Ative apenas se quiser manter a localização de propósito.</string>
     <string name="censor_delete_rectangle">Excluir Retângulo</string>
     <string name="censor_reset_crop">Redefinir Corte</string>
     <string name="censor_add_area">Adicionar Área</string>
+    <string name="censor_toolbar_move">Mover Barra de Ferramentas</string>
+    <string name="censor_toolbar_move_top">Mover Barra de Ferramentas para Cima</string>
+    <string name="censor_toolbar_move_bottom">Mover Barra de Ferramentas para Baixo</string>
     <string name="censor_area_description">Área censurada %1$d de %2$d</string>
     <string name="censor_crop_description">Corte: a parte da foto que a cópia mantém</string>
     <string name="censor_crop_whole_description">Corte: a foto inteira</string>

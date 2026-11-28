@@ -441,6 +441,9 @@
     <string name="censor_delete_rectangle">आयत हटाएँ</string>
     <string name="censor_reset_crop">क्रॉप रीसेट करें</string>
     <string name="censor_add_area">क्षेत्र जोड़ें</string>
+    <string name="censor_toolbar_move">टूलबार खिसकाएँ</string>
+    <string name="censor_toolbar_move_top">टूलबार ऊपर खिसकाएँ</string>
+    <string name="censor_toolbar_move_bottom">टूलबार नीचे खिसकाएँ</string>
     <string name="censor_area_description">छिपाया गया क्षेत्र %2$d में से %1$d</string>
     <string name="censor_crop_description">क्रॉप: फ़ोटो का वह हिस्सा जो कॉपी में रहेगा</string>
     <string name="censor_crop_whole_description">क्रॉप: पूरी फ़ोटो</string>

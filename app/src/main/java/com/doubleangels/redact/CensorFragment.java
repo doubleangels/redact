@@ -31,6 +31,7 @@ import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.ui.CensorCanvasView;
 import com.doubleangels.redact.ui.CensorViewModel;
+import com.doubleangels.redact.ui.FloatingToolbar;
 import com.doubleangels.redact.ui.FoldDialogs;
 import com.doubleangels.redact.ui.Haptics;
 import com.doubleangels.redact.ui.Notice;
@@ -200,6 +201,9 @@ public class CensorFragment extends TabFragment {
         fileName.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         historyControls = view.findViewById(R.id.censorHistoryControls);
         toolbar = view.findViewById(R.id.censorToolbar);
+        // Dragged over the photo by its grip, and left where it was put.
+        FloatingToolbar.attach((ViewGroup) toolbar,
+                view.findViewById(R.id.censorToolbarCard), view.findViewById(R.id.censorToolbarGrip));
         fullScreenButton = view.findViewById(R.id.censorFullScreenButton);
         brushSizeBar = view.findViewById(R.id.censorBrushSizeContainer);
         brushSizeDot = view.findViewById(R.id.censorBrushSizeDot);

@@ -497,6 +497,9 @@
     <string name="censor_delete_rectangle">حذف المستطيل</string>
     <string name="censor_reset_crop">إعادة ضبط القص</string>
     <string name="censor_add_area">إضافة منطقة</string>
+    <string name="censor_toolbar_move">تحريك شريط الأدوات</string>
+    <string name="censor_toolbar_move_top">تحريك شريط الأدوات للأعلى</string>
+    <string name="censor_toolbar_move_bottom">تحريك شريط الأدوات للأسفل</string>
     <string name="censor_area_description">المنطقة المخفية %1$d من %2$d</string>
     <string name="censor_crop_description">القص: الجزء الذي تحتفظ به النسخة من الصورة</string>
     <string name="censor_crop_whole_description">القص: الصورة كاملة</string>
