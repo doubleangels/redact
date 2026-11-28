@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | In progress (Phases 1 to 3 done; 4K still to try on a device) |
+| **Status** | In progress (Phases 1 to 4 built; 4K, and Phase 4's accessibility and form-factor checks, still to try on a device) |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -143,8 +143,15 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 **Done when**
 
-- [ ] A user can add, move, resize and time several areas, preview them, and save.
+- [x] A user can add, move, resize and time several areas, preview them, and save. Tried on `Pixel_10_Pro`: an area timed from 0:00 to 0:03 of a 6 second video saved black for those seconds and untouched after.
 - [ ] The editor works in light, dark, Arabic, at 200% font size, on a foldable and with a keyboard.
+
+**As built**
+
+- The timeline is the scrubber plus, while a rectangle is selected, that one area's range (a range slider, with **Whole Video**), not a row for every area. Dragging either end of the range shows the frame at that end.
+- A new area covers the whole video until its range is narrowed, since covering too much is the safe mistake.
+- The picker in Censor and the Censor share route in `MainActivity` take videos already, so the editor can be reached; the manifest filter, the Censor tile and Scan's action are still Phase 5.
+- In landscape the timeline sits in the right-hand column, which full screen hides, so full screen in landscape has no timeline yet.
 
 ## Phase 5. Entry points, reporting and docs
 

@@ -772,4 +772,92 @@ public class CensorFragmentTest {
         assertEquals(50, out.getWidth());
         assertEquals(50, out.getHeight());
     }
+    // ---- video ----------------------------------------------------------------------------------
+
+    /** A stand-in for a six-second video at 30 frames a second, with frames at 0 and 3 seconds. */
+    private Uri createTestVideo() throws Exception {
+        File f = new File(activity.getCacheDir(), "clip.mp4");
+        f.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(f)) {
+            out.write(new byte[] {0, 0, 0, 8, 'f', 't', 'y', 'p'});
+        }
+        Uri uri = Uri.fromFile(f);
+        org.robolectric.shadows.util.DataSource source =
+                org.robolectric.shadows.util.DataSource.toDataSource(activity.getApplication(), uri);
+        org.robolectric.shadows.ShadowMediaMetadataRetriever.addMetadata(source,
+                android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, "6000");
+        org.robolectric.shadows.ShadowMediaMetadataRetriever.addMetadata(source,
+                android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT, "180");
+        int max = CensorViewModel.previewMaxDimension(activity);
+        for (long time : new long[] {0L, 3_000_000L}) {
+            org.robolectric.shadows.ShadowMediaMetadataRetriever.addScaledFrame(source, time, max, max,
+                    android.graphics.Bitmap.createBitmap(160, 90, android.graphics.Bitmap.Config.ARGB_8888));
+        }
+        return uri;
+    }
+
+    @Test
+    public void aVideo_showsItsTimeline_hidesTheBrush_andTimesTheSelectedArea() throws Exception {
+        View root = censorTab();
+        vm.requestOpen(createTestVideo());
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.READY);
+        idle();
+        try {
+            assertEquals(View.VISIBLE, root.findViewById(R.id.censorVideoControls).getVisibility());
+            assertEquals(View.GONE, root.findViewById(R.id.censorToolBrush).getVisibility());
+            assertEquals(View.GONE, root.findViewById(R.id.censorAreaTimes).getVisibility());
+            assertEquals("00:00 / 00:06",
+                    ((TextView) root.findViewById(R.id.censorVideoTime)).getText().toString());
+
+            // A key moves the scrubber, as a keyboard or Switch Access does: the frame at that
+            // time is asked for.
+            View position = root.findViewById(R.id.censorVideoPosition);
+            position.requestFocus();
+            position.onKeyDown(android.view.KeyEvent.KEYCODE_DPAD_RIGHT,
+                    new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_DPAD_RIGHT));
+            idle();
+            assertTrue("moved to " + vm.getPlayheadUs(), vm.getPlayheadUs() > 0L);
+
+            vm.addRegion(com.doubleangels.redact.media.CensorRegion.rect(0.1f, 0.1f, 0.5f, 0.5f));
+            idle();
+            selectArea(root, 0);
+            assertEquals(View.VISIBLE, root.findViewById(R.id.censorAreaTimes).getVisibility());
+            View wholeVideo = root.findViewById(R.id.censorWholeVideoButton);
+            assertFalse("a new area already covers the whole video", wholeVideo.isEnabled());
+            assertEquals(activity.getString(R.string.censor_area_times, 1),
+                    root.findViewById(R.id.censorAreaTimesSlider).getContentDescription().toString());
+
+            vm.setRegionTimes(0, 1_000_000L, 2_000_000L);
+            idle();
+            assertEquals("00:01–00:02",
+                    ((TextView) root.findViewById(R.id.censorAreaTimesLabel)).getText().toString());
+            assertTrue(wholeVideo.isEnabled());
+            wholeVideo.performClick();
+            idle();
+            assertTrue(vm.regionTimes(0).isWhole());
+
+            // A photo again: the timeline goes and the brush comes back.
+            vm.close();
+            idle();
+            assertEquals(View.GONE, root.findViewById(R.id.censorVideoControls).getVisibility());
+            assertEquals(View.VISIBLE, root.findViewById(R.id.censorToolBrush).getVisibility());
+        } finally {
+            org.robolectric.shadows.ShadowMediaMetadataRetriever.reset();
+        }
+    }
+
+    @Test
+    public void aVideoThatCannotBeOpened_saysItIsAVideo() throws Exception {
+        View root = censorTab();
+        File f = new File(activity.getCacheDir(), "broken.mp4");
+        f.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(f)) {
+            out.write(1);
+        }
+        vm.requestOpen(Uri.fromFile(f));
+        awaitMain(() -> vm.getState().getValue() == CensorViewModel.State.UNSUPPORTED);
+        idle();
+        assertEquals(activity.getString(R.string.censor_error_unsupported_video),
+                ((TextView) root.findViewById(R.id.censorMessage)).getText().toString());
+    }
 }

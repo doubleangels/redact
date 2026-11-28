@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A video's timeline, beside the photo card: the scrubber that picks the frame shown (the photo
+     card edits that frame) with its time, and, while a rectangle is selected, when that area
+     covers the video, with Whole Video to cover all of it. Gone for a photo. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/censorVideoControls"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/spacing_small"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/censorVideoTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            android:minWidth="88dp"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="0:04 / 0:31" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/censorVideoPosition"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:contentDescription="@string/censor_video_position"
+            android:saveEnabled="false"
+            android:valueFrom="0"
+            android:valueTo="1"
+            app:labelBehavior="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/censorAreaTimes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/censorAreaTimesLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            android:minWidth="88dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="0:04–0:31" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/censorAreaTimesSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:saveEnabled="false"
+            android:valueFrom="0"
+            android:valueTo="1"
+            app:labelBehavior="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/censorWholeVideoButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/censor_whole_video" />
+    </LinearLayout>
+</LinearLayout>

@@ -450,6 +450,11 @@
     <string name="censor_file_name">%1$s (가림)</string>
     <string name="censor_error_open">이 사진을 열 수 없습니다.</string>
     <string name="censor_error_unsupported">이 기기에서는 이 유형의 이미지를 편집할 수 없습니다.</string>
+    <string name="censor_video_position">동영상 내 위치</string>
+    <string name="censor_area_times">영역 %1$d의 시간 범위</string>
+    <string name="censor_whole_video">동영상 전체</string>
+    <string name="censor_error_open_video">이 동영상을 열 수 없습니다.</string>
+    <string name="censor_error_unsupported_video">이 기기에서는 이 유형의 동영상을 검열할 수 없습니다.</string>
     <string name="censor_error_save">일부를 가린 사본을 저장할 수 없습니다.</string>
     <string name="censor_discard_title">변경사항을 삭제할까요?</string>
     <string name="censor_discard_message">가린 영역이 저장되지 않았습니다.</string>

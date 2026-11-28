@@ -42,6 +42,9 @@
             android:layout_marginTop="@dimen/spacing_small"
             android:layout_marginBottom="@dimen/spacing_medium" />
 
+        <!-- A video's timeline: above the photo, clear of the buttons in the bottom corner. -->
+        <include layout="@layout/censor_video_controls" />
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"

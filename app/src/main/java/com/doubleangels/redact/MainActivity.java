@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens a photo shared to Redact › Censor in the Censor tab. Returns whether the share
+     * Opens a photo or video shared to Redact › Censor in the Censor tab. Returns whether the share
      * was for Censor, including one that could not be used (which shows a message).
      */
     private boolean queueCensorShareIntent(@Nullable Intent intent) {
@@ -354,18 +354,13 @@ public class MainActivity extends AppCompatActivity {
                 ? IntentCompat.getParcelableExtra(
                         intent, Intent.EXTRA_STREAM, Uri.class)
                 : null;
-        if (!isForeignContentUri(uri) || !isImage(uri, intent.getType())) {
+        if (!isForeignContentUri(uri) || !isImageOrVideo(uri, intent.getType())) {
             Notice.show(this, R.string.share_error_unsupported_media, true);
             return true;
         }
         new ViewModelProvider(this)
                 .get(CensorViewModel.class).requestOpen(uri);
         return true;
-    }
-
-    private boolean isImage(@NonNull Uri uri, @Nullable String intentType) {
-        String type = typeOf(uri, intentType);
-        return type != null && type.startsWith("image/");
     }
 
     private boolean isImageOrVideo(@NonNull Uri uri, @Nullable String intentType) {

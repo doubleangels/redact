@@ -70,6 +70,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_small"
                 android:layout_marginBottom="@dimen/spacing_small" />
+
+            <!-- A video's timeline, beside the photo rather than under it, so the photo keeps the
+                 full height. -->
+            <include layout="@layout/censor_video_controls" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

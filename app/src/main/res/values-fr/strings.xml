@@ -478,6 +478,11 @@ Activez ceci uniquement si vous souhaitez conserver la position volontairement.<
     <string name="censor_file_name">%1$s (censurée)</string>
     <string name="censor_error_open">Impossible d’ouvrir cette photo.</string>
     <string name="censor_error_unsupported">Ce type d’image ne peut pas être censuré sur cet appareil.</string>
+    <string name="censor_video_position">Position dans la Vidéo</string>
+    <string name="censor_area_times">Plage Horaire de la Zone %1$d</string>
+    <string name="censor_whole_video">Vidéo Entière</string>
+    <string name="censor_error_open_video">Impossible d\'ouvrir cette vidéo.</string>
+    <string name="censor_error_unsupported_video">Ce type de vidéo ne peut pas être censuré sur cet appareil.</string>
     <string name="censor_error_save">Impossible d’enregistrer la copie censurée.</string>
     <string name="censor_discard_title">Abandonner les Modifications ?</string>
     <string name="censor_discard_message">Les zones que vous avez masquées n’ont pas été enregistrées.</string>

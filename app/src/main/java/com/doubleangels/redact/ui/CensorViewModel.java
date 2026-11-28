@@ -9,7 +9,10 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,14 +25,19 @@ import com.doubleangels.redact.media.CensorEffects;
 import com.doubleangels.redact.media.CensorExporter;
 import com.doubleangels.redact.media.CensorRegion;
 import com.doubleangels.redact.media.FormatConverter;
+import com.doubleangels.redact.media.MediaSelector;
 import com.doubleangels.redact.media.OutputDestination;
 import com.doubleangels.redact.media.UnsupportedMediaException;
+import com.doubleangels.redact.media.VideoCensorExporter;
+import com.doubleangels.redact.media.VideoCensorRegion;
+import com.doubleangels.redact.media.VideoMedia3Converter;
 import com.doubleangels.redact.metadata.CleanStats;
 import com.doubleangels.redact.notifications.LocalNotifications;
 import com.doubleangels.redact.sentry.AppMetrics;
 import com.doubleangels.redact.sentry.SentryManager;
 import com.doubleangels.redact.stats.StatsStore;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -40,6 +48,7 @@ import io.sentry.SpanStatus;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -94,13 +103,45 @@ public class CensorViewModel extends AndroidViewModel {
     private final MutableLiveData<Uri> pendingReplacement = new MutableLiveData<>();
 
     private final List<CensorRegion> regions = new ArrayList<>();
+    /**
+     * When each region covers a video, in the same order as {@link #regions}; every region of a
+     * photo covers it whole.
+     */
+    private final List<Span> times = new ArrayList<>();
     /** The part of the photo the saved copy keeps, in fractions of the photo; null for all of it. */
     @Nullable
     private CensorRegion crop;
 
-    /** One version of the edits: the regions and the crop, as undo and redo restore them. */
-    private record Edit(@NonNull List<CensorRegion> regions, @Nullable CensorRegion crop) {
+    /** When a region covers a video, in microseconds, both ends included. */
+    public record Span(long startUs, long endUs) {
+        public static final Span WHOLE = new Span(0L, VideoCensorRegion.END_OF_VIDEO);
+
+        public boolean isWhole() {
+            return startUs <= 0L && endUs == VideoCensorRegion.END_OF_VIDEO;
+        }
     }
+
+    /** One version of the edits: the regions, their times and the crop, as undo and redo restore them. */
+    private record Edit(@NonNull List<CensorRegion> regions, @NonNull List<Span> times,
+                        @Nullable CensorRegion crop) {
+    }
+
+    /** Whether the open file is a video, edited one frame at a time. */
+    private volatile boolean video;
+    /** Whether the file last asked for is a video, known even when it could not be opened. */
+    private volatile boolean sourceIsVideo;
+    /** The video's length and its time between frames, in microseconds; 0 when unknown. */
+    private volatile long durationUs;
+    private volatile long frameIntervalUs;
+    /** The time of the frame being shown, in microseconds. */
+    private volatile long playheadUs;
+    /** Bumped for every frame asked for, so a slow decode cannot replace a newer frame. */
+    private final AtomicInteger frameGeneration = new AtomicInteger();
+    /** How far a video save has got, 0 to 100. */
+    private final MutableLiveData<Integer> saveProgress = new MutableLiveData<>(0);
+    /** Owns this screen's video exports, so cancelling one stops only it. */
+    private final long transcodeOwner = NEXT_TRANSCODE_OWNER.incrementAndGet();
+    private static final AtomicLong NEXT_TRANSCODE_OWNER = new AtomicLong(1L << 40);
 
     /** Earlier and undone versions of the edits, newest first. */
     private final Deque<Edit> undoHistory = new ArrayDeque<>();
@@ -132,6 +173,8 @@ public class CensorViewModel extends AndroidViewModel {
     @Nullable
     private volatile List<CensorRegion> savedRegions;
     @Nullable
+    private volatile List<Span> savedTimes;
+    @Nullable
     private volatile CensorEffects.Effect savedEffect;
     /** The crop the last saved copy was made with. */
     @Nullable
@@ -146,7 +189,7 @@ public class CensorViewModel extends AndroidViewModel {
     }
 
     /** The preview's longer side for this phone's heap. */
-    static int previewMaxDimension(@NonNull Context context) {
+    public static int previewMaxDimension(@NonNull Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (manager == null) {
             return PREVIEW_MAX_DIMENSION_LOW_MEMORY;
@@ -222,6 +265,35 @@ public class CensorViewModel extends AndroidViewModel {
         return source;
     }
 
+    /** Whether the open file is a video. */
+    public boolean isVideo() {
+        return video;
+    }
+
+    /**
+     * Whether the file last asked for is a video, even one that could not be opened, so the
+     * screen can say which kind of file failed.
+     */
+    public boolean isSourceVideo() {
+        return sourceIsVideo;
+    }
+
+    /** The open video's length in microseconds; 0 for a photo or when unknown. */
+    public long getDurationUs() {
+        return durationUs;
+    }
+
+    /** The time of the video frame on screen, in microseconds. */
+    public long getPlayheadUs() {
+        return playheadUs;
+    }
+
+    /** How far a video save has got, 0 to 100. */
+    @NonNull
+    public LiveData<Integer> getSaveProgress() {
+        return saveProgress;
+    }
+
     /**
      * Opens {@code uri} for censoring. The photo already open is kept with its edits; with
      * unsaved edits on another photo, the new one waits in {@link #getPendingReplacement}.
@@ -267,15 +339,22 @@ public class CensorViewModel extends AndroidViewModel {
         reset();
         source = uri;
         state.setValue(State.LOADING);
-        SentryManager.logEvent("censor", "A photo was opened for censoring.");
         worker.execute(() -> SentryManager.runInTransaction("censor.photo_open", () -> {
+            // Asks the file's provider for its type, so off the main thread.
+            boolean isVideo = isVideoFile(getApplication(), uri);
+            sourceIsVideo = isVideo;
+            SentryManager.logEvent("censor", isVideo
+                    ? "A video was opened for censoring." : "A photo was opened for censoring.");
             try {
                 String name = OutputDestination.displayName(getApplication().getContentResolver(), uri);
-                Bitmap decoded = fitPreview(
-                        FormatConverter.decodeUpright(getApplication(), uri, previewMaxDimension), previewMaxDimension);
+                Bitmap decoded = isVideo
+                        ? openVideo(uri)
+                        : fitPreview(FormatConverter.decodeUpright(getApplication(), uri, previewMaxDimension),
+                                previewMaxDimension);
                 if (generation != photoGeneration.get()) {
                     return;
                 }
+                video = isVideo;
                 basePreview = decoded;
                 renderedPreview = decoded;
                 renderedRegions = List.of();
@@ -299,6 +378,110 @@ public class CensorViewModel extends AndroidViewModel {
                 SentryManager.failCurrentSpan(e);
             }
         }));
+    }
+
+    /**
+     * Whether {@code uri} is a video, by its type or, when its provider gives none, its name. It
+     * asks the provider, so it belongs off the main thread.
+     */
+    public static boolean isVideoFile(@NonNull Context context, @NonNull Uri uri) {
+        String type;
+        try {
+            type = context.getContentResolver().getType(uri);
+        } catch (RuntimeException e) {
+            // A provider that does not know the file: its name is all there is.
+            type = null;
+        }
+        if (type != null) {
+            return type.startsWith("video/");
+        }
+        String path = uri.getLastPathSegment();
+        return path != null && MediaSelector.isVideoFromMimeAndName(null, path);
+    }
+
+    /**
+     * Reads the video's length and frame rate and returns its first frame, upright and no larger
+     * than the preview, on the worker.
+     *
+     * @throws UnsupportedMediaException when it has no frame this phone can decode
+     */
+    @NonNull
+    private Bitmap openVideo(@NonNull Uri uri) throws IOException {
+        try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
+            retriever.setDataSource(getApplication(), uri);
+            long duration = parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) * 1000L;
+            long frames = parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT));
+            Bitmap frame = frameAt(retriever, 0L);
+            if (frame == null || duration <= 0L) {
+                throw new UnsupportedMediaException("No video frame to censor", null);
+            }
+            durationUs = duration;
+            frameIntervalUs = frames > 0 ? duration / frames : 0L;
+            playheadUs = 0L;
+            return frame;
+        } catch (RuntimeException e) {
+            throw new UnsupportedMediaException("Video unreadable for censoring", e);
+        }
+    }
+
+    /** The upright frame nearest {@code timeUs}, no larger than the preview, or null. */
+    @Nullable
+    private Bitmap frameAt(@NonNull MediaMetadataRetriever retriever, long timeUs) {
+        return retriever.getScaledFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST,
+                previewMaxDimension, previewMaxDimension);
+    }
+
+    private static long parseLong(@Nullable String value) {
+        if (value == null) {
+            return 0L;
+        }
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
+    }
+
+    /**
+     * Shows the video's frame at {@code timeUs}, covered by the areas active then. Frames are
+     * decoded off the main thread, and only the last one asked for is shown.
+     */
+    public void setPlayhead(long timeUs) {
+        Uri uri = source;
+        if (!video || uri == null) {
+            return;
+        }
+        long clamped = Math.max(0L, Math.min(timeUs, Math.max(0L, durationUs - frameIntervalUs)));
+        if (clamped == playheadUs && basePreview != null) {
+            return;
+        }
+        playheadUs = clamped;
+        int generation = frameGeneration.incrementAndGet();
+        int photo = photoGeneration.get();
+        worker.execute(() -> {
+            if (generation != frameGeneration.get() || photo != photoGeneration.get()) {
+                return;
+            }
+            Bitmap frame = null;
+            try (MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
+                retriever.setDataSource(getApplication(), uri);
+                frame = frameAt(retriever, clamped);
+            } catch (IOException | RuntimeException e) {
+                SentryManager.logEvent("censor", "A video frame could not be decoded for the preview.");
+            }
+            if (frame == null || generation != frameGeneration.get() || photo != photoGeneration.get()) {
+                return;
+            }
+            basePreview = frame;
+            renderedPreview = frame;
+            renderedRegions = List.of();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (generation == frameGeneration.get()) {
+                    bumpHistory();
+                    render();
+                }
+            });
+        });
     }
 
     /**
@@ -329,6 +512,14 @@ public class CensorViewModel extends AndroidViewModel {
 
     private void reset() {
         regions.clear();
+        times.clear();
+        video = false;
+        sourceIsVideo = false;
+        durationUs = 0L;
+        frameIntervalUs = 0L;
+        playheadUs = 0L;
+        frameGeneration.incrementAndGet();
+        saveProgress.setValue(0);
         crop = null;
         undoHistory.clear();
         redoHistory.clear();
@@ -340,6 +531,7 @@ public class CensorViewModel extends AndroidViewModel {
         lastSaved = null;
         lastSaveFailed = false;
         savedRegions = null;
+        savedTimes = null;
         savedEffect = null;
         savedCrop = null;
         preview.setValue(null);
@@ -352,13 +544,16 @@ public class CensorViewModel extends AndroidViewModel {
         if (region.effect() == null) {
             region = region.withEffect(effectOrDefault());
         }
-        if (region.isEmpty()) {
-            // Clears the drawn outline, which waits for a new preview.
+        if (region.isEmpty() || (video && region.shape() != CensorRegion.Shape.RECT)) {
+            // Clears the drawn outline, which waits for a new preview. A video has no brush.
             preview.setValue(preview.getValue());
             return;
         }
         remember();
         regions.add(region);
+        // A new area covers the whole video until its time range is narrowed: covering too much
+        // is the safe mistake.
+        times.add(Span.WHOLE);
         lastSaveFailed = false;
         bumpHistory();
         renderAdded(region);
@@ -389,7 +584,37 @@ public class CensorViewModel extends AndroidViewModel {
         }
         remember();
         regions.remove(index);
+        times.remove(index);
         historyChanged();
+    }
+
+    /**
+     * Sets when the region at {@code index} covers the video, in microseconds, as an edit that can
+     * be undone. An end at or past the last frame covers to the end of the video.
+     */
+    public void setRegionTimes(int index, long startUs, long endUs) {
+        if (index < 0 || index >= regions.size()) {
+            return;
+        }
+        long start = Math.max(0L, Math.min(startUs, endUs));
+        long end = Math.max(startUs, endUs);
+        if (durationUs > 0L && end >= durationUs - Math.max(1L, frameIntervalUs)) {
+            end = VideoCensorRegion.END_OF_VIDEO;
+        }
+        Span span = new Span(start, end);
+        if (span.equals(times.get(index))) {
+            bumpHistory();
+            return;
+        }
+        remember();
+        times.set(index, span);
+        historyChanged();
+    }
+
+    /** When the region at {@code index} covers the video, or the whole of it when there is none. */
+    @NonNull
+    public Span regionTimes(int index) {
+        return index >= 0 && index < times.size() ? times.get(index) : Span.WHOLE;
     }
 
     /**
@@ -429,14 +654,16 @@ public class CensorViewModel extends AndroidViewModel {
 
     @NonNull
     private Edit currentEdit() {
-        return new Edit(new ArrayList<>(regions), crop);
+        return new Edit(new ArrayList<>(regions), new ArrayList<>(times), crop);
     }
 
     /** Puts back an earlier or undone version, covering the preview again only if the regions changed. */
     private void restore(@NonNull Edit edit) {
-        boolean regionsChanged = !edit.regions().equals(regions);
+        boolean regionsChanged = !edit.regions().equals(regions) || !edit.times().equals(times);
         regions.clear();
         regions.addAll(edit.regions());
+        times.clear();
+        times.addAll(edit.times());
         crop = edit.crop();
         if (regionsChanged) {
             historyChanged();
@@ -529,6 +756,7 @@ public class CensorViewModel extends AndroidViewModel {
         }
         List<CensorRegion> saved = savedRegions;
         return saved == null || !saved.equals(regions) || !Objects.equals(savedCrop, crop)
+                || (video && !times.equals(savedTimes))
                 // The current effect only shows on areas without their own.
                 || (anyTakesPhotoEffect() && savedEffect != effect.getValue());
     }
@@ -544,18 +772,24 @@ public class CensorViewModel extends AndroidViewModel {
             return;
         }
         List<CensorRegion> snapshot = new ArrayList<>(regions);
+        List<Span> timesSnapshot = new ArrayList<>(times);
+        boolean isVideo = video;
         CensorRegion cropSnapshot = crop;
         CensorEffects.Effect chosen = effectOrDefault();
         int generation = photoGeneration.get();
         String name = fileName.getValue();
+        saveProgress.setValue(0);
         state.setValue(State.SAVING);
         SentryManager.logEvent("censor", "The app is saving a censored copy.");
         long saveStartMs = SystemClock.elapsedRealtime();
         worker.execute(() -> SentryManager.runInTransaction("censor.copy_save", () -> {
             SentryManager.beginOperation("censor_export");
             try {
-                CensorExporter.Result result =
-                        CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
+                CensorExporter.Result result = isVideo
+                        ? CensorExporter.Result.ofVideo(VideoCensorExporter.export(getApplication(), uri, name,
+                                timed(snapshot, timesSnapshot), cropSnapshot, chosen,
+                                saveProgress::postValue, transcodeOwner, null))
+                        : CensorExporter.export(getApplication(), uri, name, snapshot, cropSnapshot, chosen);
                 AppMetrics.item(AppMetrics.CENSOR, false, AppMetrics.SUCCESS,
                         SystemClock.elapsedRealtime() - saveStartMs);
                 AppMetrics.censorRegions(snapshot.size());
@@ -570,6 +804,7 @@ public class CensorViewModel extends AndroidViewModel {
                 lastSaved = result;
                 lastSaveFailed = false;
                 savedRegions = snapshot;
+                savedTimes = timesSnapshot;
                 savedEffect = chosen;
                 savedCrop = cropSnapshot;
                 // Counted here, so a save that finishes with the app in the background still counts.
@@ -593,6 +828,17 @@ public class CensorViewModel extends AndroidViewModel {
                 }
             }
         }));
+    }
+
+    /** The regions with their times, as the video exporter takes them. */
+    @NonNull
+    static List<VideoCensorRegion> timed(@NonNull List<CensorRegion> regions, @NonNull List<Span> times) {
+        List<VideoCensorRegion> timed = new ArrayList<>(regions.size());
+        for (int i = 0; i < regions.size(); i++) {
+            Span span = i < times.size() ? times.get(i) : Span.WHOLE;
+            timed.add(VideoCensorRegion.of(regions.get(i), span.startUs(), span.endUs()));
+        }
+        return timed;
     }
 
     /** After the screen has reacted to a save (or its failure), editing continues. */
@@ -621,7 +867,7 @@ public class CensorViewModel extends AndroidViewModel {
         if (base == null) {
             return;
         }
-        List<CensorRegion> snapshot = new ArrayList<>(regions);
+        List<CensorRegion> snapshot = visibleRegions();
         CensorEffects.Effect chosen = effectOrDefault();
         int generation = renderGeneration.incrementAndGet();
         worker.execute(() -> {
@@ -647,6 +893,11 @@ public class CensorViewModel extends AndroidViewModel {
         if (base == null) {
             return;
         }
+        if (video) {
+            // The frame shows only the areas active at the playhead.
+            render();
+            return;
+        }
         List<CensorRegion> snapshot = new ArrayList<>(regions);
         List<CensorRegion> before = snapshot.subList(0, snapshot.size() - 1);
         CensorEffects.Effect chosen = effectOrDefault();
@@ -663,6 +914,24 @@ public class CensorViewModel extends AndroidViewModel {
                 covered(base, snapshot, snapshot, chosen, generation);
             }
         });
+    }
+
+    /** The regions the preview shows covered: for a video, those active at the playhead. */
+    @NonNull
+    List<CensorRegion> visibleRegions() {
+        if (!video) {
+            return new ArrayList<>(regions);
+        }
+        long margin = VideoCensorExporter.frameMarginUs(frameIntervalUs);
+        List<CensorRegion> visible = new ArrayList<>();
+        for (int i = 0; i < regions.size(); i++) {
+            Span span = i < times.size() ? times.get(i) : Span.WHOLE;
+            if (VideoCensorRegion.of(regions.get(i), span.startUs(), span.endUs())
+                    .coversFrame(playheadUs, margin)) {
+                visible.add(regions.get(i));
+            }
+        }
+        return visible;
     }
 
     /**
@@ -748,7 +1017,9 @@ public class CensorViewModel extends AndroidViewModel {
 
     @Override
     protected void onCleared() {
-        // A save already running finishes; nothing new is started.
+        // A photo save already running finishes; nothing new is started. A video export would run
+        // for minutes with nobody to see it, so it is stopped and its working copy deleted.
+        VideoMedia3Converter.cancelActiveTranscode(transcodeOwner);
         worker.shutdown();
     }
 }

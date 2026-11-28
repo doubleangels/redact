@@ -450,6 +450,11 @@
     <string name="censor_file_name">%1$s（已遮蔽）</string>
     <string name="censor_error_open">無法開啟此照片。</string>
     <string name="censor_error_unsupported">此裝置無法處理這種類型的圖片。</string>
+    <string name="censor_video_position">影片中的位置</string>
+    <string name="censor_area_times">區域 %1$d 的時間範圍</string>
+    <string name="censor_whole_video">整部影片</string>
+    <string name="censor_error_open_video">無法開啟此影片。</string>
+    <string name="censor_error_unsupported_video">此裝置無法遮蔽這類影片。</string>
     <string name="censor_error_save">無法儲存遮蔽副本。</string>
     <string name="censor_discard_title">要捨棄變更嗎？</string>
     <string name="censor_discard_message">你遮蔽的區域尚未儲存。</string>

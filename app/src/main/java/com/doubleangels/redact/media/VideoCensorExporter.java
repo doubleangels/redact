@@ -156,8 +156,7 @@ public final class VideoCensorExporter {
      * kept after others were dropped is covered for all the time it shows. Unknown rates get
      * {@link VideoCensorEffect#DEFAULT_FRAME_DURATION_US}.
      */
-    @VisibleForTesting
-    static long frameMarginUs(long frameIntervalUs) {
+    public static long frameMarginUs(long frameIntervalUs) {
         if (frameIntervalUs <= 0L) {
             return VideoCensorEffect.DEFAULT_FRAME_DURATION_US;
         }

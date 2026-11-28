@@ -463,6 +463,11 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="censor_file_name">%1$s (zensiert)</string>
     <string name="censor_error_open">Dieses Foto konnte nicht geöffnet werden.</string>
     <string name="censor_error_unsupported">Dieser Bildtyp kann auf diesem Gerät nicht zensiert werden.</string>
+    <string name="censor_video_position">Position im Video</string>
+    <string name="censor_area_times">Zeitraum von Bereich %1$d</string>
+    <string name="censor_whole_video">Ganzes Video</string>
+    <string name="censor_error_open_video">Dieses Video konnte nicht geöffnet werden.</string>
+    <string name="censor_error_unsupported_video">Diese Art von Video kann auf diesem Gerät nicht zensiert werden.</string>
     <string name="censor_error_save">Die zensierte Kopie konnte nicht gespeichert werden.</string>
     <string name="censor_discard_title">Änderungen Verwerfen?</string>
     <string name="censor_discard_message">Die verdeckten Bereiche wurden nicht gespeichert.</string>
