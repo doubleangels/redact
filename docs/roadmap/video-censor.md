@@ -178,7 +178,7 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 
 - [x] Keyframes, so the user places an area at a few moments and it moves smoothly between them, interpolated per frame. In the editor: a **Moves** switch for the selected area, then moving it at another time sets a keyframe; arrows step between keyframes and a bin deletes one, all part of undo.
 - [x] The coverage check samples each keyframe and halfway between each pair, on frames picked by their exact times (read from the saved video), so a moving area's grid can be placed exactly.
-- [ ] Optionally on-device tracking with a bundled model. Not built: it needs a model and library in the APK, and could never use network-backed ML. Keyframes cover most cases first.
+- [ ] Optionally on-device tracking with a bundled model. Not built: it needs a model and library in the APK, and could never use network-backed ML. Keyframes cover most cases first. Planned in the [Video Tracking roadmap](video-tracking.md).
 
 **As built**
 
