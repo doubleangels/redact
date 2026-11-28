@@ -150,6 +150,33 @@ public class LocalNotificationsTest {
         assertEquals(0, shadowNm.size());
     }
 
+    /** A locked phone and a paired watch must never see counts or locations removed. */
+    static void assertKeptPrivate(Notification n, String expectedPublicText) {
+        assertEquals(Notification.VISIBILITY_PRIVATE, n.visibility);
+        assertNotNull(n.publicVersion);
+        String title = String.valueOf(n.publicVersion.extras.getCharSequence(Notification.EXTRA_TITLE));
+        String text = String.valueOf(n.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT));
+        assertEquals(RuntimeEnvironment.getApplication().getString(R.string.app_name), title);
+        assertEquals(expectedPublicText, text);
+        assertFalse((title + text).matches(".*\\d.*"));
+        assertEquals(0, n.publicVersion.extras.getInt(Notification.EXTRA_PROGRESS_MAX));
+        assertTrue((n.flags & Notification.FLAG_LOCAL_ONLY) != 0);
+    }
+
+    @Test
+    public void showCleanComplete_showsOnlyFinishedOnTheLockScreen_andStaysOnThePhone() {
+        LocalNotifications.showCleanComplete(app, 3, 1, 2);
+        assertKeptPrivate(shadowNm.getAllNotifications().get(0),
+                app.getString(R.string.notification_public_done));
+    }
+
+    @Test
+    public void showConversionComplete_showsOnlyFinishedOnTheLockScreen_andStaysOnThePhone() {
+        LocalNotifications.showConversionComplete(app, 1, 2);
+        assertKeptPrivate(shadowNm.getAllNotifications().get(0),
+                app.getString(R.string.notification_public_done));
+    }
+
     @Test
     public void mainContentIntent_isNotNull() {
         assertNotNull(LocalNotifications.mainContentIntent(app));

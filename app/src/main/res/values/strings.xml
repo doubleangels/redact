@@ -38,6 +38,8 @@
     <string name="notification_convert_progress_title">Converting Media…</string>
     <string name="notification_clean_progress_title">Cleaning Metadata…</string>
     <string name="notification_progress_percent">%1$d%% complete</string>
+    <string name="notification_public_working">Working</string>
+    <string name="notification_public_done">Finished</string>
 
     
     <string name="navigation_clean">Clean</string>

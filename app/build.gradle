@@ -172,6 +172,8 @@ dependencies {
     androidTestImplementation libs.test.runner
     androidTestImplementation libs.test.ext.junit
     testImplementation libs.robolectric
+    // A second metadata reader that shares no code with the app's own scanners (IndependentScan).
+    testImplementation libs.metadata.extractor
     testImplementation libs.arch.core.testing
 
     debugImplementation libs.leakcanary.android
@@ -221,6 +223,69 @@ androidComponents {
         tasks.register("exportReleaseManifest", Copy) {
             from(variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.MERGED_MANIFEST.INSTANCE))
             into(layout.buildDirectory.dir("outputs/release-manifest"))
+        }
+
+        // Every library that ships in the release, checked against app/dependencies/
+        // releaseRuntimeClasspath.txt. check_release_manifest.py catches a library that adds a
+        // permission; this catches one that adds code: a new library, a new transitive or a
+        // version change fails until the list is updated in the same commit. Sentry's
+        // session-replay module, left out by the exclude above, fails it outright.
+        // Update the list after reading the diff: ./gradlew releaseDependencyGuard -PupdateDependencyGuard
+        def shipped = variant.runtimeConfiguration.incoming.resolutionResult.rootComponent.map { root ->
+            def seen = new TreeSet<String>()
+            def queue = new ArrayDeque<org.gradle.api.artifacts.result.ResolvedComponentResult>([root])
+            def visited = new HashSet<Object>()
+            while (!queue.isEmpty()) {
+                def component = queue.poll()
+                if (!visited.add(component.id)) {
+                    continue
+                }
+                def id = component.id
+                if (id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier) {
+                    seen.add("${id.group}:${id.module}:${id.version}".toString())
+                }
+                component.dependencies.each { dep ->
+                    if (dep instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult) {
+                        queue.add(dep.selected)
+                    }
+                }
+            }
+            seen as List<String>
+        }
+        def guardList = layout.projectDirectory.file("dependencies/releaseRuntimeClasspath.txt").asFile
+        def updateGuard = providers.gradleProperty("updateDependencyGuard").isPresent()
+        tasks.register("releaseDependencyGuard") {
+            group = "verification"
+            description = "Fails when the release runtime classpath differs from app/dependencies/releaseRuntimeClasspath.txt."
+            inputs.property("shipped", shipped)
+            inputs.property("update", updateGuard)
+            doLast {
+                List<String> now = shipped.get()
+                def replay = now.findAll { it.contains(":sentry-android-replay:") }
+                if (!replay.isEmpty()) {
+                    throw new GradleException("Sentry's session-replay module must never ship: ${replay}")
+                }
+                def header = "# Every library in the release runtime classpath, checked by ./gradlew releaseDependencyGuard.\n" +
+                        "# Update with -PupdateDependencyGuard only after saying what each new or changed line is and why it came in.\n"
+                if (updateGuard) {
+                    guardList.parentFile.mkdirs()
+                    guardList.text = header + now.join("\n") + "\n"
+                    logger.lifecycle("Wrote ${now.size()} libraries to ${guardList}")
+                    return
+                }
+                List<String> listed = guardList.isFile()
+                        ? guardList.readLines().findAll { it && !it.startsWith("#") }
+                        : []
+                def added = now - listed
+                def removed = listed - now
+                if (!added.isEmpty() || !removed.isEmpty()) {
+                    throw new GradleException("The release classpath changed.\n" +
+                            "  New or changed:\n    " + (added ?: ["none"]).join("\n    ") + "\n" +
+                            "  Gone or changed:\n    " + (removed ?: ["none"]).join("\n    ") + "\n" +
+                            "Say what each new library is and why it came in, then run " +
+                            "./gradlew releaseDependencyGuard -PupdateDependencyGuard and commit the list.")
+                }
+            }
         }
     }
 }

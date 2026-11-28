@@ -169,6 +169,9 @@ public class ProcessingForegroundService extends Service {
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(LocalNotifications.mainContentIntent(this));
+        // A locked phone sees only "Redact, Working": the percent, file count and Live Update chip
+        // stay on the private version, and nothing is bridged to a watch.
+        LocalNotifications.keepPrivate(builder, this, true);
 
         if (!isStart && AppPreferences.areProgressNotificationsEnabled(this)) {
             // A Live Update (Android 16+): the status bar shows a chip with the file count or

@@ -262,6 +262,8 @@
         <item quantity="other">Localização removida de %1$d arquivos.</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% concluído</string>
+    <string name="notification_public_working">Em andamento</string>
+    <string name="notification_public_done">Concluído</string>
     <string name="scan_clean_this_file">Limpar Este Arquivo</string>
     <string name="scan_convert_this_file">Converter Este Arquivo</string>
     <string name="scan_censor_this_photo">Censurar Esta Foto</string>

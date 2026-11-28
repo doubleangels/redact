@@ -262,6 +262,8 @@
         <item quantity="other">Localisation supprimée de %1$d fichiers.</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% terminé</string>
+    <string name="notification_public_working">En cours</string>
+    <string name="notification_public_done">Terminé</string>
     <string name="scan_clean_this_file">Nettoyer Ce Fichier</string>
     <string name="scan_convert_this_file">Convertir Ce Fichier</string>
     <string name="scan_censor_this_photo">Censurer Cette Photo</string>

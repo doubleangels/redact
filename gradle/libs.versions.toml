@@ -16,6 +16,7 @@ sentryGradlePlugin = "6.28.0"
 leakcanary = "2.14"
 junit = "4.13.2"
 robolectric = "4.18.1"
+metadataExtractor = "2.22.0"
 archCoreTesting = "2.2.0"
 baselineprofile = "1.5.0"
 profileinstaller = "1.4.1"
@@ -50,6 +51,7 @@ recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "r
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadataExtractor" }
 arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "archCoreTesting" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "baselineprofile" }

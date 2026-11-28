@@ -255,6 +255,8 @@
         <item quantity="other">%1$d फ़ाइलों से स्थान हटाया गया।</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% पूर्ण</string>
+    <string name="notification_public_working">काम जारी है</string>
+    <string name="notification_public_done">पूरा हुआ</string>
     <string name="scan_clean_this_file">इस फ़ाइल को साफ़ करें</string>
     <string name="scan_convert_this_file">इस फ़ाइल को कनवर्ट करें</string>
     <string name="scan_censor_this_photo">इस फ़ोटो के हिस्से छिपाएँ</string>

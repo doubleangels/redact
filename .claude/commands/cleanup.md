@@ -99,7 +99,7 @@ Apply the findings in the list, Safe ones first.
 
 1. Run `./gradlew :app:jacocoTestCoverageVerification -q` (use `gradlew.bat` from PowerShell). It runs `testDebugUnitTest` first. Confirm no test failed (check `app/build/test-results/testDebugUnitTest/*.xml` for `failures="[1-9]"` or `errors="[1-9]"`) and that the 90% line gate still passes. Deleted code can lower the percentage when it was well covered, so add tests if the margin is gone.
 2. Run `./gradlew :app:lintRelease -q` and confirm it reports no new issues.
-3. Run `./gradlew :app:bundleRelease -q` once. R8 can fail, or strip something reached by reflection, in a way the debug tests never see. If a dependency was removed, also compare `./gradlew :app:dependencies --configuration releaseRuntimeClasspath -q` before and after, and list any library whose version changed.
+3. Run `./gradlew :app:bundleRelease -q` once. R8 can fail, or strip something reached by reflection, in a way the debug tests never see. If a dependency was removed, also run `./gradlew :app:releaseDependencyGuard`, list every library it reports as gone or changed in version, and update the list with `-PupdateDependencyGuard` only once each change is explained.
 4. Run `python .claude/scripts/unused_imports.py` and `python .claude/scripts/unused_dependencies.py` again and confirm they report nothing new.
 5. If anything in `metadata/`, `media/`, `MetadataStripper`, `MediaProcessor` or `FormatConverter` changed, run `/verifyclean` (`.claude/commands/verifyclean.md`), or say it still needs to be run if the emulator is not available here.
 

@@ -283,6 +283,8 @@
         <item quantity="other">تمت إزالة الموقع من %1$d ملف.</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% مكتمل</string>
+    <string name="notification_public_working">جارٍ العمل</string>
+    <string name="notification_public_done">اكتمل</string>
     <string name="scan_clean_this_file">تنظيف هذا الملف</string>
     <string name="scan_convert_this_file">تحويل هذا الملف</string>
     <string name="scan_censor_this_photo">إخفاء أجزاء من هذه الصورة</string>

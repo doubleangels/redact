@@ -336,7 +336,7 @@ The Settings tab puts the settings you use every day first: cleaning, sharing, C
 
 | Setting | What it does |
 |---|---|
-| **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. |
+| **Allow Notifications** / **Ongoing Task Progress** | Alerts when jobs finish and optional live progress. Off until you turn them on. A locked phone shows only "Redact" with "Working" or "Finished", never counts or locations removed, and notifications aren't sent to a paired watch. |
 
 **Permissions** shows what Redact can access and lets you grant the optional photo-location permission.
 

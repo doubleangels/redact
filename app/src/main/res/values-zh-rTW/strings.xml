@@ -248,6 +248,8 @@
         <item quantity="other">已從 %1$d 個檔案移除位置資訊。</item>
     </plurals>
     <string name="notification_progress_percent">已完成 %1$d%%</string>
+    <string name="notification_public_working">正在處理</string>
+    <string name="notification_public_done">已完成</string>
     <string name="scan_clean_this_file">清理此檔案</string>
     <string name="scan_convert_this_file">轉換此檔案</string>
     <string name="scan_censor_this_photo">遮蔽此照片的部分內容</string>

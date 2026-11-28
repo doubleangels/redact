@@ -205,6 +205,8 @@ public final class LocalNotifications {
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent(app, MainActivity.class));
 
+        keepPrivate(builder, app, false);
+
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CONVERT, builder.build());
         } catch (SecurityException e) {
@@ -265,6 +267,39 @@ public final class LocalNotifications {
         }
     }
 
+    /**
+     * Makes {@code builder} safe for a locked phone and for paired devices: the lock screen shows
+     * only {@link #publicVersion}, and the notification is never bridged to a watch or other
+     * device. Every notification Redact posts goes through this.
+     */
+    @NonNull
+    static NotificationCompat.Builder keepPrivate(
+            @NonNull NotificationCompat.Builder builder, @NonNull Context context, boolean ongoing) {
+        return builder
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setPublicVersion(publicVersion(context, ongoing))
+                .setLocalOnly(true);
+    }
+
+    /**
+     * What a locked phone shows instead of a notification's content: Redact's name and "Working"
+     * or "Finished". No counts, percent, progress or task name, since even "4 locations removed"
+     * tells someone at the lock screen what the owner was doing.
+     */
+    @NonNull
+    static android.app.Notification publicVersion(@NonNull Context context, boolean ongoing) {
+        Context app = context.getApplicationContext();
+        return new NotificationCompat.Builder(app, CHANNEL_ID_TASKS)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(app.getString(R.string.app_name))
+                .setContentText(app.getString(ongoing
+                        ? R.string.notification_public_working
+                        : R.string.notification_public_done))
+                .setOngoing(ongoing)
+                .setLocalOnly(true)
+                .build();
+    }
+
     @NonNull
     public static PendingIntent mainContentIntent(@NonNull Context context) {
         return contentIntent(context.getApplicationContext(), MainActivity.class);
@@ -312,6 +347,8 @@ public final class LocalNotifications {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent(app, MainActivity.class));
+
+        keepPrivate(builder, app, false);
 
         try {
             NotificationManagerCompat.from(app).notify(NOTIFICATION_ID_CLEAN, builder.build());

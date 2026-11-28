@@ -254,6 +254,8 @@
         <item quantity="other">Standortdaten aus %1$d Dateien entfernt.</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% abgeschlossen</string>
+    <string name="notification_public_working">Wird ausgeführt</string>
+    <string name="notification_public_done">Fertig</string>
     <string name="scan_clean_this_file">Diese Datei Bereinigen</string>
     <string name="scan_convert_this_file">Diese Datei Konvertieren</string>
     <string name="scan_censor_this_photo">Dieses Foto Zensieren</string>

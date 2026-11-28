@@ -249,6 +249,8 @@
         <item quantity="other">%1$d 件のファイルから位置情報を削除しました。</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% 完了</string>
+    <string name="notification_public_working">処理中</string>
+    <string name="notification_public_done">完了</string>
     <string name="scan_clean_this_file">このファイルをクリーン</string>
     <string name="scan_convert_this_file">このファイルを変換</string>
     <string name="scan_censor_this_photo">この写真の一部を隠す</string>

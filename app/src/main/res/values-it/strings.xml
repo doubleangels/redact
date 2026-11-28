@@ -262,6 +262,8 @@
         <item quantity="other">Posizione rimossa da %1$d file.</item>
     </plurals>
     <string name="notification_progress_percent">%1$d%% completato</string>
+    <string name="notification_public_working">In corso</string>
+    <string name="notification_public_done">Completato</string>
     <string name="scan_clean_this_file">Pulisci Questo File</string>
     <string name="scan_convert_this_file">Converti Questo File</string>
     <string name="scan_censor_this_photo">Censura Questa Foto</string>

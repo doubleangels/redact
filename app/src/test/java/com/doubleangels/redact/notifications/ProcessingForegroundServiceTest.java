@@ -385,6 +385,40 @@ public class ProcessingForegroundServiceTest {
     }
 
     @Test
+    public void start_showsOnlyWorkingOnTheLockScreen_andStaysOnThePhone() {
+        Intent intent = action(ProcessingForegroundService.ACTION_START);
+        intent.putExtra(ProcessingForegroundService.EXTRA_TITLE, "Cleaning");
+        Notification n = shadowOf(run(intent).get()).getLastForegroundNotification();
+        LocalNotificationsTest.assertKeptPrivate(n, app.getString(R.string.notification_public_working));
+    }
+
+    @Test
+    @Config(sdk = 36)
+    public void update_asALiveUpdate_showsOnlyWorkingOnTheLockScreen() {
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_NUMBER, 2);
+        intent.putExtra(ProcessingForegroundService.EXTRA_FILE_COUNT, 3);
+        runAfterStart(intent);
+
+        Notification n = postedProgressNotification();
+        assertTrue(NotificationCompat.isRequestPromotedOngoing(n));
+        LocalNotificationsTest.assertKeptPrivate(n, app.getString(R.string.notification_public_working));
+        assertNull(NotificationCompat.getShortCriticalText(n.publicVersion));
+    }
+
+    @Test
+    public void update_withProgressUpdatesOff_showsOnlyWorkingOnTheLockScreen() {
+        AppPreferences.setProgressNotificationsEnabled(app, false);
+        Intent intent = action(ProcessingForegroundService.ACTION_UPDATE);
+        intent.putExtra(ProcessingForegroundService.EXTRA_PERCENT, 30);
+        runAfterStart(intent);
+
+        LocalNotificationsTest.assertKeptPrivate(postedProgressNotification(),
+                app.getString(R.string.notification_public_working));
+    }
+
+    @Test
     public void staticUpdate_carriesTheFileCount_onlyWhenKnown() {
         ProcessingForegroundService.updateProgress(app, 10, "t", null, 2, 5);
         Intent counted = shadowOf(app).getNextStartedService();

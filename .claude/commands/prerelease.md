@@ -61,7 +61,7 @@ Follow `.claude/commands/cleanup.md` on the whole app, with these changes:
 
 - Do not stop to wait after its step 2: keep its numbered findings for the summary and apply them.
 - Run it after the upgrades and both Sentry steps, so it judges the code that will ship. A dependency step 2 just upgraded is still checked for whether anything uses it.
-- Skip its step 4 checks except the two `.claude/scripts` runs (`unused_imports.py` and `unused_dependencies.py`), which take seconds. Step 2d runs lint, step 2f builds the release bundle, step 4 runs the unit tests and measures coverage, and step 5 cleans every kind of file on the emulator with `check_media.py`, which covers `/verifyclean`. If a dependency was removed, still compare the `releaseRuntimeClasspath` before and after, as `cleanup.md` says.
+- Skip its step 4 checks except the two `.claude/scripts` runs (`unused_imports.py` and `unused_dependencies.py`), which take seconds. Step 2d runs lint, step 2f builds the release bundle, step 4 runs the unit tests and measures coverage, and step 5 cleans every kind of file on the emulator with `check_media.py`, which covers `/verifyclean`. If a dependency was removed, still run `./gradlew :app:releaseDependencyGuard`, as `cleanup.md` says.
 - Skip its baseline profile edits: step 5 regenerates the profiles from the cleaned code.
 - If `./gradlew :app:compileDebugUnitTestJavaWithJavac -q` fails after a change, revert just that change. Then commit as `cleanup.md` describes.
 

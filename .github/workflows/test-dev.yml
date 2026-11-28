@@ -148,9 +148,35 @@ jobs:
       - name: Setup Android build
         uses: ./.github/actions/setup-android-build
 
+      # releaseDependencyGuard fails when a library is added, removed or changes version in the
+      # release classpath without app/dependencies/releaseRuntimeClasspath.txt changing with it.
       - name: Build release bundle
-        run: ./gradlew bundleRelease exportReleaseManifest
+        run: ./gradlew bundleRelease exportReleaseManifest releaseDependencyGuard
 
       # A library can add a permission or an exported component without touching our manifest.
       - name: Check the release manifest against app/release-manifest.txt
         run: python3 .github/scripts/check_release_manifest.py
+
+  # Sends the release classpath to GitHub's dependency graph, which turns on Dependabot alerts for
+  # Gradle libraries (dependabot.yml still opens version PRs for Actions only; /dependencies does
+  # Gradle). Only on a push to dev, so a pull request from a fork never runs with write access.
+  dependency-submission:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Android build
+        uses: ./.github/actions/setup-android-build
+
+      - name: Submit the release dependencies
+        uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          dependency-graph-include-projects: '^:app$'
+          dependency-graph-include-configurations: '^releaseRuntimeClasspath$'

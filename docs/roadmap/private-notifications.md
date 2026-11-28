@@ -4,7 +4,7 @@ Keeps what Redact's notifications say about a clean off the lock screen and off 
 
 | | |
 |---|---|
-| **Status** | Planned |
+| **Status** | Built. Still to do: the Phase 1 lock-screen check on the test emulator, with "hide sensitive content" off and on |
 | **Branch** | `dev` |
 | **Size** | Small. 3 phases, about one day |
 | **Depends on** | Nothing |
@@ -92,4 +92,4 @@ What still shows on the lock screen: Redact's icon and name, and while working, 
 
 ## Open decisions
 
-- Should the public text name the task ("Clean finished") or stay generic ("Finished")? Proposed: generic, since "Clean" hints at what was done.
+- Should the public text name the task ("Clean finished") or stay generic ("Finished")? Decided: generic ("Redact", "Working" or "Finished"), since "Clean" hints at what was done.

@@ -11,12 +11,12 @@ Plans for features that aren't built yet. Each one lists its phases, what's done
 | [Video Tracking](video-tracking.md) | Track a drawn area through a video and suggest faces, on the phone | Large | Planned |
 | [More Formats](more-formats.md) | Keep DNG raw photos as DNG, open TIFF, and test more video containers | Medium to large | Planned |
 | [Privacy Additions](privacy-additions.md) | Warnings about faces and text in a photo, suggested censor areas, screenshot cleanup, permanent delete and a camera fingerprint study | Large | Planned |
-| [Private Notifications](private-notifications.md) | Keep counts and locations removed off the lock screen and off paired watches | Small | Planned |
+| [Private Notifications](private-notifications.md) | Keep counts and locations removed off the lock screen and off paired watches | Small | Built (emulator lock-screen check left) |
 | [Video Censor Additions](video-censor-additions.md) | Mute or bleep part of a video's sound, trim or cut sections, and the brush on video | Large | Planned |
 | [Hidden Previews](hidden-previews.md) | Show the preview pictures hidden inside a photo in Scan, and warn when one shows more than the photo | Small to medium | Planned |
 | [Animated Censor](animated-censor.md) | Censor every frame of an animated GIF, WebP or PNG and keep it animated | Medium | Planned |
 | [Replace Originals](replace-originals.md) | Write the clean version over the original instead of saving a duplicate | Medium | Planned |
-| [Test and Build Guards](test-and-build-guards.md) | Pinned dependencies, a second metadata reader, a real Sentry SDK test, ArchUnit, NullAway, mutation testing and UI journeys | Large | Planned |
+| [Test and Build Guards](test-and-build-guards.md) | Pinned dependencies, a second metadata reader, a real Sentry SDK test, ArchUnit, NullAway, mutation testing and UI journeys | Large | Items 1 to 3 built (verification metadata pending), 4 to 10 planned |
 
 Privacy Additions and Video Tracking share the LiteRT runtime and YuNet face detector spike. Whichever starts first does it. Replace Originals and Privacy Additions' permanent delete share the choice of what happens to originals after a clean in the same way.
 

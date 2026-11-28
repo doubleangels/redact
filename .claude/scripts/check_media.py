@@ -9,12 +9,19 @@ whose header still names a device, creator or date or that keeps device or calib
 (Strict Clean, the default, replaces it), and a HEIF depth map, disparity map or matte,
 still or in a sequence. Exits 1 if any file fails. Needs Pillow, and ffprobe on PATH for videos.
 
+When exiftool is on PATH, it gives a second opinion on every file: it reads maker notes, unknown
+EXIF tags, XMP in any box and vendor trailers that Pillow and ffprobe skip, and any identifying
+tag it finds fails the file. Without it the script says "exiftool not found, second opinion
+skipped" once and checks the rest as before. Install it with `winget install exiftool` on
+Windows or `apt install libimage-exiftool-perl` on Linux.
+
 The EXIF placeholders Android's ExifInterface cannot clear (Orientation, ImageWidth, ImageLength
 and LightSource set to 0) are expected and not reported.
 """
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -130,6 +137,57 @@ def check_video(path):
     return f"{probe['format']['format_name'].split(',')[0]} {codecs}", problems
 
 
+EXIFTOOL = shutil.which("exiftool")
+# Groups (exiftool's family 0, or family 1 for XMP) that hold only what a picture or video needs,
+# or describe the file rather than its content. ICC profiles are checked by icc_problems above.
+EXIFTOOL_IGNORED = {"ExifTool", "File", "System", "Composite", "ICC_Profile", "JFIF", "APP14"}
+# XMP namespaces a kept Ultra HDR gain map or Motion Photo directory is made of.
+EXIFTOOL_PICTURE_XMP = {"XMP-GCamera", "XMP-Container", "XMP-Item", "XMP-hdrgm", "XMP-x", "XMP-rdf"}
+# Whole groups that are identifying whatever the tag: maker notes, IPTC, Photoshop, GPS.
+EXIFTOOL_IDENTIFYING_GROUPS = {"MakerNotes", "IPTC", "Photoshop", "GPS", "UserData"}
+EXIFTOOL_IDENTIFYING_TAG = re.compile(
+    r"(Make|Model|Software|Artist|Copyright|Owner|Serial|Date|Time$|Comment|Description|"
+    r"Author|Title|Creator|Location|GPS|Keywords|Encoder|HostComputer|UniqueID|DocumentName|"
+    r"^XP|Rights|Credit|Album|Genre|Publisher|Writer|URL|0x[0-9a-fA-F]+$)")
+GENERIC_HANDLER = re.compile(r"^((Video|Sound|Audio|Meta|Data)Handle[r]?|)$")
+UNSET_DATE = re.compile(r"^[0: ]*(\+00:00|Z)?$|^1904:01:01 00:00:00|^1970:01:01 00:00:00")
+
+
+def exiftool_problems(path):
+    """What exiftool finds that a Strict Clean should have removed, or None without exiftool."""
+    if EXIFTOOL is None:
+        return None
+    out = subprocess.run([EXIFTOOL, "-a", "-u", "-G0:1", "-j", "-n", path],
+                         capture_output=True, text=True).stdout
+    try:
+        tags = json.loads(out)[0]
+    except (ValueError, IndexError):
+        return ["exiftool could not read it"]
+    problems = []
+    for key, value in tags.items():
+        if ":" not in key:
+            continue  # SourceFile
+        groups, name = key.rsplit(":", 1)
+        family0, _, family1 = groups.partition(":")
+        if family0 in EXIFTOOL_IGNORED or name in ("Warning", "Error"):
+            continue
+        if family0 == "XMP":
+            if family1 not in EXIFTOOL_PICTURE_XMP:
+                problems.append(f"exiftool {family1}:{name}")
+            continue
+        if family0 in EXIFTOOL_IDENTIFYING_GROUPS or family1 in EXIFTOOL_IDENTIFYING_GROUPS:
+            problems.append(f"exiftool {family1 or family0}:{name}")
+            continue
+        if name == "HandlerDescription" and GENERIC_HANDLER.match(str(value)):
+            continue  # the track type a muxer names its handler after, nothing about the source
+        if EXIFTOOL_IDENTIFYING_TAG.search(name):
+            if "Date" in name or name.endswith("Time"):
+                if UNSET_DATE.match(str(value)) or not re.search(r"\d{4}", str(value)):
+                    continue  # a clean writes the date as unset, or it is a duration
+            problems.append(f"exiftool {family1 or family0}:{name}")
+    return problems
+
+
 def check(path):
     lower = path.lower()
     if lower.endswith(IMAGE_EXT):
@@ -152,11 +210,14 @@ def check(path):
             problems.append("XMP")
     if b"http://ns.adobe.com/xmp/extension/" in data:
         problems.append("Extended XMP")
+    problems += exiftool_problems(path) or []
     return info, sorted(set(problems))
 
 
 def main(paths):
     failed = 0
+    if EXIFTOOL is None:
+        print("exiftool not found, second opinion skipped")
     for root in paths:
         files = [root] if os.path.isfile(root) else sorted(
             os.path.join(d, f) for d, _, names in os.walk(root) for f in names)
