@@ -151,7 +151,7 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 - The timeline is the scrubber plus, while a rectangle is selected, that one area's range (a range slider, with **Whole Video**), not a row for every area. Dragging either end of the range shows the frame at that end.
 - A new area covers the whole video until its range is narrowed, since covering too much is the safe mistake.
 - The picker in Censor and the Censor share route in `MainActivity` take videos already, so the editor can be reached; the manifest filter, the Censor tile and Scan's action are still Phase 5.
-- In landscape the timeline sits in the right-hand column, which full screen hides, so full screen in landscape has no timeline yet.
+- In landscape the timeline sits under the photo on the left, so full screen keeps it; there it ends before whichever of the bottom-right buttons show.
 
 ## Phase 5. Entry points, reporting and docs
 
