@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">任務</string>
-    <string name="notification_channel_tasks_description">媒體轉換與清理完成</string>
+    <string name="notification_channel_tasks_description">相片和影片轉換與清理完成</string>
     <string name="notification_convert_title">轉換完成</string>
     <plurals name="notification_convert_done">
         <item quantity="other">已將 %1$d 個檔案儲存至相簿。</item>
@@ -46,7 +46,7 @@
     <string name="convert_select_files">選擇檔案</string>
     <string name="convert_run">轉換</string>
     <string name="convert_status_hint">在下方選擇輸出格式，然後點一下「轉換」。</string>
-    <string name="convert_status_ready">準備選擇要轉換的檔案。</string>
+    <string name="convert_status_ready">準備選擇要轉換的相片和影片。</string>
     <plurals name="summary_selected_files">
         <item quantity="other">已選取 %1$d 個檔案</item>
     </plurals>
@@ -68,7 +68,7 @@
 
     
     <string name="status_processing">處理中…</string>
-    <string name="status_first_select_media_files">請先選擇媒體檔案！</string>
+    <string name="status_first_select_media_files">請先選擇相片或影片。</string>
     <string name="status_permissions_required">需要權限！</string>
     <string name="status_requesting_permissions">正在請求權限…</string>
     <string name="status_analyzing">正在分析中繼資料…</string>
@@ -83,7 +83,7 @@
     
     <string name="share_processing_title">處理中…</string>
     <string name="share_chooser_title">透過…分享清理後的媒體檔案</string>
-    <string name="share_error_unsupported_media">不支援的媒體類型！</string>
+    <string name="share_error_unsupported_media">Redact 僅支援相片和影片。不支援此檔案類型。</string>
     <string name="share_error_unsupported_action">不支援的動作！</string>
 
     
@@ -165,7 +165,7 @@
     <string name="settings_notifications_convert_label">轉換完成</string>
     <string name="settings_notifications_convert_subtitle">在「轉換」分頁完成格式轉換時提醒。</string>
     <string name="settings_section_diagnostics">診斷與意見回饋</string>
-    <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的媒體絕不會離開裝置。</string>
+    <string name="settings_section_diagnostics_subtitle">可選的當機報告以協助修復問題。您的相片和影片絕不會離開裝置。</string>
     <string name="settings_crash_reporting_label">傳送當機報告</string>
     <string name="settings_crash_reporting_subtitle">僅分享匿名的技術資訊（App 版本、裝置型號、當機時 App 正在做什麼），絕不包含您的相片或影片。啟用後會透過網際網路傳送至我們的當機回報服務 Sentry。</string>
     <string name="settings_update_check_label">更新</string>
@@ -234,7 +234,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">取消</string>
-    <string name="clean_status_ready">準備選擇要清理的檔案。</string>
+    <string name="clean_status_ready">準備選擇要清理的相片和影片。</string>
     <string name="convert_codec_fallback">%1$s 無法使用；已改為儲存為 %2$s。</string>
     <string name="video_downscaled">這支手機無法以原始尺寸處理此影片，因此已儲存為 %1$dp。</string>
     <string name="notification_clean_failed">這次沒有成功清理任何檔案。</string>
@@ -269,7 +269,7 @@
     <string name="status_clean_done_partial">完成：%1$d 個已清理，%2$d 個失敗。</string>
     <string name="status_processing_cancelled">處理已取消。</string>
     <string name="settings_permission_partial">部分</string>
-    <string name="scan_status_ready">選擇檔案以掃描其中繼資料。</string>
+    <string name="scan_status_ready">選擇相片或影片以掃描其中繼資料。</string>
     <string name="animated_image_warning">動畫圖像將儲存為單一靜止畫面。</string>
     <string name="processing_warning_low_storage">儲存空間不足（剩餘 %1$s）。處理可能失敗，請在設定中清除暫存檔。</string>
     <string name="processing_warning_critical_storage_title">儲存空間不足</string>
@@ -322,13 +322,13 @@
     <string name="clean_empty_state_title">清理並移除中繼資料</string>
     <string name="clean_empty_state_description">選擇照片或影片，以移除 EXIF 標籤、GPS 位置、相機詳細資料和裝置識別碼。你也可以在任何應用程式中直接分享到 Redact。</string>
     <string name="clean_selected_hint">已準備好移除 EXIF 和位置資料。</string>
-    <string name="convert_empty_state_title">轉換媒體格式</string>
+    <string name="convert_empty_state_title">轉換相片和影片</string>
     <string name="convert_empty_state_description">選擇照片或影片，將其轉換為 JPEG、PNG、WebP、HEIC 或 MP4 格式。</string>
     <string name="convert_files_card_title">要轉換的檔案</string>
     <string name="convert_heic_fallback_jpeg">這支手機無法儲存 HEIC 圖片，因此將改為儲存為 JPEG。</string>
     <string name="convert_item_type_image">圖片</string>
     <string name="convert_item_type_video">影片</string>
-    <string name="scan_empty_state_title">檢查媒體中繼資料</string>
+    <string name="scan_empty_state_title">檢查相片和影片中繼資料</string>
     <string name="scan_empty_state_description">選擇照片或影片，以檢視 EXIF 詳細資料、相機規格、GPS 座標和技術屬性。</string>
     <string name="scan_grant_location_button">授予權限</string>
     <string name="settings_notifications_permission_denied">顯示提醒需要通知權限。</string>
@@ -548,15 +548,15 @@
     <string name="onboarding_welcome_title">歡迎使用 Redact！</string>
     <string name="onboarding_welcome_body">有了 Redact，你可以分享相片和影片，而不洩露個人資訊。這段簡短的介紹大約需要一分鐘。</string>
     <string name="onboarding_welcome_clean">清理會移除相片和影片中隱藏的資訊。</string>
-    <string name="onboarding_welcome_scan">掃描會在你分享之前，準確顯示檔案會透露哪些資訊。</string>
+    <string name="onboarding_welcome_scan">掃描會在你分享之前，準確顯示相片或影片會透露哪些資訊。</string>
     <string name="onboarding_welcome_convert">轉換會把相片或影片改成其他格式，並保持乾淨。</string>
-    <string name="onboarding_welcome_censor">「遮蔽」可遮住照片中的人臉、車牌以及其他應保持私密的內容。</string>
+    <string name="onboarding_welcome_censor">「遮蔽」可遮住相片和影片中的人臉、車牌以及其他應保持私密的內容。</string>
     <string name="onboarding_hidden_title">相片和影片透露的資訊可能比你想的更多。</string>
     <string name="onboarding_hidden_body">拍照或錄影時，手機會悄悄在檔案裡儲存額外的資訊。收到檔案的人可能都能讀取這些資訊。</string>
     <string name="onboarding_hidden_location">它們可能顯示你去過哪裡，有時精確到能找到你的住處。</string>
     <string name="onboarding_hidden_time">它們可能顯示拍攝的日期和時間。</string>
     <string name="onboarding_hidden_device">它們可能顯示你用的是哪支手機或相機。</string>
-    <string name="onboarding_private_title">你的檔案絕不會離開手機。</string>
+    <string name="onboarding_private_title">你的相片和影片絕不會離開手機。</string>
     <string name="onboarding_private_body">Redact 的所有處理都在你的手機上完成。它會儲存一份乾淨的副本供你分享，原始檔案保持原樣。</string>
     <string name="onboarding_private_offline">不會上傳任何內容，你的相片和影片始終保持私密。</string>
     <string name="onboarding_private_no_ads">沒有廣告，也不會追蹤你的操作。</string>

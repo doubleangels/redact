@@ -1,6 +1,6 @@
 <b>Tus fotos pueden revelar dónde vives.</b>
 Cada foto y vídeo puede llevar la ubicación GPS exacta, la fecha y la hora, y la marca y el modelo de tu móvil. Cualquiera que reciba el archivo original puede leerlo.
-Redact es un eliminador de metadatos y datos EXIF. Te muestra lo que revela un archivo y lo elimina, todo en tu dispositivo.
+Redact es un eliminador de metadatos y datos EXIF. Te muestra lo que revela una foto o un video y lo elimina, todo en tu dispositivo.
 Sin cuenta, sin subidas y sin anuncios.
 
 <b>Para quién es</b>

@@ -1,6 +1,6 @@
 <b>Vos photos peuvent révéler où vous habitez.</b>
 Chaque photo et vidéo peut contenir la position GPS exacte, la date et l'heure, ainsi que la marque et le modèle de votre téléphone. Toute personne qui reçoit le fichier original peut les lire.
-Redact supprime les métadonnées et les données EXIF. Il vous montre ce qu'un fichier révèle et l'efface, entièrement sur votre appareil.
+Redact supprime les métadonnées et les données EXIF. Il vous montre ce qu'une photo ou une vidéo révèle et l'efface, entièrement sur votre appareil.
 Pas de compte, pas d'envoi en ligne et pas de publicité.
 
 <b>Pour qui ?</b>

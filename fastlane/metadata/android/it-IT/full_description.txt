@@ -1,6 +1,6 @@
 <b>Le tue foto possono rivelare dove abiti.</b>
 Ogni foto e video può contenere la posizione GPS esatta, la data e l'ora, la marca e il modello del telefono. Chiunque riceva il file originale può leggerli.
-Redact rimuove metadati e dati EXIF. Ti mostra cosa rivela un file e lo elimina, interamente sul tuo dispositivo.
+Redact rimuove metadati e dati EXIF. Ti mostra cosa rivela una foto o un video e lo elimina, interamente sul tuo dispositivo.
 Nessun account, nessun caricamento e nessuna pubblicità.
 
 <b>A chi serve</b>

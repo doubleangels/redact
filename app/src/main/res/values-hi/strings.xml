@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">कार्य</string>
-    <string name="notification_channel_tasks_description">मीडिया बदलना और साफ़ करना पूरा हुआ</string>
+    <string name="notification_channel_tasks_description">फ़ोटो और वीडियो बदलना और साफ़ करना पूरा हुआ</string>
     <string name="notification_convert_title">रूपांतरण पूरा हुआ</string>
     <plurals name="notification_convert_done">
         <item quantity="one">%1$d फ़ाइल गैलरी में सहेजी गई।</item>
@@ -48,7 +48,7 @@
     <string name="convert_select_files">फ़ाइलें चुनें</string>
     <string name="convert_run">बदलें</string>
     <string name="convert_status_hint">नीचे आउटपुट फ़ॉर्मैट चुनें, फिर बदलें पर टैप करें।</string>
-    <string name="convert_status_ready">कन्वर्ट करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
+    <string name="convert_status_ready">कन्वर्ट करने के लिए फ़ोटो और वीडियो चुनने के लिए तैयार।</string>
     <plurals name="summary_selected_files">
         <item quantity="one">%1$d फ़ाइल चुनी गई</item>
         <item quantity="other">%1$d फ़ाइलें चुनी गईं</item>
@@ -71,7 +71,7 @@
 
     
     <string name="status_processing">प्रसंस्करण…</string>
-    <string name="status_first_select_media_files">कृपया पहले मीडिया फ़ाइलें चुनें।</string>
+    <string name="status_first_select_media_files">कृपया पहले कुछ फ़ोटो या वीडियो चुनें।</string>
     <string name="status_permissions_required">अनुमतियां आवश्यक।</string>
     <string name="status_requesting_permissions">अनुमतियां अनुरोध कर रहे हैं…</string>
     <string name="status_analyzing">मेटाडेटा विश्लेषण कर रहे हैं…</string>
@@ -86,7 +86,7 @@
     
     <string name="share_processing_title">प्रसंस्करण…</string>
     <string name="share_chooser_title">साफ मीडिया फ़ाइल साझा करें…</string>
-    <string name="share_error_unsupported_media">असमर्थित मीडिया प्रकार।</string>
+    <string name="share_error_unsupported_media">Redact सिर्फ़ फ़ोटो और वीडियो के साथ काम करता है। यह फ़ाइल प्रकार समर्थित नहीं है।</string>
     <string name="share_error_unsupported_action">असमर्थित क्रिया।</string>
 
     
@@ -169,7 +169,7 @@
     <string name="settings_notifications_convert_label">रूपांतरण पूर्ण</string>
     <string name="settings_notifications_convert_subtitle">रूपांतरित टैब पर प्रारूप रूपांतरण पूरा होने पर अलर्ट।</string>
     <string name="settings_section_diagnostics">निदान और प्रतिक्रिया</string>
-    <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपका मीडिया कभी डिवाइस से बाहर नहीं जाता।</string>
+    <string name="settings_section_diagnostics_subtitle">क्रैश ठीक करने के लिए वैकल्पिक रिपोर्ट। आपकी फ़ोटो और वीडियो कभी डिवाइस से बाहर नहीं जाते।</string>
     <string name="settings_crash_reporting_label">क्रैश रिपोर्ट भेजें</string>
     <string name="settings_crash_reporting_subtitle">केवल अनाम तकनीकी विवरण साझा करता है (ऐप संस्करण, डिवाइस मॉडल, क्रैश होने पर ऐप क्या कर रहा था), आपकी फ़ोटो या वीडियो कभी नहीं। सक्षम होने पर हमारी क्रैश-रिपोर्टिंग सेवा, Sentry, को इंटरनेट पर भेजा जाता है।</string>
     <string name="settings_update_check_label">अपडेट</string>
@@ -238,7 +238,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">रद्द करें</string>
-    <string name="clean_status_ready">साफ़ करने के लिए फ़ाइलें चुनने के लिए तैयार।</string>
+    <string name="clean_status_ready">साफ़ करने के लिए फ़ोटो और वीडियो चुनने के लिए तैयार।</string>
     <string name="convert_codec_fallback">%1$s उपलब्ध नहीं; इसके बजाय %2$s के रूप में सहेजा गया।</string>
     <string name="video_downscaled">%1$dp पर सहेजा गया क्योंकि यह फ़ोन वीडियो को पूरे आकार में प्रोसेस नहीं कर सका।</string>
     <string name="notification_clean_failed">इस बार कोई फ़ाइल साफ़ नहीं की जा सकी।</string>
@@ -276,7 +276,7 @@
     <string name="status_clean_done_partial">पूर्ण: %1$d साफ़, %2$d विफल।</string>
     <string name="status_processing_cancelled">प्रसंस्करण रद्द किया गया।</string>
     <string name="settings_permission_partial">आंशिक</string>
-    <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए एक फ़ाइल चुनें।</string>
+    <string name="scan_status_ready">मेटाडेटा स्कैन करने के लिए एक फ़ोटो या वीडियो चुनें।</string>
     <string name="animated_image_warning">एनिमेटेड छवियाँ एक स्थिर फ़्रेम के रूप में सहेजी जाती हैं।</string>
     <string name="processing_warning_low_storage">कम संग्रहण (%1$s खाली)। प्रसंस्करण विफल हो सकता है। सेटिंग्स में अस्थायी फ़ाइलें साफ़ करें।</string>
     <string name="processing_warning_critical_storage_title">पर्याप्त संग्रहण नहीं</string>
@@ -329,13 +329,13 @@
     <string name="clean_empty_state_title">मेटाडेटा साफ़ करें और हटाएँ</string>
     <string name="clean_empty_state_description">EXIF टैग, GPS स्थान, कैमरा विवरण और डिवाइस पहचानकर्ता हटाने के लिए फ़ोटो या वीडियो चुनें। आप किसी भी ऐप से उन्हें सीधे Redact पर शेयर भी कर सकते हैं।</string>
     <string name="clean_selected_hint">EXIF और स्थान डेटा हटाने के लिए तैयार।</string>
-    <string name="convert_empty_state_title">मीडिया फ़ॉर्मैट बदलें</string>
+    <string name="convert_empty_state_title">फ़ोटो और वीडियो बदलें</string>
     <string name="convert_empty_state_description">फ़ोटो या वीडियो को JPEG, PNG, WebP, HEIC या MP4 फ़ॉर्मैट में बदलने के लिए चुनें।</string>
     <string name="convert_files_card_title">बदलने के लिए फ़ाइलें</string>
     <string name="convert_heic_fallback_jpeg">यह फ़ोन HEIC चित्र सहेज नहीं सकता, इसलिए वे JPEG के रूप में सहेजे जाएँगे।</string>
     <string name="convert_item_type_image">चित्र</string>
     <string name="convert_item_type_video">वीडियो</string>
-    <string name="scan_empty_state_title">मीडिया मेटाडेटा जाँचें</string>
+    <string name="scan_empty_state_title">फ़ोटो और वीडियो का मेटाडेटा जाँचें</string>
     <string name="scan_empty_state_description">EXIF विवरण, कैमरा विनिर्देश, GPS निर्देशांक और तकनीकी गुण देखने के लिए कोई फ़ोटो या वीडियो चुनें।</string>
     <string name="scan_grant_location_button">अनुमति दें</string>
     <string name="settings_notifications_permission_denied">अलर्ट दिखाने के लिए सूचना की अनुमति ज़रूरी है।</string>
@@ -563,15 +563,15 @@
     <string name="onboarding_welcome_title">Redact में आपका स्वागत है!</string>
     <string name="onboarding_welcome_body">Redact की मदद से आप अपनी निजी जानकारी बताए बिना फ़ोटो और वीडियो शेयर कर सकते हैं। यह छोटा-सा परिचय लगभग एक मिनट का है।</string>
     <string name="onboarding_welcome_clean">साफ़ करें आपकी फ़ोटो और वीडियो से छिपी जानकारी हटा देता है।</string>
-    <string name="onboarding_welcome_scan">स्कैन करें शेयर करने से पहले आपको ठीक-ठीक दिखाता है कि फ़ाइल क्या बताती है।</string>
+    <string name="onboarding_welcome_scan">स्कैन करें शेयर करने से पहले आपको ठीक-ठीक दिखाता है कि फ़ोटो या वीडियो क्या बताता है।</string>
     <string name="onboarding_welcome_convert">बदलें किसी फ़ोटो या वीडियो को दूसरे फ़ॉर्मैट में बदलता है और उसे साफ़ रखता है।</string>
-    <string name="onboarding_welcome_censor">छिपाएँ फ़ोटो में चेहरे, नंबर प्लेट और जो कुछ भी निजी रहना चाहिए, उसे ढक देता है।</string>
+    <string name="onboarding_welcome_censor">छिपाएँ फ़ोटो या वीडियो में चेहरे, नंबर प्लेट और जो कुछ भी निजी रहना चाहिए, उसे ढक देता है।</string>
     <string name="onboarding_hidden_title">आपकी फ़ोटो और वीडियो आपकी सोच से ज़्यादा बता सकते हैं।</string>
     <string name="onboarding_hidden_body">जब आप फ़ोटो या वीडियो लेते हैं, तो आपका फ़ोन चुपचाप फ़ाइल के अंदर अतिरिक्त जानकारी सहेज लेता है। जिसे भी आप फ़ाइल भेजते हैं, वह इसे पढ़ सकता है।</string>
     <string name="onboarding_hidden_location">यह बता सकती है कि आप कहाँ थे, कभी-कभी इतना सटीक कि आपका घर ढूँढा जा सके।</string>
     <string name="onboarding_hidden_time">यह बता सकती है कि आपने इसे किस तारीख और समय पर लिया।</string>
     <string name="onboarding_hidden_device">यह बता सकती है कि आपने कौन-सा फ़ोन या कैमरा इस्तेमाल किया।</string>
-    <string name="onboarding_private_title">आपकी फ़ाइलें कभी आपके फ़ोन से बाहर नहीं जातीं।</string>
+    <string name="onboarding_private_title">आपकी फ़ोटो और वीडियो कभी आपके फ़ोन से बाहर नहीं जाते।</string>
     <string name="onboarding_private_body">Redact सारा काम यहीं आपके फ़ोन पर करता है। यह शेयर करने के लिए एक साफ़ कॉपी सहेजता है और आपकी मूल फ़ाइल को जैसी थी वैसी ही छोड़ देता है।</string>
     <string name="onboarding_private_offline">कुछ भी अपलोड नहीं होता, इसलिए आपकी फ़ोटो और वीडियो निजी रहते हैं।</string>
     <string name="onboarding_private_no_ads">कोई विज्ञापन नहीं है, और आप क्या करते हैं इस पर कोई नज़र नहीं रखता।</string>

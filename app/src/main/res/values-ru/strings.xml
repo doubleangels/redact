@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">Задачи</string>
-    <string name="notification_channel_tasks_description">Конвертация и очистка медиафайлов завершены</string>
+    <string name="notification_channel_tasks_description">Конвертация и очистка фото и видео завершены</string>
     <string name="notification_convert_title">Конвертация Завершена</string>
     <plurals name="notification_convert_done">
         <item quantity="one">Сохранён %1$d файл в галерее.</item>
@@ -52,7 +52,7 @@
     <string name="convert_select_files">Выбрать Файлы</string>
     <string name="convert_run">Конвертировать</string>
     <string name="convert_status_hint">Выберите формат вывода ниже и нажмите «Конвертировать».</string>
-    <string name="convert_status_ready">Готово к выбору файлов для конвертации.</string>
+    <string name="convert_status_ready">Готово к выбору фото и видео для конвертации.</string>
     <plurals name="summary_selected_files">
         <item quantity="one">Выбран %1$d файл</item>
         <item quantity="few">Выбрано %1$d файла</item>
@@ -77,7 +77,7 @@
 
     
     <string name="status_processing">Обработка…</string>
-    <string name="status_first_select_media_files">Пожалуйста, сначала выберите медиафайлы.</string>
+    <string name="status_first_select_media_files">Сначала выберите фото или видео.</string>
     <string name="status_permissions_required">Требуются разрешения.</string>
     <string name="status_requesting_permissions">Запрос разрешений…</string>
     <string name="status_analyzing">Анализ метаданных…</string>
@@ -92,7 +92,7 @@
     
     <string name="share_processing_title">Обработка…</string>
     <string name="share_chooser_title">Поделиться очищенным медиафайлом через…</string>
-    <string name="share_error_unsupported_media">Неподдерживаемый тип медиа.</string>
+    <string name="share_error_unsupported_media">Redact работает только с фото и видео. Этот тип файла не поддерживается.</string>
     <string name="share_error_unsupported_action">Неподдерживаемое действие.</string>
 
     
@@ -177,7 +177,7 @@
     <string name="settings_notifications_convert_label">Конвертация Завершена</string>
     <string name="settings_notifications_convert_subtitle">Оповещение о завершении конвертации формата на вкладке Конвертация.</string>
     <string name="settings_section_diagnostics">Диагностика и Отзывы</string>
-    <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши медиафайлы никогда не покидают устройство.</string>
+    <string name="settings_section_diagnostics_subtitle">Необязательные отчёты о сбоях. Ваши фото и видео никогда не покидают устройство.</string>
     <string name="settings_crash_reporting_label">Отправлять Отчёты о Сбоях</string>
     <string name="settings_crash_reporting_subtitle">Передаёт только анонимные технические данные (версия приложения, модель устройства, что делало приложение в момент сбоя), никогда не ваши фото или видео. Отправляется через интернет в наш сервис отчётов о сбоях, Sentry, при включении.</string>
     <string name="settings_update_check_label">Обновления</string>
@@ -246,7 +246,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Отмена</string>
-    <string name="clean_status_ready">Готово к выбору файлов для очистки.</string>
+    <string name="clean_status_ready">Готово к выбору фото и видео для очистки.</string>
     <string name="convert_codec_fallback">%1$s недоступен; сохранено как %2$s.</string>
     <string name="video_downscaled">Сохранено в %1$dp, так как этот телефон не смог обработать видео в полном размере.</string>
     <string name="notification_clean_failed">На этот раз не удалось очистить ни одного файла.</string>
@@ -290,7 +290,7 @@
     <string name="status_clean_done_partial">Готово: %1$d очищено, %2$d не удалось.</string>
     <string name="status_processing_cancelled">Обработка отменена.</string>
     <string name="settings_permission_partial">Частично</string>
-    <string name="scan_status_ready">Выберите файл для просмотра метаданных.</string>
+    <string name="scan_status_ready">Выберите фото или видео для просмотра метаданных.</string>
     <string name="animated_image_warning">Анимированные изображения сохраняются как один кадр.</string>
     <string name="processing_warning_low_storage">Мало места (%1$s свободно). Обработка может не удаться. Очистите временные файлы в Настройках.</string>
     <string name="processing_warning_critical_storage_title">Недостаточно Места</string>
@@ -343,13 +343,13 @@
     <string name="clean_empty_state_title">Очистка и Удаление Метаданных</string>
     <string name="clean_empty_state_description">Выберите фото или видео, чтобы удалить теги EXIF, геопозицию GPS, сведения о камере и идентификаторы устройства. Также можно поделиться ими с Redact прямо из любого приложения.</string>
     <string name="clean_selected_hint">Готово к удалению данных EXIF и местоположения.</string>
-    <string name="convert_empty_state_title">Конвертация Форматов Мультимедиа</string>
+    <string name="convert_empty_state_title">Конвертация Фото и Видео</string>
     <string name="convert_empty_state_description">Выберите фото или видео, чтобы конвертировать их в форматы JPEG, PNG, WebP, HEIC или MP4.</string>
     <string name="convert_files_card_title">Файлы для Конвертации</string>
     <string name="convert_heic_fallback_jpeg">Этот телефон не может сохранять изображения в HEIC, поэтому они будут сохранены в JPEG.</string>
     <string name="convert_item_type_image">Изображение</string>
     <string name="convert_item_type_video">Видео</string>
-    <string name="scan_empty_state_title">Просмотр Метаданных Мультимедиа</string>
+    <string name="scan_empty_state_title">Просмотр Метаданных Фото и Видео</string>
     <string name="scan_empty_state_description">Выберите фото или видео, чтобы увидеть сведения EXIF, характеристики камеры, координаты GPS и технические свойства.</string>
     <string name="scan_grant_location_button">Предоставить Разрешение</string>
     <string name="settings_notifications_permission_denied">Для показа уведомлений требуется разрешение на уведомления.</string>
@@ -593,15 +593,15 @@
     <string name="onboarding_welcome_title">Добро Пожаловать в Redact!</string>
     <string name="onboarding_welcome_body">Redact помогает делиться фото и видео, не раскрывая личные данные. Это короткое знакомство займёт около минуты.</string>
     <string name="onboarding_welcome_clean">Очистка удаляет скрытые сведения из ваших фото и видео.</string>
-    <string name="onboarding_welcome_scan">Сканирование точно показывает, что раскрывает файл, прежде чем вы им поделитесь.</string>
+    <string name="onboarding_welcome_scan">Сканирование точно показывает, что раскрывает фото или видео, прежде чем вы им поделитесь.</string>
     <string name="onboarding_welcome_convert">Конвертация меняет формат фото или видео и сохраняет его чистым.</string>
-    <string name="onboarding_welcome_censor">Скрытие закрывает лица, номера машин и всё остальное на фото, что должно остаться личным.</string>
+    <string name="onboarding_welcome_censor">Скрытие закрывает лица, номера машин и всё остальное на фото и видео, что должно остаться личным.</string>
     <string name="onboarding_hidden_title">Ваши фото и видео могут рассказать больше, чем вы думаете.</string>
     <string name="onboarding_hidden_body">Когда вы снимаете фото или видео, телефон незаметно сохраняет в файле дополнительные сведения. Любой, кому вы отправите файл, может их прочитать.</string>
     <string name="onboarding_hidden_location">Они могут показать, где вы были, иногда настолько точно, что можно найти ваш дом.</string>
     <string name="onboarding_hidden_time">Они могут показать дату и время съёмки.</string>
     <string name="onboarding_hidden_device">Они могут показать, каким телефоном или камерой вы снимали.</string>
-    <string name="onboarding_private_title">Ваши файлы никогда не покидают телефон.</string>
+    <string name="onboarding_private_title">Ваши фото и видео никогда не покидают телефон.</string>
     <string name="onboarding_private_body">Redact выполняет всю работу прямо на вашем телефоне. Он сохраняет чистую копию, которой можно поделиться, а оригинал оставляет без изменений.</string>
     <string name="onboarding_private_offline">Ничего не загружается, поэтому ваши фото и видео остаются личными.</string>
     <string name="onboarding_private_no_ads">Здесь нет рекламы, и ничто не следит за вашими действиями.</string>

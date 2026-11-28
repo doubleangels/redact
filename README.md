@@ -5,8 +5,8 @@
 <h1 align="center">Redact</h1>
 
 <p align="center">
-  <strong>Privacy &amp; metadata remover for Android.</strong><br>
-  Strip the hidden location, device and time details from your photos and videos, check exactly what a file reveals before you share it, and convert formats, all on your phone.
+  <strong>Photo and video metadata remover for Android.</strong><br>
+  Strip the hidden location, device and time details from your photos and videos, check exactly what one reveals before you share it, and convert formats, all on your phone.
 </p>
 
 <p align="center">
@@ -73,9 +73,11 @@ Every photo and video your phone takes carries a hidden label called **metadata*
 - notes added by editing and social apps, such as captions, credits and comments,
 - extras tucked inside the file: small preview images (sometimes with their own location), the short video in a Motion Photo, and phone makers' own records.
 
-Most apps and websites do not show you this, but anyone who receives the original file can read it. Redact removes it, lets you inspect what a file contains before you send it, and converts between formats, **without your files ever leaving your device**.
+Most apps and websites do not show you this, but anyone who receives the original file can read it. Redact removes it, lets you inspect what a photo or video contains before you send it, and converts between formats, **without your files ever leaving your device**.
 
 > **Short version:** pick a photo or video, tap **Clean Metadata**, and share the clean copy that Redact saves to your gallery.
+
+Redact works with photos and videos only. Documents, PDFs and audio files aren't supported, and Redact says so if you share one to it.
 
 ---
 

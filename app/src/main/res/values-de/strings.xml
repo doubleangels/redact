@@ -14,7 +14,7 @@
 
     
     <string name="notification_channel_tasks_name">Aufgaben</string>
-    <string name="notification_channel_tasks_description">Medienkonvertierung und -bereinigung abgeschlossen</string>
+    <string name="notification_channel_tasks_description">Konvertierung und Bereinigung von Fotos und Videos abgeschlossen</string>
     <string name="notification_convert_title">Konvertierung Abgeschlossen</string>
     <plurals name="notification_convert_done">
         <item quantity="one">%1$d Datei in der Galerie gespeichert.</item>
@@ -48,7 +48,7 @@
     <string name="convert_select_files">Dateien Auswählen</string>
     <string name="convert_run">Konvertieren</string>
     <string name="convert_status_hint">Unten ein Ausgabeformat wählen, dann auf „Konvertieren“ tippen.</string>
-    <string name="convert_status_ready">Bereit, Dateien zum Konvertieren auszuwählen.</string>
+    <string name="convert_status_ready">Bereit, Fotos und Videos zum Konvertieren auszuwählen.</string>
     <plurals name="summary_selected_files">
         <item quantity="one">%1$d Datei ausgewählt</item>
         <item quantity="other">%1$d Dateien ausgewählt</item>
@@ -71,7 +71,7 @@
 
     
     <string name="status_processing">Wird verarbeitet…</string>
-    <string name="status_first_select_media_files">Bitte wählen Sie zuerst Mediendateien aus.</string>
+    <string name="status_first_select_media_files">Bitte wählen Sie zuerst Fotos oder Videos aus.</string>
     <string name="status_permissions_required">Berechtigungen erforderlich.</string>
     <string name="status_requesting_permissions">Berechtigungen werden angefordert…</string>
     <string name="status_analyzing">Metadaten werden analysiert…</string>
@@ -86,7 +86,7 @@
     
     <string name="share_processing_title">Wird verarbeitet…</string>
     <string name="share_chooser_title">Bereinigte Mediendatei teilen über…</string>
-    <string name="share_error_unsupported_media">Nicht unterstützter Medientyp.</string>
+    <string name="share_error_unsupported_media">Redact funktioniert nur mit Fotos und Videos. Dieser Dateityp wird nicht unterstützt.</string>
     <string name="share_error_unsupported_action">Nicht unterstützte Aktion.</string>
 
     
@@ -169,7 +169,7 @@
     <string name="settings_notifications_convert_label">Konvertierung Abgeschlossen</string>
     <string name="settings_notifications_convert_subtitle">Hinweis, wenn die Formatkonvertierung auf Konvertieren fertig ist.</string>
     <string name="settings_section_diagnostics">Diagnose &amp; Feedback</string>
-    <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Medien verlassen nie das Gerät.</string>
+    <string name="settings_section_diagnostics_subtitle">Optionale Absturzberichte helfen bei Fehlerbehebung. Ihre Fotos und Videos verlassen nie das Gerät.</string>
     <string name="settings_crash_reporting_label">Absturzberichte Senden</string>
     <string name="settings_crash_reporting_subtitle">Teilt nur anonymisierte technische Details (App-Version, Gerätemodell, was die App beim Absturz gerade tat), niemals Ihre Fotos oder Videos. Wird bei Aktivierung über das Internet an unseren Absturzbericht-Dienst Sentry gesendet.</string>
     <string name="settings_update_check_label">Updates</string>
@@ -237,7 +237,7 @@
     <string name="url_terms_of_use">https://doubleangels.github.io/privacypolicy/redact-terms.html</string>
     <string name="url_report_issue">https://github.com/doubleangels/redact/issues</string>
     <string name="button_cancel">Abbrechen</string>
-    <string name="clean_status_ready">Bereit, Dateien zum Bereinigen auszuwählen.</string>
+    <string name="clean_status_ready">Bereit, Fotos und Videos zum Bereinigen auszuwählen.</string>
     <string name="convert_codec_fallback">%1$s nicht verfügbar; stattdessen als %2$s gespeichert.</string>
     <string name="video_downscaled">In %1$dp gespeichert, da dieses Telefon das Video nicht in voller Größe verarbeiten konnte.</string>
     <string name="notification_clean_failed">Diesmal konnten keine Dateien bereinigt werden.</string>
@@ -328,13 +328,13 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="clean_empty_state_title">Metadaten Bereinigen und Entfernen</string>
     <string name="clean_empty_state_description">Fotos oder Videos auswählen, um EXIF-Tags, GPS-Standort, Kameradetails und Gerätekennungen zu entfernen. Du kannst sie auch direkt aus jeder App mit Redact teilen.</string>
     <string name="clean_selected_hint">Bereit, EXIF- und Standortdaten zu entfernen.</string>
-    <string name="convert_empty_state_title">Medienformate Konvertieren</string>
+    <string name="convert_empty_state_title">Fotos und Videos Konvertieren</string>
     <string name="convert_empty_state_description">Fotos oder Videos auswählen, um sie in die Formate JPEG, PNG, WebP, HEIC oder MP4 zu konvertieren.</string>
     <string name="convert_files_card_title">Zu Konvertierende Dateien</string>
     <string name="convert_heic_fallback_jpeg">Dieses Handy kann keine HEIC-Bilder speichern, daher werden sie stattdessen als JPEG gespeichert.</string>
     <string name="convert_item_type_image">Bild</string>
     <string name="convert_item_type_video">Video</string>
-    <string name="scan_empty_state_title">Medien-Metadaten Prüfen</string>
+    <string name="scan_empty_state_title">Foto- und Video-Metadaten Prüfen</string>
     <string name="scan_empty_state_description">Foto oder Video auswählen, um EXIF-Details, Kameradaten, GPS-Koordinaten und technische Eigenschaften anzuzeigen.</string>
     <string name="scan_grant_location_button">Berechtigung Erteilen</string>
     <string name="settings_notifications_permission_denied">Zum Anzeigen von Benachrichtigungen ist die Benachrichtigungsberechtigung erforderlich.</string>
@@ -562,15 +562,15 @@ Nur aktivieren, wenn Sie den Standort absichtlich behalten möchten.</string>
     <string name="onboarding_welcome_title">Willkommen bei Redact!</string>
     <string name="onboarding_welcome_body">Mit Redact teilst du Fotos und Videos, ohne deine privaten Details preiszugeben. Diese kurze Tour dauert etwa eine Minute.</string>
     <string name="onboarding_welcome_clean">Bereinigen entfernt die versteckten Details aus deinen Fotos und Videos.</string>
-    <string name="onboarding_welcome_scan">Scannen zeigt dir genau, was eine Datei verrät, bevor du sie teilst.</string>
+    <string name="onboarding_welcome_scan">Scannen zeigt dir genau, was ein Foto oder Video verrät, bevor du es teilst.</string>
     <string name="onboarding_welcome_convert">Konvertieren wandelt ein Foto oder Video in ein anderes Format um und hält es dabei sauber.</string>
-    <string name="onboarding_welcome_censor">Zensieren verdeckt Gesichter, Kennzeichen und alles andere in einem Foto, was privat bleiben soll.</string>
+    <string name="onboarding_welcome_censor">Zensieren verdeckt Gesichter, Kennzeichen und alles andere in einem Foto oder Video, was privat bleiben soll.</string>
     <string name="onboarding_hidden_title">Deine Fotos und Videos verraten mehr, als du denkst.</string>
     <string name="onboarding_hidden_body">Wenn du ein Foto oder Video aufnimmst, speichert dein Handy unbemerkt zusätzliche Informationen in der Datei. Wer die Datei von dir bekommt, kann sie unter Umständen lesen.</string>
     <string name="onboarding_hidden_location">Sie können zeigen, wo du warst, manchmal so genau, dass man dein Zuhause finden kann.</string>
     <string name="onboarding_hidden_time">Sie können zeigen, wann genau du es aufgenommen hast.</string>
     <string name="onboarding_hidden_device">Sie können zeigen, welches Handy oder welche Kamera du benutzt hast.</string>
-    <string name="onboarding_private_title">Deine Dateien verlassen nie dein Handy.</string>
+    <string name="onboarding_private_title">Deine Fotos und Videos verlassen nie dein Handy.</string>
     <string name="onboarding_private_body">Redact erledigt alles direkt auf deinem Handy. Es speichert eine saubere Kopie zum Teilen und lässt dein Original genau so, wie es war.</string>
     <string name="onboarding_private_offline">Nichts wird hochgeladen, deine Fotos und Videos bleiben also privat.</string>
     <string name="onboarding_private_no_ads">Es gibt keine Werbung, und nichts verfolgt, was du tust.</string>
