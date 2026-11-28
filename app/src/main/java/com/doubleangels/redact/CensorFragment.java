@@ -20,6 +20,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
@@ -620,6 +621,7 @@ public class CensorFragment extends TabFragment {
         }
         fullScreenCallback.setEnabled(on);
         setImmersive(on);
+        fitTimelineBesideActions();
     }
 
     private void setImmersive(boolean immersive) {
@@ -834,6 +836,7 @@ public class CensorFragment extends TabFragment {
         }
 
         unsavedEditsCallback.setEnabled(!isHidden() && unsaved);
+        fitTimelineBesideActions();
 
         // The hint explains how to start; once something is covered it only takes the photo's room.
         if (viewModel.hasEdits()) {
@@ -1053,6 +1056,41 @@ public class CensorFragment extends TabFragment {
                 });
             }
         }, "redact-censor-checks").start();
+    }
+
+    /**
+     * In landscape full screen the column is hidden and the timeline reaches the right edge, where
+     * Save Copy, Share, Scan Result and Open sit: it ends before the first of them that shows.
+     * Otherwise it ends at the column (or the edge, in portrait) as laid out.
+     */
+    private void fitTimelineBesideActions() {
+        if (column == null || videoControls == null) {
+            return;
+        }
+        videoControls.post(() -> {
+            if (getView() == null) {
+                return;
+            }
+            View root = getView();
+            int clear = 0;
+            if (column.getVisibility() != View.VISIBLE && videoControls.getVisibility() == View.VISIBLE) {
+                for (View action : new View[] {saveButton, shareButton, scanResultButton, openResultButton}) {
+                    if (action.getVisibility() == View.VISIBLE && action.getWidth() > 0) {
+                        clear = Math.max(clear, root.getWidth() - action.getLeft());
+                    }
+                }
+            }
+            if (!(videoControls.getLayoutParams() instanceof ConstraintLayout.LayoutParams lp)) {
+                return;
+            }
+            // The column is gone in full screen, so the margin that applies is the gone one.
+            float density = getResources().getDisplayMetrics().density;
+            int end = clear > 0 ? clear + Math.round(8 * density) : Math.round(16 * density);
+            if (lp.goneEndMargin != end) {
+                lp.goneEndMargin = end;
+                videoControls.setLayoutParams(lp);
+            }
+        });
     }
 
     /** Shows "2×" while zoomed in, so the way back to the whole photo is one tap away. */
