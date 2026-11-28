@@ -4,7 +4,7 @@ Extends Censor from photos to videos, so people can pixelate, blur or black out 
 
 | | |
 |---|---|
-| **Status** | Built (Phases 1 to 6, keyframes without automatic tracking). Still to try: a true 4K export on a phone, dark theme and a foldable |
+| **Status** | Built (Phases 1 to 6, keyframes without automatic tracking). Still to try: a true 4K export on a phone whose encoder takes 4K |
 | **Branch** | `dev` |
 | **Size** | Large. 6 phases, the biggest of the four media roadmaps |
 | **Depends on** | Nothing. Uses Media3 Transformer and effect (`1.11.1`), already in the app |
@@ -144,7 +144,7 @@ Pull the block size and noise rules out of `CensorEffects` so photos and videos 
 **Done when**
 
 - [x] A user can add, move, resize and time several areas, preview them, and save. Tried on `Pixel_10_Pro`: an area timed from 0:00 to 0:03 of a 6 second video saved black for those seconds and untouched after.
-- [ ] The editor works in light, dark, Arabic, at 200% font size, on a foldable and with a keyboard. Arabic at 200% tried on `Pixel_10_Pro`: the floating toolbar ran off the right edge (its card was placed from the start side while FloatingToolbar offsets it from the left), and the area's range slider was squeezed to a sliver; both fixed. The scrubber takes arrow keys (`CensorFragmentTest`). Dark and a foldable are still to try.
+- [x] The editor works in light, dark, Arabic, at 200% font size, on a foldable and with a keyboard. Arabic at 200% tried on `Pixel_10_Pro`: the floating toolbar ran off the right edge (its card was placed from the start side while FloatingToolbar offsets it from the left), and the area's range slider was squeezed to a sliver; both fixed. The scrubber takes arrow keys (`CensorFragmentTest`). Dark theme, and a 2208 x 1840 unfolded-foldable size (which gets the landscape layout), look right with every row showing.
 
 **As built**
 
